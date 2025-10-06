@@ -13,6 +13,13 @@ export type PlayerHistoryItem = {
     revokedAt?: number;
 }
 
+export type MuteStatusType = {
+    isActive: true;
+    expiration: number | null;
+    reason: string;
+    author: string;
+} | null;
+
 export type PlayerModalPlayerData = {
     //common
     displayName: string;
@@ -38,6 +45,7 @@ export type PlayerModalPlayerData = {
     oldHwids?: string[]; //will also include the current ones
     tsLastConnection?: number; //only show if offline
     isWagerBlacklisted?: boolean;
+    muteStatus?: MuteStatusType;
 }
 
 export type PlayerModalSuccess = {

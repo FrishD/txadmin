@@ -47,6 +47,10 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleKick(ctx, player));
     } else if (action === 'wagerblacklist') {
         return sendTypedResp(await handleWagerBlacklist(ctx, player));
+    } else if (action === 'mute') {
+        return sendTypedResp(await handleMute(ctx, player));
+    } else if (action === 'unmute') {
+        return sendTypedResp(await handleUnmute(ctx, player));
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -451,4 +455,86 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
     }
 
     return { success: true };
+}
+
+
+/**
+ * Handle Mute Player
+ */
+async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Checking request
+    if (anyUndefined(
+        ctx.request.body,
+        ctx.request.body.duration,
+        ctx.request.body.reason,
+    )) {
+        return { error: 'Invalid request.' };
+    }
+    const durationInput = ctx.request.body.duration as string;
+    const reason = (ctx.request.body.reason as string).trim() || 'no reason provided';
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.mute', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    if (!player.license) {
+        return { error: 'Player does not have a license.' };
+    }
+
+    //Calculating expiration/duration
+    let expiration: number | null;
+    if (durationInput.trim().toLowerCase() === 'permanent') {
+        expiration = null;
+    } else {
+        try {
+            const calcResults = calcExpirationFromDuration(durationInput);
+            if (calcResults.expiration === false) {
+                expiration = null;
+            } else {
+                expiration = calcResults.expiration;
+            }
+        } catch (error) {
+            return { error: `Invalid duration: ${(error as Error).message}` };
+        }
+    }
+
+    try {
+        await txCore.database.mutes.addMute(player.license, ctx.admin.name, expiration, reason);
+        txCore.fxRunner.sendEvent('txaMutePlayer', {
+            license: player.license,
+            author: ctx.admin.name,
+        });
+        ctx.admin.logAction(`Muted player "${player.displayName}": ${reason}`);
+        return { success: true };
+    } catch (error) {
+        return { error: `Failed to mute player: ${(error as Error).message}` };
+    }
+}
+
+
+/**
+ * Handle Unmute Player
+ */
+async function handleUnmute(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Check permissions
+    if (!ctx.admin.testPermission('players.mute', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    if (!player.license) {
+        return { error: 'Player does not have a license.' };
+    }
+
+    try {
+        await txCore.database.mutes.removeMute(player.license);
+        txCore.fxRunner.sendEvent('txaUnmutePlayer', {
+            license: player.license,
+            author: ctx.admin.name,
+        });
+        ctx.admin.logAction(`Unmuted player "${player.displayName}".`);
+        return { success: true };
+    } catch (error) {
+        return { error: `Failed to unmute player: ${(error as Error).message}` };
+    }
 }

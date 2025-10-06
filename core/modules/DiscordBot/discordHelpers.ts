@@ -402,30 +402,32 @@ export const sendWagerBlacklistLog = async (
     reason: string,
     isRevoke = false
 ) => {
-    console.log(`Attempting to send wager blacklist log to channel ${channelId}`);
-    const client = getDiscordBot();
-
-    const channel = client.channels.cache.get(channelId);
-    if (!channel || !channel.isTextBased()) {
-        console.warn(`The configured wager blacklist log channel '${channelId}' is not a valid text channel.`);
-        return;
-    }
-
-    const embed = new EmbedBuilder({
-        title: isRevoke ? 'Wager Blacklist Revoked' : 'Wager Blacklist Added',
-        timestamp: new Date(),
-        color: isRevoke ? embedColors.success : embedColors.danger,
-        fields: [
-            { name: 'User', value: `<@${targetUser.id}>`, inline: true },
-            { name: 'Admin', value: adminName, inline: true },
-            { name: 'Reason', value: reason, inline: false },
-        ]
-    });
-
     try {
+        console.log(`Attempting to send wager blacklist log to channel ${channelId}`);
+        const client = getDiscordBot();
+
+        const channel = client.channels.cache.get(channelId);
+        if (!channel || !channel.isTextBased()) {
+            console.warn(`The configured wager blacklist log channel '${channelId}' is not a valid text channel.`);
+            return false;
+        }
+
+        const embed = new EmbedBuilder({
+            title: isRevoke ? 'Wager Blacklist Revoked' : 'Wager Blacklist Added',
+            timestamp: new Date(),
+            color: isRevoke ? embedColors.success : embedColors.danger,
+            fields: [
+                { name: 'User', value: `<@${targetUser.id}>`, inline: true },
+                { name: 'Admin', value: adminName, inline: true },
+                { name: 'Reason', value: reason, inline: false },
+            ]
+        });
+
         await channel.send({ embeds: [embed] });
         console.log(`Successfully sent wager blacklist log to channel ${channelId}`);
+        return true;
     } catch (error) {
         console.error(`Failed to send wager blacklist log to discord channel with error: ${(error as Error).message}`);
+        return false;
     }
 }

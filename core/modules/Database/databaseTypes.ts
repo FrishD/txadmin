@@ -76,3 +76,20 @@ export type DatabaseDataType = {
     whitelistApprovals: DatabaseWhitelistApprovalsType[],
     whitelistRequests: DatabaseWhitelistRequestsType[],
 };
+
+export type RawMuteType = {
+    id: number;
+    license: string;
+    identifier: string;
+    muted: boolean;
+    expiration: number | null;
+    muter: string;
+    reason: string;
+};
+
+export type MuteStatusType = {
+    isActive: true;
+    expiration: number | null;
+    reason: string;
+    author: string;
+} | null;

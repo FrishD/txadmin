@@ -202,6 +202,57 @@ const DialogActionView: React.FC = () => {
     setModalOpen(false);
   };
 
+  const handleMute = () => {
+    if (!userHasPerm("players.mute", playerPerms)) return showNoPerms("Mute");
+
+    openDialog({
+      title: `Mute ${assocPlayer.displayName}`,
+      description: "Enter duration and reason (e.g., '1h spamming'). 'permanent' for permanent mute.",
+      placeholder: "ex: 1h spamming in chat",
+      onSubmit: async (input: string) => {
+        const parts = input.trim().split(' ');
+        const duration = parts.shift() || 'permanent';
+        const reason = parts.join(' ');
+
+        try {
+          const result = await fetchWebPipe<GenericApiResp>(
+            `/player/mute?mutex=current&netid=${assocPlayer.id}`,
+            {
+              method: "POST",
+              data: { duration, reason },
+            }
+          );
+          handleGenericApiResponse(result, "moderation.mute_success");
+        } catch (error) {
+          enqueueSnackbar((error as Error).message, { variant: "error" });
+        }
+      },
+    });
+  };
+
+  const handleUnmute = () => {
+    if (!userHasPerm("players.mute", playerPerms)) return showNoPerms("Unmute");
+
+    openDialog({
+        title: `Unmute ${assocPlayer.displayName}?`,
+        description: "This will unmute the player.",
+        onSubmit: async () => {
+            try {
+                const result = await fetchWebPipe<GenericApiResp>(
+                    `/player/unmute?mutex=current&netid=${assocPlayer.id}`,
+                    {
+                        method: "POST",
+                        data: {},
+                    }
+                );
+                handleGenericApiResponse(result, "moderation.unmute_success");
+            } catch (error) {
+                enqueueSnackbar((error as Error).message, { variant: "error" });
+            }
+        }
+    })
+  };
+
   //Interaction
   const handleHeal = () => {
     if (!userHasPerm("players.heal", playerPerms)) return showNoPerms("Heal");
@@ -329,6 +380,22 @@ const DialogActionView: React.FC = () => {
           disabled={!userHasPerm("players.kick", playerPerms)}
         >
           {t("nui_menu.player_modal.actions.moderation.options.kick")}
+        </Button>
+        <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleMute}
+            disabled={!userHasPerm("players.mute", playerPerms)}
+        >
+            Mute
+        </Button>
+        <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleUnmute}
+            disabled={!userHasPerm("players.mute", playerPerms)}
+        >
+            Unmute
         </Button>
         <Button
           variant="outlined"
