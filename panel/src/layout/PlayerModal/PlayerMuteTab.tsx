@@ -1,10 +1,10 @@
-import { PlayerModalSuccessPlayer, MuteStatusType } from '@shared/playerApiTypes';
+import { PlayerModalSuccessPlayer } from '@shared/playerApiTypes';
 import { useBackendApi } from '@/hooks/fetch';
 import { Button, Text, Textarea, TextInput } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import { z } from 'zod';
 import { zodResolver, useForm } from '@mantine/form';
-
+import { now } from '@lib/misc';
 
 const formSchema = z.object({
     duration: z.string().trim().min(1, { message: 'Duration is required' }),
@@ -18,9 +18,13 @@ interface PlayerMuteTabProps {
 
 export default function PlayerMuteTab({ player, refreshData }: PlayerMuteTabProps) {
     const { post } = useBackendApi();
-    const muteStatus = player.muteStatus;
 
-    //Form stuff
+    const activeMute = player.actionHistory.find(a =>
+        a.type === 'mute' &&
+        !a.revokedAt &&
+        (a.exp === undefined || a.exp === 0 || a.exp > now())
+    );
+
     const form = useForm({
         validate: zodResolver(formSchema),
         initialValues: {
@@ -28,6 +32,7 @@ export default function PlayerMuteTab({ player, refreshData }: PlayerMuteTabProp
             reason: '',
         },
     });
+
     const handleMuteSubmit = async (values: typeof form.values) => {
         if (!player.license) return;
         try {
@@ -59,8 +64,6 @@ export default function PlayerMuteTab({ player, refreshData }: PlayerMuteTabProp
         }
     }
 
-
-    //Unmute handler
     const handleUnmute = async () => {
         if (!player.license) return;
         try {
@@ -89,8 +92,7 @@ export default function PlayerMuteTab({ player, refreshData }: PlayerMuteTabProp
         }
     }
 
-
-    if (player.isOffline) {
+    if (player.isOffline && !activeMute) {
         return (
             <Text p="md" align="center" color="dimmed" size="sm">
                 This player is offline.
@@ -98,17 +100,17 @@ export default function PlayerMuteTab({ player, refreshData }: PlayerMuteTabProp
         )
     }
 
-    if (muteStatus) {
-        const expirationString = muteStatus.expiration
-            ? new Date(muteStatus.expiration * 1000).toLocaleString()
+    if (activeMute) {
+        const expirationString = activeMute.exp
+            ? new Date(activeMute.exp * 1000).toLocaleString()
             : 'Permanent';
         return (
             <div className="p-4 space-y-4">
                 <Text size="sm">
                     This player is currently muted.
                 </Text>
-                <Text size="sm"><strong>Muter:</strong> {muteStatus.author}</Text>
-                <Text size="sm"><strong>Reason:</strong> {muteStatus.reason}</Text>
+                <Text size="sm"><strong>Muter:</strong> {activeMute.author}</Text>
+                <Text size="sm"><strong>Reason:</strong> {activeMute.reason}</Text>
                 <Text size="sm"><strong>Expires:</strong> {expirationString}</Text>
                 <Button fullWidth color="red" onClick={handleUnmute}>
                     Unmute Player

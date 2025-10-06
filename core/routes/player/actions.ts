@@ -459,82 +459,116 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
 
 
 /**
- * Handle Mute Player
- */
-async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
-    //Checking request
-    if (anyUndefined(
-        ctx.request.body,
-        ctx.request.body.duration,
-        ctx.request.body.reason,
-    )) {
-        return { error: 'Invalid request.' };
-    }
-    const durationInput = ctx.request.body.duration as string;
-    const reason = (ctx.request.body.reason as string).trim() || 'no reason provided';
-
-    //Check permissions
-    if (!ctx.admin.testPermission('players.mute', modulename)) {
-        return { error: 'You don\'t have permission to execute this action.' };
-    }
-
-    if (!player.license) {
-        return { error: 'Player does not have a license.' };
-    }
-
-    //Calculating expiration/duration
-    let expiration: number | null;
-    if (durationInput.trim().toLowerCase() === 'permanent') {
-        expiration = null;
-    } else {
-        try {
-            const calcResults = calcExpirationFromDuration(durationInput);
-            if (calcResults.expiration === false) {
-                expiration = null;
-            } else {
-                expiration = calcResults.expiration;
-            }
-        } catch (error) {
-            return { error: `Invalid duration: ${(error as Error).message}` };
-        }
-    }
-
-    try {
-        await txCore.database.mutes.addMute(player.license, ctx.admin.name, expiration, reason);
-        txCore.fxRunner.sendEvent('txaMutePlayer', {
-            license: player.license,
-            author: ctx.admin.name,
-        });
-        ctx.admin.logAction(`Muted player "${player.displayName}": ${reason}`);
-        return { success: true };
-    } catch (error) {
-        return { error: `Failed to mute player: ${(error as Error).message}` };
-    }
-}
-
-
-/**
- * Handle Unmute Player
+ * Handle Unmuting a player
  */
 async function handleUnmute(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
     //Check permissions
     if (!ctx.admin.testPermission('players.mute', modulename)) {
-        return { error: 'You don\'t have permission to execute this action.' };
+        return { error: 'You don\'t have permission to execute this action.' }
     }
 
-    if (!player.license) {
-        return { error: 'Player does not have a license.' };
+    //Find active mute
+    const allIds = player.getAllIdentifiers();
+    if (!allIds.length) {
+        return { error: 'This player has no identifiers.' };
     }
 
+    const activeMutes = txCore.database.actions.findMany(
+        allIds,
+        undefined,
+        { type: 'mute', 'revocation.timestamp': null }
+    );
+    // @ts-ignore
+    const stillActiveMutes = activeMutes.filter(m => m.expiration === false || m.expiration > now());
+
+    if (!stillActiveMutes.length) {
+        return { error: 'This player does not have an active mute.' };
+    }
+    const activeMute = stillActiveMutes[0];
+
+    //Revoke action
+    const reason = (ctx.request.body.reason as string)?.trim() || 'unmuted by admin';
     try {
-        await txCore.database.mutes.removeMute(player.license);
-        txCore.fxRunner.sendEvent('txaUnmutePlayer', {
-            license: player.license,
-            author: ctx.admin.name,
-        });
-        ctx.admin.logAction(`Unmuted player "${player.displayName}".`);
-        return { success: true };
+        txCore.database.actions.approveRevoke(activeMute.id, ctx.admin.name, true, reason);
     } catch (error) {
         return { error: `Failed to unmute player: ${(error as Error).message}` };
     }
+    ctx.admin.logAction(`Unmuted player "${player.displayName}".`);
+
+    //Dispatch `txAdmin:events:playerMuted`
+    txCore.fxRunner.sendEvent('playerMuted', {
+        author: ctx.admin.name,
+        actionId: activeMute.id,
+        targetNetId: (player instanceof ServerPlayer && player.isConnected) ? player.netid : null,
+        targetLicense: player.license,
+        expiration: 0, // Signal unmute
+        reason: 'unmuted',
+    });
+
+    return { success: true };
+}
+
+
+/**
+ * Handle Muting a player
+ */
+async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Checking request
+    if (
+        anyUndefined(
+            ctx.request.body,
+            ctx.request.body.duration,
+            ctx.request.body.reason,
+        )
+    ) {
+        return { error: 'Invalid request.' };
+    }
+    const durationInput = ctx.request.body.duration.trim();
+    let reason = (ctx.request.body.reason as string).trim() || 'no reason provided';
+
+    //Calculating expiration/duration
+    let expiration;
+    try {
+        expiration = calcExpirationFromDuration(durationInput).expiration;
+    } catch (error) {
+        return { error: (error as Error).message };
+    }
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.mute', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' }
+    }
+
+    //Validating player
+    const allIds = player.getAllIdentifiers();
+    if (!allIds.length) {
+        return { error: 'Cannot mute a player with no identifiers.' }
+    }
+
+    //Register action
+    let actionId;
+    try {
+        actionId = txCore.database.actions.registerMute(
+            allIds,
+            ctx.admin.name,
+            reason,
+            expiration,
+            player.displayName
+        );
+    } catch (error) {
+        return { error: `Failed to mute player: ${(error as Error).message}` };
+    }
+    ctx.admin.logAction(`Muted player "${player.displayName}": ${reason}`);
+
+    //Dispatch `txAdmin:events:playerMuted`
+    txCore.fxRunner.sendEvent('playerMuted', {
+        author: ctx.admin.name,
+        actionId,
+        targetNetId: (player instanceof ServerPlayer && player.isConnected) ? player.netid : null,
+        targetLicense: player.license,
+        expiration,
+        reason,
+    });
+
+    return { success: true };
 }

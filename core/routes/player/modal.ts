@@ -68,10 +68,6 @@ export default async function PlayerModal(ctx: AuthedCtx) {
     const activeWagerBlacklist = player.getHistory().find(a => a.type === 'wagerblacklist' && a.revocation.timestamp === null);
     playerData.isWagerBlacklisted = !!activeWagerBlacklist;
 
-    if (player.license) {
-        playerData.muteStatus = await txCore.database.mutes.getMute(player.license);
-    }
-
     if (player instanceof ServerPlayer) {
         playerData.netid = player.netid;
         playerData.sessionTime = Math.ceil((now() - player.tsConnected) / 60);

@@ -336,6 +336,22 @@ TX_EVENT_HANDLERS.playerBanned = function(eventData)
 end
 
 
+--- Handler for player muted event
+TX_EVENT_HANDLERS.playerMuted = function(eventData)
+    local targetNetId = eventData.targetNetId
+    if not targetNetId or not DoesPlayerExist(targetNetId) then return end
+
+    local expiration = eventData.expiration
+    local shouldBeMuted = (expiration == false or expiration > os.time())
+
+    if GetResourceState('pma-voice') == 'started' then
+        exports['pma-voice']:SetPlayerMuted(targetNetId, shouldBeMuted)
+    elseif GetResourceState('mumble-voip') == 'started' then
+        MumbleSetPlayerMuted(targetNetId, shouldBeMuted)
+    end
+end
+
+
 --- Handler for the imminent shutdown event
 --- Kicks all players and lock joins in preparation for server shutdown
 TX_EVENT_HANDLERS.serverShuttingDown = function(eventData)

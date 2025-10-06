@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash-es';
 import { DbInstance, SavePriority } from "../instance";
-import { DatabaseActionBanType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType } from "../databaseTypes";
+import { DatabaseActionBanType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType, DatabaseActionMuteType } from "../databaseTypes";
 import { genActionID } from "../dbUtils";
 import { now } from '@lib/misc';
 import { sendRevocationLog } from '@modules/DiscordBot/discordHelpers';
@@ -188,6 +188,57 @@ export default class ActionsDao {
             return actionID;
         } catch (error) {
             let msg = `Failed to register warn to database with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
+     * Registers a mute action and returns its id
+     */
+    registerMute(
+        ids: string[],
+        author: string,
+        reason: string,
+        expiration: number | false,
+        playerName: string | false = false,
+    ): string {
+        //Sanity check
+        if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
+        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
+        if (typeof reason !== 'string' || !reason.length) throw new Error('Invalid reason.');
+        if (expiration !== false && (typeof expiration !== 'number')) throw new Error('Invalid expiration.');
+        if (playerName !== false && (typeof playerName !== 'string' || !playerName.length)) throw new Error('Invalid playerName.');
+
+        //Saves it to the database
+        const timestamp = now();
+        try {
+            const actionID = genActionID(this.dbo, 'mute');
+            const toDB: DatabaseActionMuteType = {
+                id: actionID,
+                type: 'mute',
+                ids,
+                playerName,
+                reason,
+                author,
+                timestamp,
+                expiration,
+                revocation: {
+                    timestamp: null,
+                    approver: null,
+                    requestor: null,
+                    status: null,
+                },
+            };
+            this.chain.get('actions')
+                .push(toDB)
+                .value();
+            this.db.writeFlag(SavePriority.HIGH);
+            return actionID;
+        } catch (error) {
+            let msg = `Failed to register mute to database with message: ${(error as Error).message}`;
             console.error(msg);
             console.verbose.dir(error);
             throw error;

@@ -401,7 +401,7 @@ export const sendWagerBlacklistLog = async (
     targetUser: any, //GuildMember is not available here
     reason: string,
     isRevoke = false
-) => {
+): Promise<boolean> => {
     try {
         console.log(`Attempting to send wager blacklist log to channel ${channelId}`);
         const client = getDiscordBot();

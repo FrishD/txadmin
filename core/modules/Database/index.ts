@@ -7,7 +7,6 @@ import ActionsDao from './dao/actions';
 import WhitelistDao from './dao/whitelist';
 import StatsDao from './dao/stats';
 import CleanupDao from './dao/cleanup';
-import MutesDao from './dao/mutes';
 import { TxConfigState } from '@shared/enums';
 const console = consoleFactory(modulename);
 
@@ -24,7 +23,6 @@ export default class Database {
     readonly whitelist: WhitelistDao;
     readonly stats: StatsDao;
     readonly cleanup: CleanupDao;
-    readonly mutes: MutesDao;
 
     constructor() {
         this.#db = new DbInstance();
@@ -33,7 +31,6 @@ export default class Database {
         this.whitelist = new WhitelistDao(this.#db);
         this.stats = new StatsDao(this.#db);
         this.cleanup = new CleanupDao(this.#db);
-        this.mutes = new MutesDao(this.#db);
 
         //Database optimization cron function
         const optimizerTask = () => {
