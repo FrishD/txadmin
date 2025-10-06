@@ -342,7 +342,7 @@ TX_EVENT_HANDLERS.playerMuted = function(eventData)
     if not targetNetId or not DoesPlayerExist(targetNetId) then return end
 
     local expiration = eventData.expiration
-    local shouldBeMuted = (expiration == false or expiration > os.time())
+    local shouldBeMuted = (expiration == false or (type(expiration) == 'number' and expiration > os.time()))
 
     if GetResourceState('pma-voice') == 'started' then
         exports['pma-voice']:SetPlayerMuted(targetNetId, shouldBeMuted)

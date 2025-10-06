@@ -39,24 +39,36 @@ export default async function WagerBlacklistActions(ctx: AuthedCtx) {
     }
 
     //Remove role & send log
+    const warnings = [];
     if (txConfig.discordBot.wagerBlacklistRole) {
         try {
             const discordId = action.ids.find(id => id.startsWith('discord:'));
             if (discordId) {
                 const uid = discordId.substring(8);
-                await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.wagerBlacklistRole);
-                if (txConfig.discordBot.wagerRevokeLogChannel) {
-                    const member = await txCore.discordBot.guild?.members.fetch(uid);
-                    if(member) sendWagerBlacklistLog(txConfig.discordBot.wagerRevokeLogChannel, ctx.admin.name, member, reason, true);
+                const member = await txCore.discordBot.guild?.members.fetch(uid);
+                if (member) {
+                    await member.roles.remove(txConfig.discordBot.wagerBlacklistRole);
+                    if (txConfig.discordBot.wagerRevokeLogChannel) {
+                        const logSent = await sendWagerBlacklistLog(txConfig.discordBot.wagerRevokeLogChannel, ctx.admin.name, member, reason, true);
+                        if (!logSent) {
+                            warnings.push('Failed to send the wager blacklist revocation log to the configured channel.');
+                        }
+                    }
+                } else {
+                    warnings.push('Could not find the discord user to remove the role from.');
                 }
             }
         } catch (error) {
-            //Don't fail the whole command if the role removal fails
+            warnings.push(`Failed to remove the wager blacklist role from the user: ${(error as Error).message}`);
             console.error(`Failed to remove role or send log: ${(error as Error).message}`);
         }
     }
 
     ctx.admin.logAction(`Revoked wager blacklist for action ID ${actionId}.`);
 
-    return ctx.send({ success: true });
+    if (warnings.length) {
+        return ctx.send({ success: true, warnings });
+    } else {
+        return ctx.send({ success: true });
+    }
 };

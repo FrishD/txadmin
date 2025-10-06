@@ -41,17 +41,14 @@ export default async (interaction: CommandInteraction) => {
         try {
             await user.roles.remove(txConfig.discordBot.wagerBlacklistRole);
         } catch (error) {
-            await interaction.followUp(embedder.warning(`Failed to remove the wager blacklist role from the user. Please do it manually.`));
+            //Don't fail the whole command if the role removal fails
             console.error(`Failed to remove role from user: ${(error as Error).message}`);
         }
     }
 
     //Log to discord
     if (txConfig.discordBot.wagerRevokeLogChannel) {
-        const logSent = await sendWagerBlacklistLog(txConfig.discordBot.wagerRevokeLogChannel, adminName, user, reason, true);
-        if (!logSent) {
-            await interaction.followUp(embedder.warning(`Failed to send the wager blacklist revocation log to the configured channel.`));
-        }
+        await sendWagerBlacklistLog(txConfig.discordBot.wagerRevokeLogChannel, adminName, user, reason, true);
     }
 
     //Log to admin log

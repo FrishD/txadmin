@@ -1,9 +1,8 @@
 import { PlayerModalSuccessPlayer } from '@shared/playerApiTypes';
 import { useBackendApi } from '@/hooks/fetch';
 import { Button, Text, Textarea, TextInput } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
-import { z } from 'zod';
 import { zodResolver, useForm } from '@mantine/form';
+import { z } from 'zod';
 
 const formSchema = z.object({
     duration: z.string().trim().min(1, { message: 'Duration is required' }),
@@ -16,7 +15,14 @@ interface PlayerMuteTabProps {
 }
 
 export default function PlayerMuteTab({ player, refreshData }: PlayerMuteTabProps) {
-    const { post } = useBackendApi();
+    const muteApi = useBackendApi({
+        method: 'POST',
+        path: '/player/mute',
+    });
+    const unmuteApi = useBackendApi({
+        method: 'POST',
+        path: '/player/unmute',
+    });
 
     const activeMute = player.actionHistory.find(a =>
         a.type === 'mute' &&
@@ -34,61 +40,28 @@ export default function PlayerMuteTab({ player, refreshData }: PlayerMuteTabProp
 
     const handleMuteSubmit = async (values: typeof form.values) => {
         if (!player.license) return;
-        try {
-            const res = await post(`/player/mute?license=${player.license}`, {
+        muteApi({
+            queryParams: { license: player.license },
+            data: {
                 duration: values.duration,
                 reason: values.reason,
-            });
-            if (res.success) {
-                showNotification({
-                    title: 'Success',
-                    message: 'Player muted.',
-                    color: 'green',
-                });
-                refreshData();
-            } else {
-                showNotification({
-                    title: 'Error',
-                    message: res.error,
-                    color: 'red',
-                });
-            }
-        } catch (e) {
-            console.error(e);
-            showNotification({
-                title: 'Error',
-                message: 'Failed to mute player.',
-                color: 'red',
-            });
-        }
+            },
+            genericHandler: {
+                successMsg: 'Player muted.',
+            },
+            success: refreshData,
+        });
     }
 
     const handleUnmute = async () => {
         if (!player.license) return;
-        try {
-            const res = await post(`/player/unmute?license=${player.license}`);
-            if (res.success) {
-                showNotification({
-                    title: 'Success',
-                    message: 'Player unmuted.',
-                    color: 'green',
-                });
-                refreshData();
-            } else {
-                showNotification({
-                    title: 'Error',
-                    message: res.error,
-                    color: 'red',
-                });
-            }
-        } catch (e) {
-            console.error(e);
-            showNotification({
-                title: 'Error',
-                message: 'Failed to unmute player.',
-                color: 'red',
-            });
-        }
+        unmuteApi({
+            queryParams: { license: player.license },
+            genericHandler: {
+                successMsg: 'Player unmuted.',
+            },
+            success: refreshData,
+        });
     }
 
     if (player.isOffline && !activeMute) {
