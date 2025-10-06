@@ -4,7 +4,6 @@ import { Button, Text, Textarea, TextInput } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import { z } from 'zod';
 import { zodResolver, useForm } from '@mantine/form';
-import { now } from '@lib/misc';
 
 const formSchema = z.object({
     duration: z.string().trim().min(1, { message: 'Duration is required' }),
@@ -22,7 +21,7 @@ export default function PlayerMuteTab({ player, refreshData }: PlayerMuteTabProp
     const activeMute = player.actionHistory.find(a =>
         a.type === 'mute' &&
         !a.revokedAt &&
-        (a.exp === undefined || a.exp === 0 || a.exp > now())
+        (a.exp === undefined || a.exp === 0 || a.exp > Math.floor(Date.now() / 1000))
     );
 
     const form = useForm({
