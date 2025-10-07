@@ -274,7 +274,7 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
 
     // Mute specific logic
     if (revokedAction.type === 'mute') {
-        const license = revokedAction.ids.find(id => id.startsWith('license:'));
+        const license = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('license:'));
         if (license) {
             txCore.fxRunner.sendEvent('playerUnmuted', {
                 author: ctx.admin.name,
@@ -288,7 +288,7 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
     if (revokedAction.type === 'wagerblacklist') {
         if (txConfig.discordBot.wagerBlacklistRole) {
             try {
-                const discordId = revokedAction.ids.find(id => id.startsWith('discord:'));
+                const discordId = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('discord:'));
                 if (discordId) {
                     const uid = discordId.substring(8);
                     await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.wagerBlacklistRole);
