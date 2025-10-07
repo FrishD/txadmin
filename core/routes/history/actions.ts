@@ -263,6 +263,18 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
         }
     }
 
+    // Mute specific logic
+    if (revokedAction.type === 'mute') {
+        const license = revokedAction.ids.find(id => id.startsWith('license:'));
+        if (license) {
+            txCore.fxRunner.sendEvent('playerUnmuted', {
+                author: ctx.admin.name,
+                targetLicense: license,
+                targetName: revokedAction.playerName,
+            });
+        }
+    }
+
 
     //Revoking action for non-long bans or warnings
     let revokedAction;
