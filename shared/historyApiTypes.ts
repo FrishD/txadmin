@@ -47,7 +47,7 @@ export type HistoryTableActionRevocationType = {
 
 export type HistoryTableActionType = {
     id: string;
-    type: "ban" | "warn" | "wagerblacklist";
+    type: "ban" | "warn" | "wagerblacklist" | "mute";
     playerName: string | false;
     author: string;
     reason: string;

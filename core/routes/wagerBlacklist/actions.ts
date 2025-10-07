@@ -44,16 +44,29 @@ export default async function WagerBlacklistActions(ctx: AuthedCtx) {
             const discordId = action.ids.find(id => id.startsWith('discord:'));
             if (discordId) {
                 const uid = discordId.substring(8);
+                console.log(`Attempting to remove wager blacklist role from discord user ${uid}.`);
                 await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.wagerBlacklistRole);
+
                 if (txConfig.discordBot.wagerRevokeLogChannel) {
+                    console.log(`Attempting to send wager blacklist revocation log.`);
                     const member = await txCore.discordBot.guild?.members.fetch(uid);
-                    if(member) sendWagerBlacklistLog(txConfig.discordBot.wagerRevokeLogChannel, ctx.admin.name, member, reason, true);
+                    if (member) {
+                        sendWagerBlacklistLog(txConfig.discordBot.wagerRevokeLogChannel, ctx.admin.name, member, reason, true);
+                    } else {
+                        console.warn(`Could not fetch member with UID ${uid} to send wager blacklist revocation log.`);
+                    }
+                } else {
+                    console.warn(`Wager revoke log channel not configured. Skipping log.`);
                 }
+            } else {
+                console.warn(`Action ${actionId} does not have a discord identifier. Cannot remove role.`);
             }
         } catch (error) {
-            //Don't fail the whole command if the role removal fails
-            console.error(`Failed to remove role or send log: ${(error as Error).message}`);
+            console.error(`Failed to remove wager blacklist role or send log for action ${actionId}:`);
+            console.error(error);
         }
+    } else {
+        console.warn(`Wager blacklist role not configured. Skipping role removal.`);
     }
 
     ctx.admin.logAction(`Revoked wager blacklist for action ID ${actionId}.`);

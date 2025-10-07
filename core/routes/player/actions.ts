@@ -8,6 +8,7 @@ import consoleFactory from '@lib/console';
 import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import { SYM_CURRENT_MUTEX } from '@lib/symbols';
 import { sendWagerBlacklistLog } from '@modules/DiscordBot/discordHelpers';
+import { handleMute, handleUnmute } from './mute';
 const console = consoleFactory(modulename);
 
 
@@ -47,6 +48,10 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleKick(ctx, player));
     } else if (action === 'wagerblacklist') {
         return sendTypedResp(await handleWagerBlacklist(ctx, player));
+    } else if (action === 'mute') {
+        return sendTypedResp(await handleMute(ctx, player));
+    } else if (action === 'unmute') {
+        return sendTypedResp(await handleUnmute(ctx, player));
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }

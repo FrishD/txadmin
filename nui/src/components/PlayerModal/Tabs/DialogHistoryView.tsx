@@ -26,6 +26,7 @@ const NoHistoryBox = () => (
 const colors = {
   danger: "#c2293e",
   warning: "#f1c40f",
+  info: "#1D76C9",
   dark: "gray",
 };
 
@@ -33,6 +34,7 @@ type ActionCardProps = {
   action: PlayerHistoryItem;
   permsDisableWarn: boolean;
   permsDisableBan: boolean;
+  permsDisableMute: boolean;
   serverTime: number;
   btnAction: Function;
 };
@@ -40,6 +42,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
   action,
   permsDisableWarn,
   permsDisableBan,
+  permsDisableMute,
   serverTime,
   btnAction,
 }) => {
@@ -49,7 +52,8 @@ const ActionCard: React.FC<ActionCardProps> = ({
   const revokeButonDisabled =
     action.revokedBy !== undefined ||
     (action.type == "warn" && permsDisableWarn) ||
-    (action.type == "ban" && permsDisableBan);
+    (action.type == "ban" && permsDisableBan) ||
+    (action.type == "mute" && permsDisableMute);
 
   let footerNote, actionColor, actionMessage;
   if (action.type == "ban") {
@@ -62,6 +66,9 @@ const ActionCard: React.FC<ActionCardProps> = ({
     actionMessage = t("nui_menu.player_modal.history.warned_by", {
       author: action.author,
     });
+  } else if (action.type == "mute") {
+    actionColor = colors.info;
+    actionMessage = `Muted by ${action.author}`;
   }
   if (action.revokedBy) {
     actionColor = colors.dark;
@@ -171,6 +178,7 @@ const DialogHistoryView: React.FC = () => {
 
   const hasWarnPerm = userHasPerm('players.warn', userPerms);
   const hasBanPerm = userHasPerm('players.ban', userPerms);
+  const hasMutePerm = userHasPerm('players.mute', userPerms);
 
   return (
     <Box p={2} height="100%" display="flex" flexDirection="column">
@@ -187,6 +195,7 @@ const DialogHistoryView: React.FC = () => {
               action={action}
               permsDisableWarn={!hasWarnPerm}
               permsDisableBan={!hasBanPerm}
+              permsDisableMute={!hasMutePerm}
               serverTime={playerDetails.serverTime}
               btnAction={() => {
                 handleRevoke(action.id);
