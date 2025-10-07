@@ -230,6 +230,7 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
     const perms = [];
     if (ctx.admin.hasPermission('players.ban')) perms.push('ban');
     if (ctx.admin.hasPermission('players.warn')) perms.push('warn');
+    if (ctx.admin.hasPermission('players.mute')) perms.push('mute');
     if (ctx.admin.hasPermission('wager.head')) perms.push('wagerblacklist');
     if (!perms.length) {
         return { error: `You don't have permission to revoke any action.` };
