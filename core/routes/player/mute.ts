@@ -37,16 +37,10 @@ export async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<{
         return { error: 'Cannot mute a player without a license identifier.' };
     }
 
-    //Mute player
-    try {
-        exports['pma-voice'].mutePlayer(player.license, ctx.admin.name, reason, expiration);
-    } catch (error) {
-        return { error: `Failed to mute player on pma-voice: ${(error as Error).message}` };
-    }
-
     //Register action
+    let actionId;
     try {
-        txCore.database.actions.registerMute(
+        actionId = txCore.database.actions.registerMute(
             player.getAllIdentifiers(),
             ctx.admin.name,
             reason,
@@ -60,6 +54,16 @@ export async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<{
 
     //Send discord log
     sendMuteLog(ctx.admin.name, player, reason, durationInput, false);
+
+    // Dispatch `txAdmin:events:playerMuted`
+    txCore.fxRunner.sendEvent('playerMuted', {
+        author: ctx.admin.name,
+        reason,
+        actionId,
+        expiration,
+        targetLicense: player.license,
+        targetName: player.displayName,
+    });
 
     return { success: true };
 }
@@ -78,18 +82,13 @@ export async function handleUnmute(ctx: AuthedCtx, player: PlayerClass): Promise
         return { error: 'Cannot unmute a player without a license identifier.' };
     }
 
-    //Unmute player
-    try {
-        exports['pma-voice'].unmutePlayer(player.license);
-    } catch (error) {
-        return { error: `Failed to unmute player on pma-voice: ${(error as Error).message}` };
-    }
-
     //Revoke action in database
     try {
-        const activeMute = player.getHistory().find(a => a.type === 'mute' && a.revocation.timestamp === null);
+        const activeMute = player.getHistory().find(a => a.type === 'mute' && !a.revokedAt);
         if (activeMute) {
             txCore.database.actions.approveRevoke(activeMute.id, ctx.admin.name, true, 'Unmuted');
+        } else {
+            return { error: 'Player does not have an active mute.' };
         }
     } catch (error) {
         console.warn(`Failed to revoke mute action: ${(error as Error).message}`);
@@ -98,6 +97,13 @@ export async function handleUnmute(ctx: AuthedCtx, player: PlayerClass): Promise
 
     //Send discord log
     sendMuteLog(ctx.admin.name, player, 'N/A', 'N/A', true);
+
+    // Dispatch `txAdmin:events:playerUnmuted`
+    txCore.fxRunner.sendEvent('playerUnmuted', {
+        author: ctx.admin.name,
+        targetLicense: player.license,
+        targetName: player.displayName,
+    });
 
     return { success: true };
 }
