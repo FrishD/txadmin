@@ -440,7 +440,7 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
     //Add role & send log
     if (txConfig.discordBot.wagerBlacklistRole) {
         try {
-            const discordId = allIds.find(id => id.startsWith('discord:'));
+            const discordId = allIds.find(id => typeof id === 'string' && id.startsWith('discord:'));
             if (discordId) {
                 const uid = discordId.substring(8);
                 await txCore.discordBot.addMemberRole(uid, txConfig.discordBot.wagerBlacklistRole);

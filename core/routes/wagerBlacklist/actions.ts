@@ -41,7 +41,7 @@ export default async function WagerBlacklistActions(ctx: AuthedCtx) {
     //Remove role & send log
     if (txConfig.discordBot.wagerBlacklistRole) {
         try {
-            const discordId = action.ids.find(id => id.startsWith('discord:'));
+            const discordId = action.ids.find(id => typeof id === 'string' && id.startsWith('discord:'));
             if (discordId) {
                 const uid = discordId.substring(8);
                 console.log(`Attempting to remove wager blacklist role from discord user ${uid}.`);
