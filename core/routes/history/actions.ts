@@ -263,6 +263,15 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
         }
     }
 
+    //Revoking action for non-long bans or warnings
+    let revokedAction;
+    try {
+        revokedAction = txCore.database.actions.approveRevoke(actionId, ctx.admin.name, perms, reason) as DatabaseActionType;
+        ctx.admin.logAction(`Revoked ${revokedAction.type} id ${actionId} from ${revokedAction.playerName ?? 'identifiers'}`);
+    } catch (error) {
+        return { error: `Failed to revoke action: ${(error as Error).message}` };
+    }
+
     // Mute specific logic
     if (revokedAction.type === 'mute') {
         const license = revokedAction.ids.find(id => id.startsWith('license:'));
@@ -273,16 +282,6 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
                 targetName: revokedAction.playerName,
             });
         }
-    }
-
-
-    //Revoking action for non-long bans or warnings
-    let revokedAction;
-    try {
-        revokedAction = txCore.database.actions.approveRevoke(actionId, ctx.admin.name, perms, reason) as DatabaseActionType;
-        ctx.admin.logAction(`Revoked ${revokedAction.type} id ${actionId} from ${revokedAction.playerName ?? 'identifiers'}`);
-    } catch (error) {
-        return { error: `Failed to revoke action: ${(error as Error).message}` };
     }
 
     // Wager blacklist specific logic
