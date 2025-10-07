@@ -226,6 +226,7 @@ export default function PlayerModal() {
                                 {selectedTab === 'Mute' && <PlayerMuteTab
                                     player={modalData.player}
                                     playerRef={playerRef!}
+                                    refreshModalData={refreshModalData}
                                 />}
                             </>
                         )}

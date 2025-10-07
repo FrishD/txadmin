@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useAdminPerms } from "@/hooks/auth";
-import { PlayerModalRefType, useClosePlayerModal, useRefreshPlayerModal } from "@/hooks/playerModal";
+import { PlayerModalRefType, useClosePlayerModal } from "@/hooks/playerModal";
 import { Loader2Icon, MicOffIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useBackendApi } from "@/hooks/fetch";
@@ -17,15 +17,15 @@ import { tsToLocaleDateTimeString } from "@/lib/dateTime";
 type PlayerMuteTabProps = {
     player: PlayerModalPlayerData;
     playerRef: PlayerModalRefType;
+    refreshModalData: () => void;
 };
 
-export default function PlayerMuteTab({ player, playerRef }: PlayerMuteTabProps) {
+export default function PlayerMuteTab({ player, playerRef, refreshModalData }: PlayerMuteTabProps) {
     const [reason, setReason] = useState("");
     const [duration, setDuration] = useState("1h");
     const [isSaving, setIsSaving] = useState(false);
     const { hasPerm } = useAdminPerms();
     const closeModal = useClosePlayerModal();
-    const refreshModal = useRefreshPlayerModal();
 
     const playerMuteApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
@@ -66,7 +66,7 @@ export default function PlayerMuteTab({ player, playerRef }: PlayerMuteTabProps)
             },
             success: (data) => {
                 setIsSaving(false);
-                refreshModal();
+                refreshModalData();
                 closeModal();
             },
             error: (error) => {
@@ -85,7 +85,7 @@ export default function PlayerMuteTab({ player, playerRef }: PlayerMuteTabProps)
             },
             success: (data) => {
                 setIsSaving(false);
-                refreshModal();
+                refreshModalData();
             },
             error: (error) => {
                 setIsSaving(false);
