@@ -69,6 +69,7 @@ export default class AdminStore {
             'players.whitelist': 'Whitelist',
             'players.warn': 'Warn',
             'players.kick': 'Kick',
+            'players.mute': 'Mute',
             'players.ban': 'Ban',
             'players.approve_bans': 'Approve Bans > 1 week',
             'players.freeze': 'Freeze Players',
