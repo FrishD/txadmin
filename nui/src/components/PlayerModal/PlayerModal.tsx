@@ -15,6 +15,7 @@ import {
   FlashOn,
   FormatListBulleted,
   MenuBook,
+  MicOff,
   Person,
 } from "@mui/icons-material";
 import {
@@ -187,6 +188,13 @@ const DialogList: React.FC = () => {
         tab={PlayerModalTabs.INFO}
         curTab={curTab}
         icon={<Person />}
+      />
+      <DialogTab
+        title="Mute"
+        tab={PlayerModalTabs.MUTE}
+        curTab={curTab}
+        icon={<MicOff />}
+        isDisabled={!userHasPerm("players.mute", playerPerms)}
       />
       <DialogTab
         title={t("nui_menu.player_modal.tabs.ids")}

@@ -335,6 +335,26 @@ TX_EVENT_HANDLERS.playerBanned = function(eventData)
     end
 end
 
+--- Handler for the player muted event
+TX_EVENT_HANDLERS.playerMuted = function(eventData)
+    if not eventData.targetLicense or not eventData.author or not eventData.reason or not eventData.expiration then
+        return
+    end
+
+    print(string.format('Received playerMuted event for %s', eventData.targetName))
+    exports['pma-voice']:mutePlayer(eventData.targetLicense, eventData.author, eventData.reason, eventData.expiration)
+end
+
+--- Handler for the player unmuted event
+TX_EVENT_HANDLERS.playerUnmuted = function(eventData)
+    if not eventData.targetLicense then
+        return
+    end
+
+    print(string.format('Received playerUnmuted event for %s', eventData.targetName))
+    exports['pma-voice']:unmutePlayer(eventData.targetLicense)
+end
+
 
 --- Handler for the imminent shutdown event
 --- Kicks all players and lock joins in preparation for server shutdown

@@ -7,7 +7,7 @@ import humanizeDuration, { Unit } from 'humanize-duration';
 import consoleFactory from '@lib/console';
 import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import { z } from 'zod';
-import { sendRevokeApproval } from '@modules/DiscordBot/discordHelpers';
+import { sendRevokeApproval, sendWagerBlacklistLog } from '@modules/DiscordBot/discordHelpers';
 const console = consoleFactory(modulename);
 
 //Schema
@@ -230,6 +230,7 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
     const perms = [];
     if (ctx.admin.hasPermission('players.ban')) perms.push('ban');
     if (ctx.admin.hasPermission('players.warn')) perms.push('warn');
+    if (ctx.admin.hasPermission('players.mute')) perms.push('mute');
     if (ctx.admin.hasPermission('wager.head')) perms.push('wagerblacklist');
     if (!perms.length) {
         return { error: `You don't have permission to revoke any action.` };
@@ -262,7 +263,6 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
         }
     }
 
-
     //Revoking action for non-long bans or warnings
     let revokedAction;
     try {
@@ -270,6 +270,40 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
         ctx.admin.logAction(`Revoked ${revokedAction.type} id ${actionId} from ${revokedAction.playerName ?? 'identifiers'}`);
     } catch (error) {
         return { error: `Failed to revoke action: ${(error as Error).message}` };
+    }
+
+    // Mute specific logic
+    if (revokedAction.type === 'mute') {
+        const license = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('license:'));
+        if (license) {
+            txCore.fxRunner.sendEvent('playerUnmuted', {
+                author: ctx.admin.name,
+                targetLicense: license,
+                targetName: revokedAction.playerName,
+            });
+        }
+    }
+
+    // Wager blacklist specific logic
+    if (revokedAction.type === 'wagerblacklist') {
+        if (txConfig.discordBot.wagerBlacklistRole) {
+            try {
+                const discordId = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('discord:'));
+                if (discordId) {
+                    const uid = discordId.substring(8);
+                    await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.wagerBlacklistRole);
+                    if (txConfig.discordBot.wagerRevokeLogChannel) {
+                        const member = await txCore.discordBot.guild?.members.fetch(uid);
+                        if (member) {
+                            sendWagerBlacklistLog(txConfig.discordBot.wagerRevokeLogChannel, ctx.admin.name, member, reason ?? 'no reason provided', true);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to remove wager blacklist role or send log for action ${actionId}:`);
+                console.error(error);
+            }
+        }
     }
 
     // Dispatch `txAdmin:events:actionRevoked`

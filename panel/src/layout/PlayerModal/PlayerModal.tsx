@@ -5,13 +5,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { setPlayerModalUrlParam, usePlayerModalStateValue } from "@/hooks/playerModal";
-import { InfoIcon, ListIcon, HistoryIcon, GavelIcon } from "lucide-react";
+import { InfoIcon, ListIcon, HistoryIcon, GavelIcon, MicOffIcon } from "lucide-react";
 import PlayerInfoTab from "./PlayerInfoTab";
 import { useEffect, useState } from "react";
 import PlayerIdsTab from "./PlayerIdsTab";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import PlayerHistoryTab from "./PlayerHistoryTab";
 import PlayerBanTab from "./PlayerBanTab";
+import PlayerMuteTab from "./PlayerMuteTab";
 import PlayerWagerTab from "./PlayerWagerTab";
 import GenericSpinner from "@/components/GenericSpinner";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,11 @@ const modalTabs = [
     {
         title: 'Ban',
         icon: <GavelIcon className="mr-2 h-5 w-5 hidden xs:block" />,
+        className: 'hover:bg-destructive hover:text-destructive-foreground',
+    },
+    {
+        title: 'Mute',
+        icon: <MicOffIcon className="mr-2 h-5 w-5 hidden xs:block" />,
         className: 'hover:bg-destructive hover:text-destructive-foreground',
     },
     {
@@ -216,6 +222,11 @@ export default function PlayerModal() {
                                 />}
                                 {selectedTab === 'Wager' && <PlayerWagerTab
                                     playerRef={playerRef!}
+                                />}
+                                {selectedTab === 'Mute' && <PlayerMuteTab
+                                    player={modalData.player}
+                                    playerRef={playerRef!}
+                                    refreshModalData={refreshModalData}
                                 />}
                             </>
                         )}

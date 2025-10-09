@@ -98,7 +98,7 @@ export default class WebServer {
             cacheMaxAge: 30 * 60, //30 minutes
             //Scan Limits: (v8-dev prod build: 56 files, 11.25MB)
             limits: {
-                MAX_BYTES: 125 * 1024 * 1024, //125MB
+                MAX_BYTES: 175 * 1024 * 1024, //125MB
                 MAX_FILES: 300,
                 MAX_DEPTH: 10,
                 MAX_TIME: 2 * 60 * 1000, //2 minutes

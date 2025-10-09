@@ -393,6 +393,50 @@ export const sendRevocationLog = async (action: DatabaseActionType) => {
 
 
 /**
+ * Send a log of a mute action to a discord channel
+ */
+export const sendMuteLog = async (
+    adminName: string,
+    targetUser: any,
+    reason: string,
+    duration: string,
+    isUnmute = false
+) => {
+    const muteChannelId = '1425054873237454898';
+    const unmuteChannelId = '1425054882603335730';
+    const channelId = isUnmute ? unmuteChannelId : muteChannelId;
+
+    console.log(`Attempting to send mute log to channel ${channelId}`);
+    const client = getDiscordBot();
+
+    const channel = client.channels.cache.get(channelId);
+    if (!channel || !channel.isTextBased()) {
+        console.warn(`The configured mute log channel '${channelId}' is not a valid text channel.`);
+        return;
+    }
+
+    const embed = new EmbedBuilder({
+        title: isUnmute ? 'Player Unmuted' : 'Player Muted',
+        timestamp: new Date(),
+        color: isUnmute ? embedColors.success : embedColors.danger,
+        fields: [
+            { name: 'User', value: targetUser.displayName, inline: true },
+            { name: 'Admin', value: adminName, inline: true },
+            { name: 'Duration', value: duration, inline: false },
+            { name: 'Reason', value: reason, inline: false },
+        ]
+    });
+
+    try {
+        await channel.send({ embeds: [embed] });
+        console.log(`Successfully sent mute log to channel ${channelId}`);
+    } catch (error) {
+        console.error(`Failed to send mute log to discord channel with error: ${(error as Error).message}`);
+    }
+}
+
+
+/**
  * Send a log of a wager blacklist action to a discord channel
  */
 export const sendWagerBlacklistLog = async (

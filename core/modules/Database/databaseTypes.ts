@@ -49,7 +49,12 @@ export type DatabaseActionWagerBlacklistType = {
     expiration: false;
 } & DatabaseActionBaseType;
 
-export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType;
+export type DatabaseActionMuteType = {
+    type: 'mute';
+    expiration: number | false;
+} & DatabaseActionBaseType;
+
+export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType | DatabaseActionMuteType;
 
 export type DatabaseWhitelistApprovalsType = {
     identifier: string;

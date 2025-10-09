@@ -144,6 +144,11 @@ export default function ActionModal() {
                 <span className="text-destructive-inline font-mono mr-2">[{modalData.action.id}]</span>
                 Wager Blacklisted {displayName}
             </>;
+        } else if (modalData.action.type === 'mute') {
+            pageTitle = <>
+                <span className="text-info-inline font-mono mr-2">[{modalData.action.id}]</span>
+                Muted {displayName}
+            </>;
         } else {
             throw new Error(`Unknown action type: ${modalData.action.type}`);
         }
