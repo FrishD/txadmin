@@ -561,11 +561,8 @@ export default class DiscordBot {
         console.log('Syncing wager blacklist roles...');
 
         try {
-            const activeBlacklist = txCore.database.actions.findMany(
-                undefined,
-                undefined,
-                { type: 'wagerblacklist', 'revocation.timestamp': null }
-            );
+            const allActions = txCore.database.actions.getRaw();
+            const activeBlacklist = allActions.filter(a => a.type === 'wagerblacklist' && !a.revocation.timestamp);
 
             if (!activeBlacklist.length) {
                 console.log('No active wager blacklists found.');
