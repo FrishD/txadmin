@@ -21,6 +21,7 @@ export async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<{
     //Calculating expiration/duration
     let calcResults;
     try {
+        if (!durationInput.length) throw new Error('Duration cannot be empty.');
         calcResults = calcExpirationFromDuration(durationInput);
     } catch (error) {
         return { error: (error as Error).message };

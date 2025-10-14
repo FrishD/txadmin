@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { GavelIcon, AlertTriangleIcon } from "lucide-react";
+import { GavelIcon, AlertTriangleIcon, MicOffIcon } from "lucide-react";
 import { useBackendApi } from '@/hooks/fetch';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ type LeaderboardAdmin = {
     tsLastConnection: number;
     bansGiven: number;
     warnsGiven: number;
+    mutesGiven: number;
     revokeRequested: number;
     revokeApproved: number;
     revokeDenied: number;
@@ -28,6 +29,7 @@ type StatsDataType = {
     activeBans: number;
     bansGiven: number;
     warnsGiven: number;
+    mutesGiven: number;
     leaderboardData: LeaderboardAdmin[];
 };
 
@@ -107,7 +109,7 @@ const StatisticsPage = () => {
                 </div>
             </header>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle>Active Bans</CardTitle>
@@ -125,6 +127,16 @@ const StatisticsPage = () => {
                     </CardHeader>
                     <CardContent>
                         <p className="text-4xl font-bold">{statsData.bansGiven}</p>
+                        <p className="text-xs text-muted-foreground">in selected period</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle>Mutes Given</CardTitle>
+                        <MicOffIcon className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-4xl font-bold">{statsData.mutesGiven}</p>
                         <p className="text-xs text-muted-foreground">in selected period</p>
                     </CardContent>
                 </Card>
@@ -151,6 +163,7 @@ const StatisticsPage = () => {
                                 <TableHead>Admin</TableHead>
                                 <TableHead>Bans</TableHead>
                                 <TableHead>Warns</TableHead>
+                                <TableHead>Mutes</TableHead>
                                 <TableHead>Revokes Req.</TableHead>
                                 <TableHead>Revokes Appr.</TableHead>
                                 <TableHead>Revokes Den.</TableHead>
@@ -168,6 +181,7 @@ const StatisticsPage = () => {
                                     <TableCell>{admin.name}</TableCell>
                                     <TableCell>{admin.bansGiven}</TableCell>
                                     <TableCell>{admin.warnsGiven}</TableCell>
+                                    <TableCell>{admin.mutesGiven}</TableCell>
                                     <TableCell>{admin.revokeRequested}</TableCell>
                                     <TableCell>{admin.revokeApproved}</TableCell>
                                     <TableCell>{admin.revokeDenied}</TableCell>

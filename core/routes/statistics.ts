@@ -35,12 +35,14 @@ export default async function Statistics(ctx: AuthedCtx) {
     const activeBans = allActions.filter(a => a.type === 'ban' && !a.revocation.timestamp && (a.expiration === false || a.expiration > currentTimestamp)).length;
     const bansGiven = allActions.filter(a => a.type === 'ban').length;
     const warnsGiven = allActions.filter(a => a.type === 'warn').length;
+    const mutesGiven = allActions.filter(a => a.type === 'mute').length;
 
 
     const out = {
         activeBans,
         bansGiven,
         warnsGiven,
+        mutesGiven,
         leaderboardData,
     };
     return ctx.send(out);
