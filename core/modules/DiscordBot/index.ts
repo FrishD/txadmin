@@ -576,7 +576,8 @@ export default class DiscordBot {
             }
 
             for (const action of activeBlacklist) {
-                const discordId = action.identifiers.find(id => id.startsWith('discord:'));
+                if (!action.ids) continue;
+                const discordId = action.ids.find(id => id.startsWith('discord:'));
                 if (discordId) {
                     const uid = discordId.substring(8);
                     const member = this.guild.members.cache.get(uid);
