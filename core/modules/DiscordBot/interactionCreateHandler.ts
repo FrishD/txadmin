@@ -2,6 +2,7 @@ const modulename = 'DiscordBot:interactionHandler';
 import { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder, GuildMember, Interaction, InteractionType } from 'discord.js';
 import humanizeDuration from 'humanize-duration';
 import infoCommandHandler from './commands/info';
+import pctopCommandHandler from './commands/pctop';
 import statusCommandHandler from './commands/status';
 import whitelistCommandHandler from './commands/whitelist';
 import { embedder, embedColors } from './discordHelpers';
@@ -61,6 +62,7 @@ const handlers = {
     status: statusCommandHandler,
     whitelist: whitelistCommandHandler,
     info: infoCommandHandler,
+    pctop: pctopCommandHandler,
 }
 
 const noHandlerResponse = async (interaction: Interaction) => {

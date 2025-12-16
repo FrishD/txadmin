@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash-es';
 import { DbInstance, SavePriority } from "../instance";
-import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType } from "../databaseTypes";
+import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType, DatabasePCReportType } from "../databaseTypes";
 import { genActionID } from "../dbUtils";
 import { now } from '@lib/misc';
 import { sendRevocationLog } from '@modules/DiscordBot/discordHelpers';
@@ -432,6 +432,88 @@ export default class ActionsDao {
 
         } catch (error) {
             const msg = `Failed to revoke action with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
+     * Registers a PC report and returns its id
+     */
+    registerPCReport(
+        data: Omit<DatabasePCReportType, 'id' | 'timestamp'>
+    ): string {
+        //Sanity check
+        if (typeof data.reporter !== 'string' || !data.reporter.length) throw new Error('Invalid reporter.');
+        if (typeof data.supervisor !== 'string' || !data.supervisor.length) throw new Error('Invalid supervisor.');
+        if (typeof data.result !== 'string' || !data.result.length) throw new Error('Invalid result.');
+        if (typeof data.explanation !== 'string' || !data.explanation.length) throw new Error('Invalid explanation.');
+        if (typeof data.proofImage !== 'string' || !data.proofImage.length) throw new Error('Invalid proofImage.');
+        if (typeof data.playerLicense !== 'string' || !data.playerLicense.length) throw new Error('Invalid playerLicense.');
+
+        //Saves it to the database
+        const timestamp = now();
+        try {
+            const reportID = genActionID(this.dbo, 'pc_report');
+            const toDB: DatabasePCReportType = {
+                id: reportID,
+                timestamp,
+                ...data,
+            };
+            this.chain.get('pcReports')
+                .push(toDB)
+                .value();
+            this.db.writeFlag(SavePriority.HIGH);
+            return reportID;
+        } catch (error) {
+            let msg = `Failed to register PC report to database with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
+     * Links a PC report to a ban.
+     */
+    linkPCReportToBan(reportId: string, banId: string) {
+        if (typeof reportId !== 'string' || !reportId.length) throw new Error('Invalid reportId.');
+        if (typeof banId !== 'string' || !banId.length) throw new Error('Invalid banId.');
+
+        try {
+            const report = this.chain.get('pcReports')
+                .find({ id: reportId })
+                .value();
+
+            if (!report) throw new Error(`PC report not found`);
+
+            report.banActionId = banId;
+            this.db.writeFlag(SavePriority.HIGH);
+        } catch (error) {
+            const msg = `Failed to link PC report to ban with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
+     * Deletes a PC report.
+     */
+    deletePCReport(reportId: string) {
+        if (typeof reportId !== 'string' || !reportId.length) throw new Error('Invalid reportId.');
+
+        try {
+            this.chain.get('pcReports')
+                .remove({ id: reportId })
+                .value();
+            this.db.writeFlag(SavePriority.HIGH);
+        } catch (error) {
+            const msg = `Failed to delete PC report with message: ${(error as Error).message}`;
             console.error(msg);
             console.verbose.dir(error);
             throw error;

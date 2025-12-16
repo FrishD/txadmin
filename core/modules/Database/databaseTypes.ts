@@ -84,4 +84,17 @@ export type DatabaseDataType = {
     banRateLimit: {
         [adminName: string]: number[];
     },
+    pcReports: DatabasePCReportType[],
+};
+
+export type DatabasePCReportType = {
+    id: string;
+    reporter: string;
+    supervisor: string;
+    result: 'passed' | 'not passed';
+    proofImage: string;
+    explanation: string;
+    timestamp: number;
+    playerLicense: string;
+    banActionId?: string;
 };

@@ -108,8 +108,15 @@ const infoCommand: ApplicationCommandDataResolvable = {
 /**
  * Exported commands
  */
+const pctopCommand: ApplicationCommandDataResolvable = {
+    type: ApplicationCommandType.ChatInput,
+    name: 'pctop',
+    description: 'Shows the top PC checkers.',
+};
+
 export default [
     statusCommand,
     whitelistCommand,
     infoCommand,
+    pctopCommand,
 ] as ApplicationCommandDataResolvable[];

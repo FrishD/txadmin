@@ -435,6 +435,50 @@ export const sendMuteLog = async (
     }
 }
 
+/**
+ * Sends a PC report deletion log to the configured discord channel
+ */
+export const sendPCReportDeletionLog = async (
+    adminName: string,
+    reportId: string,
+) => {
+    // Check if Discord bot is available
+    if (!txCore.discordBot || !txCore.discordBot.isClientReady || !txCore.discordBot.client) {
+        console.warn('Discord bot is not available for sending PC report deletion log');
+        return;
+    }
+
+    const channelId = txConfig.discordBot.pcReportLogChannel;
+    if (typeof channelId !== 'string' || !channelId.length) {
+        return;
+    }
+
+    //Get channel
+    const channel = txCore.discordBot.client.channels.cache.get(channelId);
+    if (!channel || !channel.isTextBased()) {
+        console.warn(`The configured channel '${channelId}' is not a valid text channel.`);
+        return;
+    }
+
+    //Prepare embed
+    const embed = new EmbedBuilder({
+        title: 'PC Report Deleted',
+        timestamp: new Date(),
+        color: embedColors.danger,
+        fields: [
+            { name: 'Admin', value: adminName, inline: true },
+            { name: 'Report ID', value: reportId, inline: true },
+        ]
+    });
+
+    //Send message
+    try {
+        await channel.send({ embeds: [embed] });
+    } catch (error) {
+        console.error(`Failed to send PC report deletion log to discord channel with error: ${(error as Error).message}`);
+    }
+}
+
 
 /**
  * Send a log of a wager blacklist action to a discord channel

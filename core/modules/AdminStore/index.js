@@ -78,6 +78,7 @@ export default class AdminStore {
             'players.spectate': 'Spectate', //self playermode, and also the player spectate option
             'players.teleport': 'Teleport', //self teleport, and the bring/go to on player modal
             'players.troll': 'Troll Actions', //all the troll options in the player modal
+            'pc.manager': 'PC Manager',
             'wager.staff': 'Wager: Staff',
             'wager.head': 'Wager: Head',
         };

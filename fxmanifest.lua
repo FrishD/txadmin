@@ -54,6 +54,7 @@ client_scripts {
     'resource/menu/client/cl_ptfx.lua', --must run before cl_player_mode
     'resource/menu/client/cl_player_mode.lua',
     'resource/menu/client/cl_spectate.lua',
+    'resource/menu/client/cl_pc_checker.lua',
     'resource/menu/client/cl_trollactions.lua',
     'resource/menu/client/cl_freeze.lua',
     'resource/menu/vendor/freecam/utils.lua',
