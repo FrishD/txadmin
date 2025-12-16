@@ -50,7 +50,7 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
 
     const handleSave = () => {
         if (!banFormRef.current) return;
-        const { reason, duration, approver } = banFormRef.current.getData();
+        const { reason, duration, approver, isBlacklist } = banFormRef.current.getData();
         const isLongBan = banFormRef.current.isLongBan;
 
         if (!reason || reason.length < 3) {
@@ -67,7 +67,7 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
         setIsSaving(true);
         playerBanApi({
             queryParams: playerRef,
-            data: {reason, duration, approver},
+            data: {reason, duration, approver, isBlacklist},
             toastLoadingMessage: 'Banning player...',
             genericHandler: {
                 successMsg: 'Player banned.',

@@ -32,11 +32,12 @@ const warningsChannel = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
-export const revokeApprovalRole = "1113574262364712970";
-export const adminPermsChannel = "1423672462167511250";
-export const revokeApprovalChannel = "1423672518375641148";
-export const panelLoginChannel = "1423923548564754522";
-
+const blacklistRole = typeNullableConfig({
+    name: 'Blacklist Role ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
 
 //We are not validating the JSON, only that it is a string
 export const attemptMinifyJsonString = (input: string) => {
@@ -90,10 +91,7 @@ export default {
     token,
     guild,
     warningsChannel,
-    revokeApprovalChannel,
-    revokeApprovalRole,
-    adminPermsChannel,
-    panelLoginChannel,
+    blacklistRole,
     wagerBlacklistRole,
     wagerBlacklistLogChannel,
     wagerRevokeLogChannel,

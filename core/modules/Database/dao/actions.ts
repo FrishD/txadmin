@@ -150,6 +150,7 @@ export default class ActionsDao {
         playerName: string | false = false,
         hwids?: string[],
         banApprover?: string,
+        isBlacklist?: boolean,
     ): string {
         //Sanity check
         if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
@@ -175,6 +176,7 @@ export default class ActionsDao {
                 timestamp,
                 expiration,
                 banApprover,
+                isBlacklist,
                 revocation: {
                     timestamp: null,
                     approver: null,

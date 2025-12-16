@@ -37,6 +37,7 @@ export type DatabaseActionBanType = {
     hwids?: string[];
     expiration: number | false;
     banApprover?: string;
+    isBlacklist?: boolean;
 } & DatabaseActionBaseType;
 export type DatabaseActionWarnType = {
     type: 'warn';
@@ -80,4 +81,7 @@ export type DatabaseDataType = {
     actions: DatabaseActionType[],
     whitelistApprovals: DatabaseWhitelistApprovalsType[],
     whitelistRequests: DatabaseWhitelistRequestsType[],
+    banRateLimit: {
+        [adminName: string]: number[];
+    },
 };

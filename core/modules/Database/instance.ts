@@ -21,6 +21,7 @@ export const defaultDatabase = {
     players: [],
     whitelistApprovals: [],
     whitelistRequests: [],
+    banRateLimit: {},
 };
 
 export enum SavePriority {

@@ -141,6 +141,17 @@ async function handleWarning(ctx: AuthedCtx, player: PlayerClass): Promise<Gener
  * Handle Banning command
  */
 async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Check ban rate limit
+    const now = Date.now();
+    const dbo = txCore.database.getDboRef();
+    if (dbo.data.banRateLimit[ctx.admin.name]) {
+        dbo.data.banRateLimit[ctx.admin.name] = dbo.data.banRateLimit[ctx.admin.name].filter(ts => now - ts < 3600000);
+    }
+    const adminBans = dbo.data.banRateLimit[ctx.admin.name] || [];
+    if (adminBans.length >= 3) {
+        return { error: 'You have exceeded the ban limit of 3 bans per hour.' };
+    }
+
     //Checking request
     if (
         anyUndefined(
@@ -154,6 +165,7 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
     const durationInput = ctx.request.body.duration.trim();
     let reason = (ctx.request.body.reason as string).trim() || 'no reason provided';
     const approver = ctx.request.body.approver as string | undefined;
+    const isBlacklist = ctx.request.body.isBlacklist as boolean | undefined;
 
     //Calculating expiration/duration
     let calcResults;
@@ -200,6 +212,11 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
     //Register action
     let actionId;
     try {
+        const dbo = txCore.database.getDboRef();
+        if (!dbo.data.banRateLimit[ctx.admin.name]) {
+            dbo.data.banRateLimit[ctx.admin.name] = [];
+        }
+        dbo.data.banRateLimit[ctx.admin.name].push(Date.now());
         actionId = txCore.database.actions.registerBan(
             allIds,
             ctx.admin.name,
@@ -207,8 +224,23 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
             expiration,
             player.displayName,
             allHwids,
-            banApprover
+            banApprover,
+            isBlacklist
         );
+
+        if (isBlacklist) {
+            if (txConfig.discordBot.blacklistRole) {
+                try {
+                    const discordId = allIds.find(id => typeof id === 'string' && id.startsWith('discord:'));
+                    if (discordId) {
+                        const uid = discordId.substring(8);
+                        await txCore.discordBot.addMemberRole(uid, txConfig.discordBot.blacklistRole);
+                    }
+                } catch (error) {
+                    return { warning: `Player banned, but failed to add blacklist role: ${(error as Error).message}` };
+                }
+            }
+        }
     } catch (error) {
         return { error: `Failed to ban player: ${(error as Error).message}` };
     }

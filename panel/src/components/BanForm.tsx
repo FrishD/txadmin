@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,6 +45,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
     const [currentDuration, setCurrentDuration] = useState('2 days');
     const [customUnits, setCustomUnits] = useState('days');
     const [selectedApprover, setSelectedApprover] = useState('');
+    const [isBlacklist, setIsBlacklist] = useState(false);
     const closeModal = useClosePlayerModal();
 
 
@@ -77,6 +79,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                         ? `${customMultiplierRef.current?.value} ${customUnits}`
                         : currentDuration,
                     approver: selectedApprover,
+                    isBlacklist,
                 };
             },
             clearData: () => {
@@ -86,6 +89,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                 setCurrentDuration('2 days');
                 setCustomUnits('days');
                 setSelectedApprover('');
+                setIsBlacklist(false);
             },
             focusReason: () => {
                 reasonRef.current?.focus();
@@ -237,6 +241,21 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                             <SelectItem value="permanent" className="font-bold">Permanent</SelectItem>
                         </SelectContent>
                     </Select>
+                    {currentDuration === 'permanent' && (
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="blacklist"
+                                checked={isBlacklist}
+                                onCheckedChange={(checked) => setIsBlacklist(checked as boolean)}
+                            />
+                            <label
+                                htmlFor="blacklist"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                                Add blacklist
+                            </label>
+                        </div>
+                    )}
                     <div className="flex flex-row gap-2">
                         <Input
                             id="durationMultiplier"

@@ -372,6 +372,25 @@ export default class DiscordBot {
                 this.guild.commands.set(slashCommands).catch(console.dir);
                 this.#client.application?.commands.set([]).catch(console.dir);
 
+                //Check for blacklisted players on startup
+                if (txConfig.discordBot.blacklistRole) {
+                    try {
+                        const blacklistedPlayers = txCore.database.actions.getRaw().filter(action => action.type === 'ban' && action.isBlacklist && !action.revocation.timestamp);
+                        for (const player of blacklistedPlayers) {
+                            const discordId = player.ids.find(id => typeof id === 'string' && id.startsWith('discord:'));
+                            if (discordId) {
+                                const uid = discordId.substring(8);
+                                const member = await this.guild.members.fetch(uid).catch(() => null);
+                                if (member) {
+                                    await member.roles.add(txConfig.discordBot.blacklistRole);
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Failed to check for blacklisted players on startup: ${(error as Error).message}`);
+                    }
+                }
+
                 //The settings save will the updateBotStatus, so no need to call it here
                 if (!isConfigSaveAttempt) {
                     this.updateBotStatus().catch((e) => { });
@@ -397,17 +416,19 @@ export default class DiscordBot {
             });
             this.#client.on('interactionCreate', interactionCreateHandler);
             this.#client.on('guildMemberAdd', async (member) => {
-                try {
-                    const activeBlacklist = txCore.database.actions.findMany(
-                        [`discord:${member.id}`],
-                        undefined,
-                        { type: 'wagerblacklist', 'revocation.timestamp': null }
-                    );
-                    if (activeBlacklist.length && txConfig.discordBot.wagerBlacklistRole) {
-                        await member.roles.add(txConfig.discordBot.wagerBlacklistRole);
+                if (txConfig.discordBot.blacklistRole) {
+                    try {
+                        const activeBlacklist = txCore.database.actions.findMany(
+                            [`discord:${member.id}`],
+                            undefined,
+                            { type: 'ban', isBlacklist: true, 'revocation.timestamp': null }
+                        );
+                        if (activeBlacklist.length) {
+                            await member.roles.add(txConfig.discordBot.blacklistRole);
+                        }
+                    } catch (error) {
+                        console.error(`Failed to check for blacklist for user ${member.id}: ${(error as Error).message}`);
                     }
-                } catch (error) {
-                    console.error(`Failed to check for wager blacklist for user ${member.id}: ${(error as Error).message}`);
                 }
             });
             // this.#client.on('debug', console.verbose.debug);
