@@ -9,7 +9,27 @@ import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import { SYM_CURRENT_MUTEX } from '@lib/symbols';
 import { sendWagerBlacklistLog } from '@modules/DiscordBot/discordHelpers';
 import { handleMute, handleUnmute } from './mute';
+import multer from 'multer';
+import { ZodError, z } from 'zod';
+import { proofsDir } from '@core/extras/helpers';
+import { resolve } from 'node:path';
 const console = consoleFactory(modulename);
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, proofsDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'ban-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
+    }
+});
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: 15 * 1024 * 1024, //15mb
+    },
+}).single('evidenceFile');
 
 
 /**
@@ -39,7 +59,13 @@ export default async function PlayerActions(ctx: AuthedCtx) {
     } else if (action === 'warn') {
         return sendTypedResp(await handleWarning(ctx, player));
     } else if (action === 'ban') {
-        return sendTypedResp(await handleBan(ctx, player));
+        return await upload(ctx.req, ctx.res, async (err) => {
+            if (err) {
+                console.error(err);
+                return sendTypedResp({ error: `Error uploading file: ${err.message}` });
+            }
+            return sendTypedResp(await handleBan(ctx, player, ctx.req.file));
+        });
     } else if (action === 'whitelist') {
         return sendTypedResp(await handleSetWhitelist(ctx, player));
     } else if (action === 'message') {
@@ -140,7 +166,7 @@ async function handleWarning(ctx: AuthedCtx, player: PlayerClass): Promise<Gener
 /**
  * Handle Banning command
  */
-async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+async function handleBan(ctx: AuthedCtx, player: PlayerClass, evidenceFile?: Express.Multer.File): Promise<GenericApiResp> {
     //Check ban rate limit
     const now = Date.now();
     const dbo = txCore.database.getDboRef();
@@ -225,7 +251,8 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
             player.displayName,
             allHwids,
             banApprover,
-            isBlacklist
+            isBlacklist,
+            evidenceFile?.filename
         );
 
         if (isBlacklist) {

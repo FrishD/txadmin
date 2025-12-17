@@ -3,6 +3,7 @@ import MainRouter from "./MainRouter";
 import { useExpireAuthData } from '../hooks/auth';
 import { Header } from './Header';
 import { ServerSidebar } from './ServerSidebar/ServerSidebar';
+import PermissionGuard from "./PermissionGuard";
 import { PlayerlistSidebar } from './PlayerlistSidebar/PlayerlistSidebar';
 import MainSheets from './MainSheets';
 import WarningBar from './WarningBar';
@@ -82,7 +83,9 @@ export default function MainShell() {
             <div className="md:px-3 min-h-full pt-[var(--page-pt)] pb-[var(--page-pb)] w-full max-w-[1920px] mx-auto flex flex-row gap-4">
                 <ServerSidebar />
                 <main className="flex flex-1 min-h-contentvh min-w-[360px]">
-                    <MainRouter />
+                    <PermissionGuard>
+                        <MainRouter />
+                    </PermissionGuard>
                 </main>
                 {window.txConsts.isWebInterface && <PlayerlistSidebar />}
             </div>

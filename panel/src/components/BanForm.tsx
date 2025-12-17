@@ -1,4 +1,4 @@
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +21,8 @@ type BanFormRespType = {
     reason: string;
     duration: string;
     approver?: string;
+    evidenceFile?: File;
+    isBlacklist?: boolean;
 }
 export type BanFormType = HTMLDivElement & {
     focusReason: () => void;
@@ -46,6 +48,8 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
     const [customUnits, setCustomUnits] = useState('days');
     const [selectedApprover, setSelectedApprover] = useState('');
     const [isBlacklist, setIsBlacklist] = useState(false);
+    const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+    const evidenceFileRef = useRef<HTMLInputElement>(null);
     const closeModal = useClosePlayerModal();
 
 
@@ -80,23 +84,26 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                         : currentDuration,
                     approver: selectedApprover,
                     isBlacklist,
+                    evidenceFile,
                 };
             },
             clearData: () => {
-                if (!reasonRef.current || !customMultiplierRef.current) return;
+                if (!reasonRef.current || !customMultiplierRef.current || !evidenceFileRef.current) return;
                 reasonRef.current.value = '';
                 customMultiplierRef.current.value = '';
                 setCurrentDuration('2 days');
                 setCustomUnits('days');
                 setSelectedApprover('');
                 setIsBlacklist(false);
+                setEvidenceFile(null);
+                evidenceFileRef.current.value = '';
             },
             focusReason: () => {
                 reasonRef.current?.focus();
             },
             isLongBan,
         };
-    }, [reasonRef, customMultiplierRef, currentDuration, customUnits, selectedApprover, isLongBan]);
+    }, [reasonRef, customMultiplierRef, currentDuration, customUnits, selectedApprover, isLongBan, evidenceFile, evidenceFileRef]);
 
     const handleTemplateSelectChange = (value: string) => {
         if (value === ADD_NEW_SELECT_OPTION) {
@@ -218,6 +225,19 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                 </div>
             </div>
             <div className="flex flex-col gap-3">
+                <Label htmlFor="evidenceFile">
+                    Evidence (Image or Video, max 15MB)
+                </Label>
+                <Input
+                    id="evidenceFile"
+                    type="file"
+                    accept="image/*,video/*"
+                    ref={evidenceFileRef}
+                    onChange={(e) => setEvidenceFile(e.target.files?.[0] || null)}
+                    disabled={disabled}
+                />
+            </div>
+            <div className="flex flex-col gap-3">
                 <Label htmlFor="durationSelect">
                     Duration
                 </Label>
@@ -242,18 +262,18 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                         </SelectContent>
                     </Select>
                     {currentDuration === 'permanent' && (
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
+                        <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="blacklist">Add to Blacklist</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    This will add a persistent blacklist role to the user on Discord.
+                                </p>
+                            </div>
+                            <Switch
                                 id="blacklist"
                                 checked={isBlacklist}
-                                onCheckedChange={(checked) => setIsBlacklist(checked as boolean)}
+                                onCheckedChange={setIsBlacklist}
                             />
-                            <label
-                                htmlFor="blacklist"
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                                Add blacklist
-                            </label>
                         </div>
                     )}
                     <div className="flex flex-row gap-2">

@@ -50,7 +50,7 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
 
     const handleSave = () => {
         if (!banFormRef.current) return;
-        const { reason, duration, approver, isBlacklist } = banFormRef.current.getData();
+        const { reason, duration, approver, isBlacklist, evidenceFile } = banFormRef.current.getData();
         const isLongBan = banFormRef.current.isLongBan;
 
         if (!reason || reason.length < 3) {
@@ -64,10 +64,23 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
             return;
         }
 
+        const formData = new FormData();
+        formData.append('reason', reason);
+        formData.append('duration', duration);
+        if (approver) formData.append('approver', approver);
+        if (isBlacklist) formData.append('isBlacklist', 'true');
+        if (evidenceFile) {
+            if (evidenceFile.size > 15 * 1024 * 1024) {
+                txToast.error(`The evidence file cannot be larger than 15MB.`);
+                return;
+            }
+            formData.append('evidenceFile', evidenceFile);
+        }
+
         setIsSaving(true);
         playerBanApi({
             queryParams: playerRef,
-            data: {reason, duration, approver, isBlacklist},
+            data: formData,
             toastLoadingMessage: 'Banning player...',
             genericHandler: {
                 successMsg: 'Player banned.',

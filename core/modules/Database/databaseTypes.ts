@@ -38,6 +38,7 @@ export type DatabaseActionBanType = {
     expiration: number | false;
     banApprover?: string;
     isBlacklist?: boolean;
+    evidenceFile?: string;
 } & DatabaseActionBaseType;
 export type DatabaseActionWarnType = {
     type: 'warn';

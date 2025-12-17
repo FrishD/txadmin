@@ -114,8 +114,6 @@ router.get('/player', async (ctx: AuthedCtx) => {
     const playerData = {
         displayName: player.displayName,
         license: player.license,
-        ids: player.ids,
-        hwids: player.hwids,
     };
 
     return ctx.send(playerData);

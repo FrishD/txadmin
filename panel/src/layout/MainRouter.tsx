@@ -21,6 +21,7 @@ import SettingsPage from "@/pages/Settings/SettingsPage";
 import WagerBlacklistPage from "@/pages/WagerBlacklist/WagerBlacklistPage";
 import { useAdminPerms } from "@/hooks/auth";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
+import PCCheckerPage from "@/pages/PCChecker/PCCheckerPage";
 
 
 type RouteType = {
@@ -166,6 +167,12 @@ const allRoutes: RouteType[] = [
     //     title: 'Player Crashes',
     //     children: <PlayerCrashesPage />
     // },
+    {
+        path: '/pc_checker',
+        title: 'PC Checker',
+        permission: 'players.pc_checker',
+        Page: <PCCheckerPage />
+    },
 ];
 
 

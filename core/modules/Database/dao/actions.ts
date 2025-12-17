@@ -110,10 +110,12 @@ export default class ActionsDao {
     ): T[] {
         if (!Array.isArray(idsArray)) throw new Error('idsArray should be an array');
         if (hwidsArray && !Array.isArray(hwidsArray)) throw new Error('hwidsArray should be an array or undefined');
-        const idsFilter = (action: DatabaseActionType) => idsArray.some((fi) => action.ids.includes(fi))
+        const idsFilter = (action: DatabaseActionType) => {
+            return Array.isArray(action.ids) && idsArray.some((fi) => action.ids.includes(fi));
+        }
         const hwidsFilter = (action: DatabaseActionType) => {
-            if ('hwids' in action && action.hwids) {
-                const count = hwidsArray!.filter((fi) => action.hwids?.includes(fi)).length;
+            if ('hwids' in action && Array.isArray(action.hwids) && Array.isArray(hwidsArray)) {
+                const count = hwidsArray.filter((fi) => action.hwids!.includes(fi)).length;
                 return count >= txConfig.banlist.requiredHwidMatches;
             } else {
                 return false;
@@ -151,6 +153,7 @@ export default class ActionsDao {
         hwids?: string[],
         banApprover?: string,
         isBlacklist?: boolean,
+        evidenceFile?: string,
     ): string {
         //Sanity check
         if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
@@ -177,6 +180,7 @@ export default class ActionsDao {
                 expiration,
                 banApprover,
                 isBlacklist,
+                evidenceFile,
                 revocation: {
                     timestamp: null,
                     approver: null,
@@ -549,6 +553,32 @@ export default class ActionsDao {
 
         } catch (error) {
             const msg = `Failed to modify ban duration with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
+     * Adds an evidence file to a ban.
+     */
+    addBanEvidence(actionId: string, evidenceFile: string) {
+        if (typeof actionId !== 'string' || !actionId.length) throw new Error('Invalid actionId.');
+        if (typeof evidenceFile !== 'string' || !evidenceFile.length) throw new Error('Invalid evidenceFile.');
+
+        try {
+            const action = this.chain.get('actions')
+                .find({ id: actionId })
+                .value();
+
+            if (!action) throw new Error(`action not found`);
+            if (action.type !== 'ban') throw new Error(`action is not a ban`);
+
+            action.evidenceFile = evidenceFile;
+            this.db.writeFlag(SavePriority.HIGH);
+        } catch (error) {
+            const msg = `Failed to add evidence to ban with message: ${(error as Error).message}`;
             console.error(msg);
             console.verbose.dir(error);
             throw error;

@@ -131,6 +131,26 @@ export const webAuthMw = async (ctx: InitializedCtx, next: Function) => {
 
     //Adding the admin to the context
     ctx.admin = authResult.admin;
+
+    //Redirecting PC Checker only users
+    const perms = ctx.admin.permissions;
+    if (
+        perms.includes('players.pc_checker') &&
+        !perms.some(p => p !== 'players.pc_checker' && p !== 'players.pc_manager') &&
+        !ctx.path.startsWith('/pc_checker') &&
+        !ctx.path.startsWith('/auth')
+    ) {
+        return ctx.response.redirect('/pc_checker');
+    }
+    if (
+        perms.includes('players.pc_manager') &&
+        !perms.some(p => p !== 'players.pc_checker' && p !== 'players.pc_manager') &&
+        !ctx.path.startsWith('/pc_checker') &&
+        !ctx.path.startsWith('/auth')
+    ) {
+        return ctx.response.redirect('/pc_checker');
+    }
+
     await next();
 };
 

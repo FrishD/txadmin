@@ -8,7 +8,25 @@ import consoleFactory from '@lib/console';
 import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import { z } from 'zod';
 import { sendRevokeApproval, sendWagerBlacklistLog } from '@modules/DiscordBot/discordHelpers';
+import multer from 'multer';
+import { proofsDir } from '@core/extras/helpers';
 const console = consoleFactory(modulename);
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, proofsDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'ban-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
+    }
+});
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: 15 * 1024 * 1024, //15mb
+    },
+}).single('evidenceFile');
 
 //Schema
 const addLegacyBanBodySchema = z.object({
@@ -30,6 +48,11 @@ const modifyBanBodySchema = z.object({
 });
 export type ApiModifyBanReqSchema = z.infer<typeof modifyBanBodySchema>;
 
+const addEvidenceBodySchema = z.object({
+    actionId: z.string(),
+});
+export type ApiAddEvidenceReqSchema = z.infer<typeof addEvidenceBodySchema>;
+
 
 /**
  * Endpoint to interact with the actions database.
@@ -49,6 +72,14 @@ export default async function HistoryActions(ctx: AuthedCtx & { params: any }) {
         return sendTypedResp(await handleRevokeAction(ctx));
     } else if (action === 'modifyBan') {
         return sendTypedResp(await handleModifyBan(ctx));
+    } else if (action === 'addEvidence') {
+        return await upload(ctx.req, ctx.res, async (err) => {
+            if (err) {
+                console.error(err);
+                return ctx.send({ error: `Error uploading file: ${err.message}` });
+            }
+            return ctx.send(await handleAddEvidence(ctx, ctx.req.file));
+        });
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -146,6 +177,47 @@ async function handleBandIds(ctx: AuthedCtx): Promise<GenericApiOkResp> {
             kickMessage,
         });
     } catch (error) { }
+
+    return { success: true };
+}
+
+
+/**
+ * Handle Add Evidence to a Ban
+ */
+async function handleAddEvidence(ctx: AuthedCtx, evidenceFile?: Express.Multer.File): Promise<GenericApiOkResp> {
+    //Checking request
+    const schemaRes = addEvidenceBodySchema.safeParse(ctx.request.body);
+    if (!schemaRes.success) {
+        return { error: 'Invalid request body.' };
+    }
+    const { actionId } = schemaRes.data;
+
+    if (!evidenceFile) {
+        return { error: 'Missing evidence file.' };
+    }
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.ban', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' }
+    }
+
+    //Getting action
+    const action = txCore.database.actions.findOne(actionId);
+    if (!action) {
+        return { error: 'Action not found.' };
+    }
+    if (action.type !== 'ban') {
+        return { error: 'This action is not a ban.' };
+    }
+
+    //Add evidence
+    try {
+        txCore.database.actions.addBanEvidence(actionId, evidenceFile.filename);
+        ctx.admin.logAction(`Added evidence to ban ${actionId}.`);
+    } catch (error) {
+        return { error: `Failed to add evidence: ${(error as Error).message}` };
+    }
 
     return { success: true };
 }

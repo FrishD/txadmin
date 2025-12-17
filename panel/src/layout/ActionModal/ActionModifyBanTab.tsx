@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import type { DatabaseActionType } from "../../../../core/modules/Database/databaseTypes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { txToast } from "@/components/TxToaster";
@@ -21,10 +22,17 @@ export default function ActionModifyBanTab({ action, refreshModalData }: ActionM
     const [currentDuration, setCurrentDuration] = useState('1 day');
     const [customUnits, setCustomUnits] = useState('days');
     const customMultiplierRef = useRef<HTMLInputElement>(null);
+    const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+    const [isAddingEvidence, setIsAddingEvidence] = useState(false);
 
     const modifyBanApi = useBackendApi<GenericApiOkResp, ApiModifyBanReqSchema>({
         method: 'POST',
         path: `/history/modifyBan`,
+    });
+
+    const addEvidenceApi = useBackendApi<GenericApiOkResp>({
+        method: 'POST',
+        path: `/history/addEvidence`,
     });
 
     const doModifyBan = () => {
@@ -133,6 +141,59 @@ export default function ActionModifyBanTab({ action, refreshModalData }: ActionM
                             <Loader2Icon className="inline animate-spin h-4" /> Modifying...
                         </span>
                     ) : 'Modify Ban'}
+                </Button>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+                <h3 className="text-xl">Add Evidence</h3>
+                <p className="text-muted-foreground text-sm">
+                    You can add evidence to this ban. This can be an image or a video file (max 15MB).
+                </p>
+
+                <div className="flex flex-col gap-3">
+                    <Label htmlFor="evidenceFile">
+                        Evidence File
+                    </Label>
+                    <Input
+                        id="evidenceFile"
+                        type="file"
+                        accept="image/*,video/*"
+                        onChange={(e) => setEvidenceFile(e.target.files?.[0] || null)}
+                    />
+                </div>
+
+                <Button
+                    variant="destructive"
+                    size='xs'
+                    className="col-start-1 col-span-full xs:col-span-3 xs:col-start-2"
+                    type="submit"
+                    disabled={!evidenceFile || isAddingEvidence}
+                    onClick={async () => {
+                        if (!evidenceFile) return;
+                        setIsAddingEvidence(true);
+                        const formData = new FormData();
+                        formData.append('actionId', action.id);
+                        formData.append('evidenceFile', evidenceFile);
+                        await addEvidenceApi({
+                            data: formData,
+                            toastLoadingMessage: 'Adding evidence...',
+                            genericHandler: {
+                                successMsg: 'Evidence added.',
+                            },
+                            success: (data) => {
+                                if ('success' in data) {
+                                    refreshModalData();
+                                }
+                            }
+                        });
+                        setIsAddingEvidence(false);
+                    }}
+                >
+                    {isAddingEvidence ? (
+                        <span className="flex items-center leading-relaxed">
+                            <Loader2Icon className="inline animate-spin h-4" /> Adding...
+                        </span>
+                    ) : 'Add Evidence'}
                 </Button>
             </div>
         </div>
