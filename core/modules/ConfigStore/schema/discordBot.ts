@@ -32,6 +32,34 @@ const warningsChannel = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
+const revokeApprovalChannel = typeNullableConfig({
+    name: 'Revoke Approval Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
+const revokeApprovalRole = typeNullableConfig({
+    name: 'Revoke Approval Role ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
+const adminPermsChannel = typeNullableConfig({
+    name: 'Admin Perms Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
+const panelLoginChannel = typeNullableConfig({
+    name: 'Panel Login Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
 const blacklistRole = typeNullableConfig({
     name: 'Blacklist Role ID',
     default: null,
@@ -98,6 +126,10 @@ export default {
     token,
     guild,
     warningsChannel,
+    revokeApprovalChannel,
+    revokeApprovalRole,
+    adminPermsChannel,
+    panelLoginChannel,
     blacklistRole,
     wagerBlacklistRole,
     wagerBlacklistLogChannel,
