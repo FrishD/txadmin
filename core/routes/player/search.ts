@@ -8,6 +8,7 @@ import { chain as createChain } from 'lodash-es';
 import Fuse from 'fuse.js';
 import { parseLaxIdsArrayInput } from '@lib/player/idUtils';
 import { TimeCounter } from '@modules/Metrics/statsUtils';
+import { sendPlayerSearchLog } from '@modules/DiscordBot/discordHelpers';
 const console = consoleFactory(modulename);
 
 //Helpers
@@ -34,6 +35,9 @@ export default async function PlayerSearch(ctx: AuthedCtx) {
         offsetParam,
         offsetLicense
     } = ctx.query;
+    if(searchValue && searchType){
+        sendPlayerSearchLog(ctx.admin.name, searchValue as string, searchType as string);
+    }
     const sendTypedResp = (data: PlayersTableSearchResp) => ctx.send(data);
     const searchTime = new TimeCounter();
     const adminsIdentifiers = txCore.adminStore.getAdminsIdentifiers();

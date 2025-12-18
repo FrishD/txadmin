@@ -32,11 +32,18 @@ const reportSchema = z.object({
 });
 
 
+interface SelectedPlayer extends ServerPlayer {
+    alts: {
+        displayName: string;
+        license: string;
+    }[];
+}
+
 export default function PCCheckerPage() {
     const { hasPerm } = useAdminPerms();
     const [players, setPlayers] = useState<ServerPlayer[]>([]);
     const [reports, setReports] = useState<DatabasePCReportType[]>([]);
-    const [selectedPlayer, setSelectedPlayer] = useState<ServerPlayer | null>(null);
+    const [selectedPlayer, setSelectedPlayer] = useState<SelectedPlayer | null>(null);
 
     const summonApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
@@ -56,6 +63,16 @@ export default function PCCheckerPage() {
     const getReportsApi = useBackendApi<DatabasePCReportType[]>({
         method: 'GET',
         path: '/pc_checker/reports',
+    });
+
+    const deleteReportApi = useBackendApi<GenericApiOkResp>({
+        method: 'POST',
+        path: '/pc_checker/delete_report',
+    });
+
+    const getPlayerAltsApi = useBackendApi<SelectedPlayer>({
+        method: 'GET',
+        path: '/pc_checker/player',
     });
 
     useEffect(() => {
@@ -174,10 +191,16 @@ export default function PCCheckerPage() {
                                             <FormItem>
                                                 <FormLabel>Player</FormLabel>
                                                 <FormControl>
-                                                    <Select onValueChange={(value) => {
+                                                    <Select onValueChange={async (value) => {
                                                         field.onChange(value);
-                                                        const player = players.find(p => p.license === value);
-                                                        setSelectedPlayer(player || null);
+                                                        await getPlayerAltsApi({
+                                                            queryParams: { license: value },
+                                                            success: (data) => {
+                                                                if (!('error' in data)) {
+                                                                    setSelectedPlayer(data);
+                                                                }
+                                                            }
+                                                        });
                                                     }} defaultValue={field.value}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder="Select a player" />
@@ -199,6 +222,16 @@ export default function PCCheckerPage() {
                                         <div>
                                             <p>Selected Player: {selectedPlayer.displayName}</p>
                                             <p>License: {selectedPlayer.license}</p>
+                                            {selectedPlayer.alts && selectedPlayer.alts.length > 0 && (
+                                                <div>
+                                                    <p>Alternate Accounts:</p>
+                                                    <ul>
+                                                        {selectedPlayer.alts.map(alt => (
+                                                            <li key={alt.license}>{alt.displayName} ({alt.license})</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                     <FormField
@@ -296,12 +329,13 @@ export default function PCCheckerPage() {
                                             {hasPerm('pc.manager') && (
                                                 <TableCell>
                                                     <Button variant="destructive" size="sm" onClick={async () => {
-                                                        await useBackendApi({
-                                                            method: 'POST',
-                                                            path: '/pc_checker/delete_report',
+                                                        await deleteReportApi({
                                                             data: { reportId: report.id },
+                                                            toastLoadingMessage: 'Deleting report...',
+                                                            genericHandler: {
+                                                                successMsg: 'Report deleted.',
+                                                            },
                                                         });
-                                                        toast.success('Report deleted.');
                                                         setReports(reports.filter(r => r.id !== report.id));
                                                     }}>Delete</Button>
                                                 </TableCell>

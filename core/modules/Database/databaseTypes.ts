@@ -39,6 +39,11 @@ export type DatabaseActionBanType = {
     banApprover?: string;
     isBlacklist?: boolean;
     evidenceFile?: string;
+    reasonHistory?: {
+        reason: string;
+        author: string;
+        timestamp: number;
+    }[];
 } & DatabaseActionBaseType;
 export type DatabaseActionWarnType = {
     type: 'warn';

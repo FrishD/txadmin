@@ -2,11 +2,14 @@ import { AuthedCtx } from '@core/components/WebServer/ctxTypes';
 import Router from '@koa/router';
 import { ensurePermission } from '@core/components/WebServer/authLogic';
 import { z } from 'zod';
-import playerResolver from '@lib/player/playerResolver';
+import playerResolver, { getAltPlayers } from '@lib/player/playerResolver';
 import { sendPCReportDeletionLog } from '@modules/DiscordBot/discordHelpers';
 import { PlayerClass, ServerPlayer } from '@lib/player/playerClasses';
+import multer from '@koa/multer';
+import { proofsDir } from '@core/extras/helpers';
 
 const router = new Router();
+const upload = multer({ dest: proofsDir });
 
 const summonBodySchema = z.object({
     netid: z.number(),
@@ -47,7 +50,7 @@ const reportBodySchema = z.object({
     explanation: z.string(),
 });
 
-router.post('/report', async (ctx: AuthedCtx) => {
+router.post('/report', upload.single('proofImage'), async (ctx: AuthedCtx) => {
     ensurePermission(ctx, 'players.pc_checker');
 
     const schemaRes = reportBodySchema.safeParse(ctx.request.body);
@@ -111,9 +114,14 @@ router.get('/player', async (ctx: AuthedCtx) => {
         return ctx.send({ error: (error as Error).message });
     }
 
+    const alts = getAltPlayers(player.hwids);
     const playerData = {
         displayName: player.displayName,
         license: player.license,
+        alts: alts.map(alt => ({
+            displayName: alt.displayName,
+            license: alt.license,
+        })),
     };
 
     return ctx.send(playerData);

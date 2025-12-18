@@ -479,6 +479,52 @@ export const sendPCReportDeletionLog = async (
     }
 }
 
+/**
+ * Sends a player search log to the configured discord channel
+ */
+export const sendPlayerSearchLog = async (
+    adminName: string,
+    searchValue: string,
+    searchType: string,
+) => {
+    // Check if Discord bot is available
+    if (!txCore.discordBot || !txCore.discordBot.isClientReady || !txCore.discordBot.client) {
+        console.warn('Discord bot is not available for sending player search log');
+        return;
+    }
+
+    const channelId = txConfig.discordBot.playerSearchLogChannel;
+    if (typeof channelId !== 'string' || !channelId.length) {
+        return;
+    }
+
+    //Get channel
+    const channel = txCore.discordBot.client.channels.cache.get(channelId);
+    if (!channel || !channel.isTextBased()) {
+        console.warn(`The configured channel '${channelId}' is not a valid text channel.`);
+        return;
+    }
+
+    //Prepare embed
+    const embed = new EmbedBuilder({
+        title: 'Player Search',
+        timestamp: new Date(),
+        color: embedColors.info,
+        fields: [
+            { name: 'Admin', value: adminName, inline: true },
+            { name: 'Search Type', value: searchType, inline: true },
+            { name: 'Search Value', value: searchValue, inline: false },
+        ]
+    });
+
+    //Send message
+    try {
+        await channel.send({ embeds: [embed] });
+    } catch (error) {
+        console.error(`Failed to send player search log to discord channel with error: ${(error as Error).message}`);
+    }
+}
+
 
 /**
  * Send a log of a wager blacklist action to a discord channel

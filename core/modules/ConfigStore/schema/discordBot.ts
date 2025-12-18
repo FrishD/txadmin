@@ -120,6 +120,13 @@ const pcReportLogChannel = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
+const playerSearchLogChannel = typeNullableConfig({
+    name: 'Player Search Log Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
 
 export default {
     enabled,
@@ -135,6 +142,7 @@ export default {
     wagerBlacklistLogChannel,
     wagerRevokeLogChannel,
     pcReportLogChannel,
+    playerSearchLogChannel,
     embedJson,
     embedConfigJson,
 } as const;

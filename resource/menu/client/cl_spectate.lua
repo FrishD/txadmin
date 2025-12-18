@@ -34,7 +34,8 @@ local storedTargetPed
 local storedTargetPlayerId
 -- Spectated players associated server id
 local storedTargetServerId
-
+-- Spectate cam
+local cam
 
 --- Helper function to get coords under target
 local function calculateSpectatorCoords(coords)
@@ -92,10 +93,11 @@ local function stopSpectating()
     while not IsScreenFadedOut() do Wait(5) end
 
     -- reset spectator
-    NetworkSetInSpectatorMode(false, nil)
-    if IS_FIVEM then
-        SetMinimapInSpectatorMode(false, nil)
-    end
+    RenderScriptCams(false, false, 0, true, true)
+    DestroyCam(cam, false)
+    cam = nil
+    DetachCam(PlayerPedId())
+    ClearFocus()
     if spectatorReturnCoords then
         debugPrint('Returning spectator to original coords')
         if not pcall(collisionTpCoordTransition, spectatorReturnCoords) then
@@ -340,10 +342,11 @@ RegisterNetEvent('txcl:spectate:start', function(targetServerId, targetCoords)
     storedTargetServerId = targetServerId
 
     -- start spectating
-    NetworkSetInSpectatorMode(true, resolvedPed)
-    if IS_FIVEM then
-        SetMinimapInSpectatorMode(true, resolvedPed)
-    end
+    cam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
+    AttachCamToEntity(cam, resolvedPed, 0.0, 0.0, 2.0, true)
+    SetCamActive(cam, true)
+    RenderScriptCams(true, false, 0, true, true)
+    SetFollowPedCamViewMode(4)
     debugPrint(('Set spectate to true for resolvedPed (%s)'):format(resolvedPed))
 
     isSpectateEnabled = true

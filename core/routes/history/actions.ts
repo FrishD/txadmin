@@ -48,6 +48,12 @@ const modifyBanBodySchema = z.object({
 });
 export type ApiModifyBanReqSchema = z.infer<typeof modifyBanBodySchema>;
 
+const modifyBanReasonBodySchema = z.object({
+    actionId: z.string(),
+    reason: z.string().trim().min(3).max(2048),
+});
+export type ApiModifyBanReasonReqSchema = z.infer<typeof modifyBanReasonBodySchema>;
+
 const addEvidenceBodySchema = z.object({
     actionId: z.string(),
 });
@@ -72,6 +78,8 @@ export default async function HistoryActions(ctx: AuthedCtx & { params: any }) {
         return sendTypedResp(await handleRevokeAction(ctx));
     } else if (action === 'modifyBan') {
         return sendTypedResp(await handleModifyBan(ctx));
+    } else if (action === 'modifyBanReason') {
+        return sendTypedResp(await handleModifyBanReason(ctx));
     } else if (action === 'addEvidence') {
         return await upload(ctx.req, ctx.res, async (err) => {
             if (err) {
@@ -177,6 +185,48 @@ async function handleBandIds(ctx: AuthedCtx): Promise<GenericApiOkResp> {
             kickMessage,
         });
     } catch (error) { }
+
+    return { success: true };
+}
+
+
+/**
+ * Handle modifying a ban's reason.
+ * This is called from the player modal.
+ */
+async function handleModifyBanReason(ctx: AuthedCtx): Promise<GenericApiOkResp> {
+    //Checking request
+    const schemaRes = modifyBanReasonBodySchema.safeParse(ctx.request.body);
+    if (!schemaRes.success) {
+        return { error: 'Invalid request body.' };
+    }
+    const { actionId, reason } = schemaRes.data;
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.ban', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' }
+    }
+
+    //Getting action
+    const action = txCore.database.actions.findOne(actionId);
+    if (!action) {
+        return { error: 'Action not found.' };
+    }
+    if (action.type !== 'ban') {
+        return { error: 'This action is not a ban.' };
+    }
+    if (action.revocation.timestamp) {
+        return { error: 'This ban is revoked.' };
+    }
+
+    //Modify ban reason
+    try {
+        const oldReason = action.reason;
+        txCore.database.actions.modifyBanReason(actionId, reason, ctx.admin.name);
+        ctx.admin.logAction(`Modified ban reason for ${actionId} from "${oldReason}" to "${reason}".`);
+    } catch (error) {
+        return { error: `Failed to modify ban reason: ${(error as Error).message}` };
+    }
 
     return { success: true };
 }
