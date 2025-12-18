@@ -9,7 +9,7 @@ import {
     getPublishVersion,
 } from './utils';
 import config from './config';
-import { parseTxDevEnv } from '../../shared/txDevEnv';
+import { parseTxDevEnv } from '../../shared/txDevEnv.ts';
 import { TxAdminRunner } from './TxAdminRunner';
 process.loadEnvFile();
 
