@@ -87,15 +87,11 @@ export const getPublishVersion = (isOptional: boolean) => {
     const workflowRef = process.env.GITHUB_REF;
     try {
         if (!workflowRef) {
-            if (isOptional) {
-                return {
-                    txVersion: '9.9.9-dev',
-                    isPreRelease: false,
-                    preReleaseExpiration: '0',
-                };
-            } else {
-                throw new Error('No --tag found.');
-            }
+            return {
+                txVersion: 'local',
+                isPreRelease: false,
+                preReleaseExpiration: '0',
+            };
         }
         const refRemoved = workflowRef.replace(/^(refs\/tags\/)?v/, '');
         const parsedVersion = new SemVer(refRemoved);
