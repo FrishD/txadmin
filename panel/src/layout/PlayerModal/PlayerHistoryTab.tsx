@@ -4,15 +4,20 @@ import { PlayerHistoryItem } from "@shared/playerApiTypes";
 import InlineCode from "@/components/InlineCode";
 import { useOpenActionModal } from "@/hooks/actionModal";
 import ModalCentralMessage from "@/components/ModalCentralMessage";
+import { Button } from "@/components/ui/button";
+import { useAdminPerms } from "@/hooks/auth";
+import { DatabaseActionBanType } from "@core/modules/Database/databaseTypes";
 
 
 type HistoryItemProps = {
     action: PlayerHistoryItem,
     serverTime: number,
     modalOpener: (actionId: string) => void,
+    onEditBan: (action: DatabaseActionBanType) => void,
 }
 
-function HistoryItem({ action, serverTime, modalOpener }: HistoryItemProps) {
+function HistoryItem({ action, serverTime, modalOpener, onEditBan }: HistoryItemProps) {
+    const { hasPerm } = useAdminPerms();
     let footerNote, borderColorClass, actionMessage;
     if (action.type === 'ban') {
         borderColorClass = 'border-destructive';
@@ -33,14 +38,13 @@ function HistoryItem({ action, serverTime, modalOpener }: HistoryItemProps) {
         footerNote = `Revoked by ${action.revokedBy} on ${revocationDate}.`;
     } else if (typeof action.exp === 'number') {
         const expirationDate = tsToLocaleDateTimeString(action.exp, 'medium', 'short');
-        footerNote = (action.exp < serverTime) ? `Expired on ${expirationDate}.` : `Expires in ${expirationDate}.`;
+        footerNote = (action.exp < serverTime) ? `Expired on ${expirationDate}.` : `Expires on ${expirationDate}.`;
     }
 
     return (
         <div
-            onClick={() => { modalOpener(action.id) }}
             className={cn(
-                'pl-2 border-l-4 hover:bg-muted rounded-r-sm bg-muted/30 cursor-pointer',
+                'pl-2 border-l-4 rounded-r-sm bg-muted/30',
                 borderColorClass
             )}
         >
@@ -57,7 +61,27 @@ function HistoryItem({ action, serverTime, modalOpener }: HistoryItemProps) {
                 </small>
             </div>
             <span className="text-sm">{action.reason}</span>
-            {footerNote && <small className="block text-xs opacity-75">{footerNote}</small>}
+            <div className="flex justify-between">
+                {footerNote && <small className="block text-xs opacity-75">{footerNote}</small>}
+                <div>
+                    {action.type === 'ban' && !action.revokedBy && hasPerm('players.ban') && (
+                        <Button
+                            variant="link"
+                            size="xs"
+                            onClick={() => onEditBan(action as DatabaseActionBanType)}
+                        >
+                            Edit
+                        </Button>
+                    )}
+                    <Button
+                        variant="link"
+                        size="xs"
+                        onClick={() => { modalOpener(action.id) }}
+                    >
+                        Details
+                    </Button>
+                </div>
+            </div>
         </div>
     );
 }
@@ -67,9 +91,10 @@ type PlayerHistoryTabProps = {
     actionHistory: PlayerHistoryItem[],
     serverTime: number,
     refreshModalData: () => void,
+    onEditBan: (action: DatabaseActionBanType) => void,
 }
 
-export default function PlayerHistoryTab({ actionHistory, serverTime, refreshModalData }: PlayerHistoryTabProps) {
+export default function PlayerHistoryTab({ actionHistory, serverTime, refreshModalData, onEditBan }: PlayerHistoryTabProps) {
     const openActionModal = useOpenActionModal();
 
     if (!actionHistory.length) {
@@ -90,6 +115,7 @@ export default function PlayerHistoryTab({ actionHistory, serverTime, refreshMod
                 action={action}
                 serverTime={serverTime}
                 modalOpener={doOpenActionModal}
+                onEditBan={onEditBan}
             />
         ))}
     </div>;

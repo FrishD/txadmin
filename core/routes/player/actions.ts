@@ -52,6 +52,8 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleMute(ctx, player));
     } else if (action === 'unmute') {
         return sendTypedResp(await handleUnmute(ctx, player));
+    } else if (action === 'edit_ban') {
+        return sendTypedResp(await handleEditBan(ctx));
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -154,6 +156,7 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
     const durationInput = ctx.request.body.duration.trim();
     let reason = (ctx.request.body.reason as string).trim() || 'no reason provided';
     const approver = ctx.request.body.approver as string | undefined;
+    const proofs = ctx.request.body.proofs as string[] | undefined;
 
     //Calculating expiration/duration
     let calcResults;
@@ -208,7 +211,8 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
             expiration,
             player.displayName,
             allHwids,
-            banApprover
+            banApprover,
+            proofs
         );
     } catch (error) {
         return { error: `Failed to ban player: ${(error as Error).message}` };
@@ -457,4 +461,55 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
     }
 
     return { success: true };
+}
+
+
+/**
+ * Handle Ban Edit
+ */
+async function handleEditBan(ctx: AuthedCtx): Promise<GenericApiResp> {
+    //Checking request
+    if (
+        anyUndefined(
+            ctx.request.body,
+            ctx.request.body.actionId,
+            ctx.request.body.reason,
+            ctx.request.body.proofs,
+        )
+    ) {
+        return { error: 'Invalid request.' };
+    }
+    const actionId = ctx.request.body.actionId as string;
+    const reason = ctx.request.body.reason.trim() || 'no reason provided';
+    const proofs = ctx.request.body.proofs as string[];
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.ban', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    //Validating action
+    const action = txCore.database.actions.findOne(actionId);
+    if (!action) {
+        return { error: 'The action could not be found.' };
+    }
+    if (action.type !== 'ban') {
+        return { error: 'This action is not a ban.' };
+    }
+    if (action.revocation.timestamp) {
+        return { error: 'This ban has been revoked and cannot be edited.' };
+    }
+
+    try {
+        txCore.database.actions.editBan(
+            actionId,
+            reason,
+            proofs,
+            ctx.admin.name
+        );
+        ctx.admin.logAction(`Edited ban ${actionId}`);
+        return { success: true };
+    } catch (error) {
+        return { error: `Failed to edit ban: ${(error as Error).message}` };
+    }
 }

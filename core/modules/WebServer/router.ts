@@ -112,6 +112,7 @@ export default () => {
     router.get('/player/stats', apiAuthMw, routes.player_stats);
     router.get('/player/search', apiAuthMw, routes.player_search);
     router.post('/player/checkJoin', intercomAuthMw, routes.player_checkJoin);
+    router.post('/player/upload', apiAuthMw, routes.player_upload);
     router.post('/player/:action', apiAuthMw, routes.player_actions);
     router.get('/whitelist/:table', apiAuthMw, routes.whitelist_list);
     router.post('/whitelist/:table/:action', apiAuthMw, routes.whitelist_actions);

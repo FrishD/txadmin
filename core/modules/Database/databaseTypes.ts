@@ -31,12 +31,18 @@ export type DatabaseActionBaseType = {
         status?: 'approved' | 'denied' | 'pending' | null;
         reason?: string | null;
     };
+    reasonHistory?: {
+        reason: string;
+        author: string;
+        timestamp: number;
+    }[];
 };
 export type DatabaseActionBanType = {
     type: 'ban';
     hwids?: string[];
     expiration: number | false;
     banApprover?: string;
+    proofs?: string[];
 } & DatabaseActionBaseType;
 export type DatabaseActionWarnType = {
     type: 'warn';

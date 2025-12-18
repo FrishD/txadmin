@@ -150,6 +150,7 @@ export default class ActionsDao {
         playerName: string | false = false,
         hwids?: string[],
         banApprover?: string,
+        proofs?: string[],
     ): string {
         //Sanity check
         if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
@@ -159,6 +160,7 @@ export default class ActionsDao {
         if (playerName !== false && (typeof playerName !== 'string' || !playerName.length)) throw new Error('Invalid playerName.');
         if (hwids && !Array.isArray(hwids)) throw new Error('Invalid hwids array.');
         if (banApprover && (typeof banApprover !== 'string' || !banApprover.length)) throw new Error('Invalid banApprover.');
+        if (proofs && !Array.isArray(proofs)) throw new Error('Invalid proofs array.');
 
         //Saves it to the database
         const timestamp = now();
@@ -175,6 +177,7 @@ export default class ActionsDao {
                 timestamp,
                 expiration,
                 banApprover,
+                proofs,
                 revocation: {
                     timestamp: null,
                     approver: null,
@@ -465,6 +468,59 @@ export default class ActionsDao {
 
         } catch (error) {
             const msg = `Failed to modify ban duration with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
+     * Edits a ban's reason and proofs.
+     */
+    editBan(
+        actionId: string,
+        newReason: string,
+        newProofs: string[],
+        author: string,
+    ): DatabaseActionType {
+        if (typeof actionId !== 'string' || !actionId.length) throw new Error('Invalid actionId.');
+        if (typeof newReason !== 'string' || !newReason.length) throw new Error('Invalid newReason.');
+        if (!Array.isArray(newProofs)) throw new Error('Invalid newProofs.');
+        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
+
+        try {
+            const action = this.chain.get('actions')
+                .find({ id: actionId })
+                .value();
+
+            if (!action) throw new Error(`action not found`);
+            if (action.type !== 'ban') throw new Error(`action is not a ban`);
+            if (action.revocation.timestamp) throw new Error(`cannot modify a revoked ban`);
+
+            if (!action.reasonHistory) {
+                action.reasonHistory = [];
+            }
+            action.reasonHistory.push({
+                reason: action.reason,
+                author: action.author,
+                timestamp: action.timestamp,
+            });
+
+            action.reason = newReason;
+            action.author = author;
+            action.timestamp = now();
+
+            if (!action.proofs) {
+                action.proofs = [];
+            }
+            action.proofs.push(...newProofs);
+
+            this.db.writeFlag(SavePriority.HIGH);
+            return cloneDeep(action);
+
+        } catch (error) {
+            const msg = `Failed to edit ban with message: ${(error as Error).message}`;
             console.error(msg);
             console.verbose.dir(error);
             throw error;
