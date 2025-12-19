@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useClosePlayerModal } from "@/hooks/playerModal";
 import { ClipboardPasteIcon, ExternalLinkIcon, Loader2Icon } from "lucide-react";
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
@@ -20,6 +21,7 @@ type BanFormRespType = {
     reason: string;
     duration: string;
     approver?: string;
+    blacklist?: boolean;
 }
 export type BanFormType = HTMLDivElement & {
     focusReason: () => void;
@@ -44,6 +46,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
     const [currentDuration, setCurrentDuration] = useState('2 days');
     const [customUnits, setCustomUnits] = useState('days');
     const [selectedApprover, setSelectedApprover] = useState('');
+    const [blacklist, setBlacklist] = useState(false);
     const closeModal = useClosePlayerModal();
 
 
@@ -77,6 +80,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                         ? `${customMultiplierRef.current?.value} ${customUnits}`
                         : currentDuration,
                     approver: selectedApprover,
+                    blacklist,
                 };
             },
             clearData: () => {
@@ -86,13 +90,14 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                 setCurrentDuration('2 days');
                 setCustomUnits('days');
                 setSelectedApprover('');
+                setBlacklist(false);
             },
             focusReason: () => {
                 reasonRef.current?.focus();
             },
             isLongBan,
         };
-    }, [reasonRef, customMultiplierRef, currentDuration, customUnits, selectedApprover, isLongBan]);
+    }, [reasonRef, customMultiplierRef, currentDuration, customUnits, selectedApprover, isLongBan, blacklist]);
 
     const handleTemplateSelectChange = (value: string) => {
         if (value === ADD_NEW_SELECT_OPTION) {
@@ -237,6 +242,16 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                             <SelectItem value="permanent" className="font-bold">Permanent</SelectItem>
                         </SelectContent>
                     </Select>
+                    {currentDuration === 'permanent' && (
+                        <div className="flex items-center space-x-2 mt-2">
+                            <Switch
+                                id="blacklist-switch"
+                                checked={blacklist}
+                                onCheckedChange={setBlacklist}
+                            />
+                            <Label htmlFor="blacklist-switch">Add to Blacklist</Label>
+                        </div>
+                    )}
                     <div className="flex flex-row gap-2">
                         <Input
                             id="durationMultiplier"

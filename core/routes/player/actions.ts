@@ -52,11 +52,8 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleMute(ctx, player));
     } else if (action === 'unmute') {
         return sendTypedResp(await handleUnmute(ctx, player));
-<<<<<<< HEAD
     } else if (action === 'edit_ban_reason') {
         return sendTypedResp(await handleEditBanReason(ctx, player));
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -159,14 +156,12 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
     const durationInput = ctx.request.body.duration.trim();
     let reason = (ctx.request.body.reason as string).trim() || 'no reason provided';
     const approver = ctx.request.body.approver as string | undefined;
+    const blacklist = ctx.request.body.blacklist as boolean | undefined;
 
     //Calculating expiration/duration
     let calcResults;
     try {
-<<<<<<< HEAD
         if (!durationInput.length) throw new Error('Duration cannot be empty.');
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
         calcResults = calcExpirationFromDuration(durationInput);
     } catch (error) {
         return { error: (error as Error).message };
@@ -216,12 +211,34 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
             expiration,
             player.displayName,
             allHwids,
-            banApprover
+            banApprover,
+            blacklist
         );
     } catch (error) {
         return { error: `Failed to ban player: ${(error as Error).message}` };
     }
     ctx.admin.logAction(`Banned player "${player.displayName}": ${reason}`);
+
+    //Give blacklist role
+    if (expiration === false && blacklist && txConfig.discordBot.blacklistRole) {
+        try {
+            if (!txCore.discordBot.isClientReady) {
+                console.warn(`Discord bot not ready, skipping blacklist role assignment for ${player.displayName}.`);
+            } else {
+                const discordId = allIds.find(id => typeof id === 'string' && id.startsWith('discord:'));
+                if (discordId) {
+                    const uid = discordId.substring(8);
+                    await txCore.discordBot.addMemberRole(uid, txConfig.discordBot.blacklistRole);
+                    ctx.admin.logAction(`Added blacklist role to "${player.displayName}".`);
+                } else {
+                    console.warn(`Could not find Discord ID for ${player.displayName}, skipping blacklist role assignment.`);
+                }
+            }
+        } catch (error) {
+            //Don't fail the whole command if the role addition fails
+            console.error(`Failed to add blacklist role: ${(error as Error).message}`);
+        }
+    }
 
     //No need to dispatch events if server is not online
     if (txCore.fxRunner.isIdle) {
@@ -466,7 +483,6 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
 
     return { success: true };
 }
-<<<<<<< HEAD
 
 
 /**
@@ -500,5 +516,3 @@ async function handleEditBanReason(ctx: AuthedCtx, player: PlayerClass): Promise
         return { error: `Failed to edit ban reason: ${(error as Error).message}` };
     }
 }
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216

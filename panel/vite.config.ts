@@ -5,17 +5,6 @@ import react from '@vitejs/plugin-react-swc';
 // import tsconfigPaths from 'vite-tsconfig-paths';
 import { licenseBanner } from '../scripts/build/utils';
 import { parseTxDevEnv } from '../shared/txDevEnv';
-<<<<<<< HEAD
-=======
-process.loadEnvFile('../.env');
-
-//Check if TXDEV_VITE_URL is set
-const txDevEnv = parseTxDevEnv();
-if (!txDevEnv.VITE_URL) {
-    console.error('Missing TXDEV_VITE_URL env variable.');
-    process.exit(1);
-}
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
 
 
 const baseConfig = {
@@ -65,15 +54,12 @@ const baseConfig = {
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
     if (command === 'serve') {
-<<<<<<< HEAD
         process.loadEnvFile('../.env');
         const txDevEnv = parseTxDevEnv();
         if (!txDevEnv.VITE_URL) {
             console.error('Missing TXDEV_VITE_URL env variable.');
             process.exit(1);
         }
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
         baseConfig.server.origin = txDevEnv.VITE_URL;
         baseConfig.build.rollupOptions.input = './src/main.tsx'; // overwrite default .html entry
         return baseConfig;

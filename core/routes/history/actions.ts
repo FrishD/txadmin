@@ -306,6 +306,21 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
         }
     }
 
+    // Ban blacklist specific logic
+    if (revokedAction.type === 'ban' && 'blacklist' in revokedAction && revokedAction.blacklist && txConfig.discordBot.blacklistRole) {
+        try {
+            const discordId = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('discord:'));
+            if (discordId) {
+                const uid = discordId.substring(8);
+                await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.blacklistRole);
+                ctx.admin.logAction(`Removed blacklist role from "${revokedAction.playerName}".`);
+            }
+        } catch (error) {
+            console.error(`Failed to remove blacklist role for action ${actionId}:`);
+            console.error(error);
+        }
+    }
+
     // Dispatch `txAdmin:events:actionRevoked`
     try {
         txCore.fxRunner.sendEvent('actionRevoked', {
