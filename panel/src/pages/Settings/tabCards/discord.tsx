@@ -28,6 +28,7 @@ export const pageConfigs = {
     discordGuild: getPageConfig('discordBot', 'guild'),
     warningsChannel: getPageConfig('discordBot', 'warningsChannel'),
     wagerBlacklistRole: getPageConfig('discordBot', 'wagerBlacklistRole'),
+    blacklistRole: getPageConfig('discordBot', 'blacklistRole'),
     wagerBlacklistLogChannel: getPageConfig('discordBot', 'wagerBlacklistLogChannel'),
     wagerRevokeLogChannel: getPageConfig('discordBot', 'wagerRevokeLogChannel'),
     embedJson: getPageConfig('discordBot', 'embedJson'),
@@ -54,6 +55,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
     const discordGuildRef = useRef<HTMLInputElement | null>(null);
     const warningsChannelRef = useRef<HTMLInputElement | null>(null);
     const wagerBlacklistRoleRef = useRef<HTMLInputElement | null>(null);
+    const blacklistRoleRef = useRef<HTMLInputElement | null>(null);
     const wagerBlacklistLogChannelRef = useRef<HTMLInputElement | null>(null);
     const wagerRevokeLogChannelRef = useRef<HTMLInputElement | null>(null);
 
@@ -71,6 +73,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
             discordGuild: emptyToNull(discordGuildRef.current?.value),
             warningsChannel: emptyToNull(warningsChannelRef.current?.value),
             wagerBlacklistRole: emptyToNull(wagerBlacklistRoleRef.current?.value),
+            blacklistRole: emptyToNull(blacklistRoleRef.current?.value),
             wagerBlacklistLogChannel: emptyToNull(wagerBlacklistLogChannelRef.current?.value),
             wagerRevokeLogChannel: emptyToNull(wagerRevokeLogChannelRef.current?.value),
         };
@@ -182,6 +185,19 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                 />
                 <SettingItemDesc>
                     The ID of the role to assign to wager blacklisted players.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem label="Blacklist Role ID" htmlFor={cfg.blacklistRole.eid} showOptional>
+                <Input
+                    id={cfg.blacklistRole.eid}
+                    ref={blacklistRoleRef}
+                    defaultValue={cfg.blacklistRole.initialValue}
+                    onInput={updatePageState}
+                    disabled={pageCtx.isReadOnly}
+                    placeholder='000000000000000000'
+                />
+                <SettingItemDesc>
+                    The ID of the role to assign to blacklisted players (from permanent bans).
                 </SettingItemDesc>
             </SettingItem>
             <SettingItem label="Wager Blacklist Log Channel ID" htmlFor={cfg.wagerBlacklistLogChannel.eid} showOptional>

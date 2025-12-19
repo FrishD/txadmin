@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { useClosePlayerModal } from "@/hooks/playerModal";
 import { ClipboardPasteIcon, ExternalLinkIcon, Loader2Icon } from "lucide-react";
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
@@ -243,15 +243,13 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                         </SelectContent>
                     </Select>
                     {currentDuration === 'permanent' && (
-                        <div className="flex items-center space-x-2 mt-2 bg-destructive/15 border border-destructive text-destructive-foreground p-3 rounded-lg">
-                            <Checkbox
-                                id="blacklist-checkbox"
+                        <div className="flex items-center space-x-2 mt-2">
+                            <Switch
+                                id="blacklist-switch"
                                 checked={blacklist}
-                                onCheckedChange={(checked) => {
-                                    setBlacklist(Boolean(checked));
-                                }}
+                                onCheckedChange={setBlacklist}
                             />
-                            <Label htmlFor="blacklist-checkbox" className="text-base">Add to Blacklist</Label>
+                            <Label htmlFor="blacklist-switch">Add to Blacklist</Label>
                         </div>
                     )}
                     <div className="flex flex-row gap-2">
