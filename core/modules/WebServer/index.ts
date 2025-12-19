@@ -114,12 +114,17 @@ export default class WebServer {
             },
         }));
 
-        this.app.use(KoaBodyParser({
-            // Heavy bodies can cause v8 mem exhaustion during a POST DDoS.
-            // The heaviest JSON is the /intercom/resources endpoint.
-            // Conservative estimate: 768kb/300b = 2621 resources
-            jsonLimit: '768kb',
-        }));
+        this.app.use((ctx, next) => {
+            if (ctx.path.startsWith('/player/upload')) {
+                return next();
+            }
+            return KoaBodyParser({
+                // Heavy bodies can cause v8 mem exhaustion during a POST DDoS.
+                // The heaviest JSON is the /intercom/resources endpoint.
+                // Conservative estimate: 768kb/300b = 2621 resources
+                jsonLimit: '768kb',
+            })(ctx, next);
+        });
 
         //Custom stuff
         this.sessionStore = new SessionMemoryStorage();
