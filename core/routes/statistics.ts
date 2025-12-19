@@ -35,14 +35,20 @@ export default async function Statistics(ctx: AuthedCtx) {
     const activeBans = allActions.filter(a => a.type === 'ban' && !a.revocation.timestamp && (a.expiration === false || a.expiration > currentTimestamp)).length;
     const bansGiven = allActions.filter(a => a.type === 'ban').length;
     const warnsGiven = allActions.filter(a => a.type === 'warn').length;
+<<<<<<< HEAD
     const mutesGiven = allActions.filter(a => a.type === 'mute').length;
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
 
 
     const out = {
         activeBans,
         bansGiven,
         warnsGiven,
+<<<<<<< HEAD
         mutesGiven,
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
         leaderboardData,
     };
     return ctx.send(out);

@@ -18,7 +18,10 @@ import ActionIdsTab from "./ActionIdsTab";
 import ActionInfoTab from "./ActionInfoTab";
 import ActionRevokeTab from "./ActionRevokeTab";
 import ActionModifyBanTab from "./ActionModifyBanTab";
+<<<<<<< HEAD
 import ActionModifyReasonTab from "./ActionModifyReasonTab";
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
 import { useMemo } from "react";
 
 
@@ -88,6 +91,7 @@ export default function ActionModal() {
                     className: 'hover:bg-destructive hover:text-destructive-foreground',
                 });
             }
+<<<<<<< HEAD
             if (action.type === 'ban' && !action.revocation.timestamp) {
                 tabs.push({
                     title: 'Modify Reason',
@@ -95,6 +99,8 @@ export default function ActionModal() {
                     className: 'hover:bg-destructive hover:text-destructive-foreground',
                 });
             }
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
         }
         return tabs;
     }, [modalData]);
@@ -228,11 +234,14 @@ export default function ActionModal() {
                                     action={modalData.action}
                                     refreshModalData={refreshModalData}
                                 />}
+<<<<<<< HEAD
                                 {selectedTab === 'Modify Reason' && <ActionModifyReasonTab
                                     action={modalData.action}
                                     playerRef={{ license: modalData.action.ids.find(id => id.startsWith('license:'))?.substring(8) ?? '' }}
                                     refreshModalData={refreshModalData}
                                 />}
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
                             </>
                         )}
                     </ScrollArea>

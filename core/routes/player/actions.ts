@@ -52,8 +52,11 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleMute(ctx, player));
     } else if (action === 'unmute') {
         return sendTypedResp(await handleUnmute(ctx, player));
+<<<<<<< HEAD
     } else if (action === 'edit_ban_reason') {
         return sendTypedResp(await handleEditBanReason(ctx, player));
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -160,7 +163,10 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
     //Calculating expiration/duration
     let calcResults;
     try {
+<<<<<<< HEAD
         if (!durationInput.length) throw new Error('Duration cannot be empty.');
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
         calcResults = calcExpirationFromDuration(durationInput);
     } catch (error) {
         return { error: (error as Error).message };
@@ -460,6 +466,7 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
 
     return { success: true };
 }
+<<<<<<< HEAD
 
 
 /**
@@ -493,3 +500,5 @@ async function handleEditBanReason(ctx: AuthedCtx, player: PlayerClass): Promise
         return { error: `Failed to edit ban reason: ${(error as Error).message}` };
     }
 }
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216

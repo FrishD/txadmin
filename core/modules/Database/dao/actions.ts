@@ -110,9 +110,13 @@ export default class ActionsDao {
     ): T[] {
         if (!Array.isArray(idsArray)) throw new Error('idsArray should be an array');
         if (hwidsArray && !Array.isArray(hwidsArray)) throw new Error('hwidsArray should be an array or undefined');
+<<<<<<< HEAD
         const idsFilter = (action: DatabaseActionType) => {
             return Array.isArray(action.ids) && idsArray.some((fi) => action.ids.includes(fi));
         }
+=======
+        const idsFilter = (action: DatabaseActionType) => idsArray.some((fi) => action.ids.includes(fi))
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
         const hwidsFilter = (action: DatabaseActionType) => {
             if ('hwids' in action && action.hwids) {
                 const count = hwidsArray!.filter((fi) => action.hwids?.includes(fi)).length;
@@ -472,6 +476,7 @@ export default class ActionsDao {
             throw error;
         }
     }
+<<<<<<< HEAD
 
 
     /**
@@ -508,4 +513,6 @@ export default class ActionsDao {
             throw error;
         }
     }
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
 }

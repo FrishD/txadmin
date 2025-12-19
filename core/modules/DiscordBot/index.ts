@@ -380,7 +380,10 @@ export default class DiscordBot {
                 const successMsg = `Discord bot running as \`${this.#client.user.tag}\` on \`${guild.name}\`.`;
                 console.ok(successMsg);
                 this.refreshWsStatus();
+<<<<<<< HEAD
                 this.syncWagerBlacklistRoles();
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
                 return resolve(successMsg);
             });
 
@@ -552,6 +555,7 @@ export default class DiscordBot {
             throw new Error(`Failed to remove role: ${(error as Error).message}`);
         }
     }
+<<<<<<< HEAD
 
     /**
      * Syncs the wager blacklist roles on startup.
@@ -592,4 +596,6 @@ export default class DiscordBot {
             console.error(`Failed to sync wager blacklist roles: ${(error as Error).message}`);
         }
     }
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
 };

@@ -9,7 +9,11 @@ import {
     getPublishVersion,
 } from './utils';
 import config from './config';
+<<<<<<< HEAD
 import { parseTxDevEnv } from '../../shared/txDevEnv';
+=======
+import * as txDevEnvModule from '../../shared/txDevEnv';
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
 import { TxAdminRunner } from './TxAdminRunner';
 process.loadEnvFile();
 
@@ -17,7 +21,11 @@ process.loadEnvFile();
 process.stdout.write('.\n'.repeat(40) + '\x1B[2J\x1B[H');
 
 //Load the env vars, and check for the required ones
+<<<<<<< HEAD
 const txDevEnv = parseTxDevEnv();
+=======
+const txDevEnv = txDevEnvModule.parseTxDevEnv();
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
 if (!txDevEnv.FXSERVER_PATH || !txDevEnv.VITE_URL) {
     console.error(`Missing 'TXDEV_FXSERVER_PATH' and/or 'TXDEV_VITE_URL' env variables.`);
     console.error('Please read the docs/development.md file for more information.');

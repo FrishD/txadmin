@@ -8,10 +8,14 @@ import {
 
 
 //Detect the tag/version and set the .cienv file
+<<<<<<< HEAD
 const { txVersion, isPreRelease, preReleaseExpiration } = getPublishVersion(true);
 if (!fs.existsSync('.github')) {
     fs.mkdirSync('.github');
 }
+=======
+const { txVersion, isPreRelease, preReleaseExpiration } = getPublishVersion(false);
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
 fs.writeFileSync('.github/.cienv', `TX_IS_PRERELEASE=${isPreRelease}\n`);
 
 //Copy static files

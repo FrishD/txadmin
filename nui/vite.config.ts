@@ -5,7 +5,18 @@ import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { getFxsPaths, licenseBanner } from '../scripts/build/utils';
 import { parseTxDevEnv } from '../shared/txDevEnv';
+<<<<<<< HEAD
 
+=======
+process.loadEnvFile('../.env');
+
+//Check if TXDEV_FXSERVER_PATH is set
+const txDevEnv = parseTxDevEnv();
+if (!txDevEnv.FXSERVER_PATH) {
+    console.error('Missing TXDEV_FXSERVER_PATH env variable.');
+    process.exit(1);
+}
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
 
 const baseConfig = {
     build: {
@@ -50,6 +61,7 @@ export default defineConfig(({ command, mode }) => {
     }
 
     if (mode === 'development') {
+<<<<<<< HEAD
         process.loadEnvFile('../.env');
         const txDevEnv = parseTxDevEnv();
         if (!txDevEnv.FXSERVER_PATH) {
@@ -57,6 +69,8 @@ export default defineConfig(({ command, mode }) => {
             process.exit(1);
         }
 
+=======
+>>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
         let devDeplyPath: string;
         try {
             //Extract paths and validate them
