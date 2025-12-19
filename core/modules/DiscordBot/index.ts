@@ -380,10 +380,8 @@ export default class DiscordBot {
                 const successMsg = `Discord bot running as \`${this.#client.user.tag}\` on \`${guild.name}\`.`;
                 console.ok(successMsg);
                 this.refreshWsStatus();
-<<<<<<< HEAD
                 this.syncWagerBlacklistRoles();
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
+                this.syncBlacklistRoles();
                 return resolve(successMsg);
             });
 
@@ -402,16 +400,25 @@ export default class DiscordBot {
             this.#client.on('interactionCreate', interactionCreateHandler);
             this.#client.on('guildMemberAdd', async (member) => {
                 try {
-                    const activeBlacklist = txCore.database.actions.findMany(
+                    const activeWagerBlacklist = txCore.database.actions.findMany(
                         [`discord:${member.id}`],
                         undefined,
                         { type: 'wagerblacklist', 'revocation.timestamp': null }
                     );
-                    if (activeBlacklist.length && txConfig.discordBot.wagerBlacklistRole) {
+                    if (activeWagerBlacklist.length && txConfig.discordBot.wagerBlacklistRole) {
                         await member.roles.add(txConfig.discordBot.wagerBlacklistRole);
                     }
+
+                    const activeBlacklist = txCore.database.actions.findMany(
+                        [`discord:${member.id}`],
+                        undefined,
+                        { type: 'ban', 'revocation.timestamp': null, expiration: false, blacklist: true }
+                    );
+                    if (activeBlacklist.length && txConfig.discordBot.blacklistRole) {
+                        await member.roles.add(txConfig.discordBot.blacklistRole);
+                    }
                 } catch (error) {
-                    console.error(`Failed to check for wager blacklist for user ${member.id}: ${(error as Error).message}`);
+                    console.error(`Failed to check for blacklist for user ${member.id}: ${(error as Error).message}`);
                 }
             });
             // this.#client.on('debug', console.verbose.debug);
@@ -555,7 +562,6 @@ export default class DiscordBot {
             throw new Error(`Failed to remove role: ${(error as Error).message}`);
         }
     }
-<<<<<<< HEAD
 
     /**
      * Syncs the wager blacklist roles on startup.
@@ -596,6 +602,44 @@ export default class DiscordBot {
             console.error(`Failed to sync wager blacklist roles: ${(error as Error).message}`);
         }
     }
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
+
+    /**
+     * Syncs the blacklist roles on startup.
+     */
+    async syncBlacklistRoles() {
+        if (!txConfig.discordBot.blacklistRole) return;
+        console.log('Syncing blacklist roles...');
+
+        try {
+            const allActions = txCore.database.actions.getRaw();
+            const activeBlacklist = allActions.filter(a => a.type === 'ban' && 'blacklist' in a && a.blacklist && !a.revocation.timestamp);
+
+            if (!activeBlacklist.length) {
+                console.log('No active blacklists found.');
+                return;
+            }
+
+            await this.refreshMemberCache();
+            if (!this.guild) {
+                console.error('Guild not found, cannot sync blacklist roles.');
+                return;
+            }
+
+            for (const action of activeBlacklist) {
+                if (!action.ids) continue;
+                const discordId = action.ids.find(id => id.startsWith('discord:'));
+                if (discordId) {
+                    const uid = discordId.substring(8);
+                    const member = this.guild.members.cache.get(uid);
+                    if (member && !member.roles.cache.has(txConfig.discordBot.blacklistRole)) {
+                        await member.roles.add(txConfig.discordBot.blacklistRole);
+                        console.log(`Added blacklist role to ${member.user.tag}.`);
+                    }
+                }
+            }
+            console.log('Blacklist role sync complete.');
+        } catch (error) {
+            console.error(`Failed to sync blacklist roles: ${(error as Error).message}`);
+        }
+    }
 };

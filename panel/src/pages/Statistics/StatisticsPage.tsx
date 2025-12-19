@@ -3,11 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-<<<<<<< HEAD
 import { GavelIcon, AlertTriangleIcon, MicOffIcon } from "lucide-react";
-=======
-import { GavelIcon, AlertTriangleIcon } from "lucide-react";
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
 import { useBackendApi } from '@/hooks/fetch';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -24,10 +20,7 @@ type LeaderboardAdmin = {
     tsLastConnection: number;
     bansGiven: number;
     warnsGiven: number;
-<<<<<<< HEAD
     mutesGiven: number;
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
     revokeRequested: number;
     revokeApproved: number;
     revokeDenied: number;
@@ -36,10 +29,7 @@ type StatsDataType = {
     activeBans: number;
     bansGiven: number;
     warnsGiven: number;
-<<<<<<< HEAD
     mutesGiven: number;
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
     leaderboardData: LeaderboardAdmin[];
 };
 
@@ -119,11 +109,7 @@ const StatisticsPage = () => {
                 </div>
             </header>
 
-<<<<<<< HEAD
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-=======
-            <div className="grid gap-6 md:grid-cols-3">
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle>Active Bans</CardTitle>
@@ -146,7 +132,6 @@ const StatisticsPage = () => {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-<<<<<<< HEAD
                         <CardTitle>Mutes Given</CardTitle>
                         <MicOffIcon className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -157,8 +142,6 @@ const StatisticsPage = () => {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
                         <CardTitle>Warns Given</CardTitle>
                         <AlertTriangleIcon className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -180,10 +163,7 @@ const StatisticsPage = () => {
                                 <TableHead>Admin</TableHead>
                                 <TableHead>Bans</TableHead>
                                 <TableHead>Warns</TableHead>
-<<<<<<< HEAD
                                 <TableHead>Mutes</TableHead>
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
                                 <TableHead>Revokes Req.</TableHead>
                                 <TableHead>Revokes Appr.</TableHead>
                                 <TableHead>Revokes Den.</TableHead>
@@ -201,10 +181,7 @@ const StatisticsPage = () => {
                                     <TableCell>{admin.name}</TableCell>
                                     <TableCell>{admin.bansGiven}</TableCell>
                                     <TableCell>{admin.warnsGiven}</TableCell>
-<<<<<<< HEAD
                                     <TableCell>{admin.mutesGiven}</TableCell>
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
                                     <TableCell>{admin.revokeRequested}</TableCell>
                                     <TableCell>{admin.revokeApproved}</TableCell>
                                     <TableCell>{admin.revokeDenied}</TableCell>

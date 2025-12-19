@@ -156,10 +156,6 @@ export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInf
 
     return <div className="px-1 mb-1 md:mb-4">
         <dl className="pb-2">
-<<<<<<< HEAD
-        
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
             <div className="py-0.5 grid grid-cols-3 gap-4 px-0">
                 <dt className="text-sm font-medium leading-6 text-muted-foreground">Date/Time</dt>
                 <dd className="text-sm leading-6 col-span-2 mt-0">
@@ -194,16 +190,12 @@ export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInf
                     <dd className="text-sm leading-6 col-span-2 mt-0">{action.banApprover}</dd>
                 </div>
             )}
-<<<<<<< HEAD
-            {action.type === 'ban' && action.oldReason && (
+            {action.type === 'ban' && 'oldReason' in action && action.oldReason && (
                 <div className="py-0.5 grid grid-cols-3 gap-4 px-0">
                     <dt className="text-sm font-medium leading-6 text-muted-foreground">Old Reason: </dt>
                     <span className="text-sm text-blue-500">{action.oldReason}</span>
                 </div>
             )}
-=======
-
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
             <div className="py-0.5 grid grid-cols-3 gap-4 px-0">
                 <dt className="text-sm font-medium leading-6 text-muted-foreground">Admin</dt>
                 <dd className="text-sm leading-6 col-span-2 mt-0">{action.author}</dd>
@@ -234,16 +226,7 @@ export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInf
                 </dd>
             </div>
         </dl>
-<<<<<<< HEAD
-            
-
 
         <ActionReasonBox actionReason={action.reason} />
-            
- 
-=======
-
-        <ActionReasonBox actionReason={action.reason} />
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
     </div>;
 }

@@ -67,7 +67,7 @@ importers:
         specifier: ^3.11.0
         version: 3.11.0
       vitest:
-        specifier: ^2.1.2
+        specifier: ^2.1.9
         version: 2.1.9(@types/node@22.18.4)
 
 packages:

@@ -22,11 +22,7 @@ type PlayerMuteTabProps = {
 
 export default function PlayerMuteTab({ player, playerRef, refreshModalData }: PlayerMuteTabProps) {
     const [reason, setReason] = useState("");
-<<<<<<< HEAD
     const [duration, setDuration] = useState("1 hour");
-=======
-    const [duration, setDuration] = useState("1h");
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
     const [isSaving, setIsSaving] = useState(false);
     const { hasPerm } = useAdminPerms();
     const closeModal = useClosePlayerModal();
@@ -142,21 +138,12 @@ export default function PlayerMuteTab({ player, playerRef, refreshModalData }: P
                         <SelectValue placeholder="Select a duration" />
                     </SelectTrigger>
                     <SelectContent>
-<<<<<<< HEAD
                         <SelectItem value="5 minutes">5 Minutes</SelectItem>
                         <SelectItem value="30 minutes">30 Minutes</SelectItem>
                         <SelectItem value="1 hour">1 Hour</SelectItem>
                         <SelectItem value="8 hours">8 Hours</SelectItem>
                         <SelectItem value="1 day">1 Day</SelectItem>
                         <SelectItem value="3 days">3 days</SelectItem>
-=======
-                        <SelectItem value="5m">5 Minutes</SelectItem>
-                        <SelectItem value="30m">30 Minutes</SelectItem>
-                        <SelectItem value="1h">1 Hour</SelectItem>
-                        <SelectItem value="8h">8 Hours</SelectItem>
-                        <SelectItem value="1d">1 Day</SelectItem>
-                        <SelectItem value="3d">3 days</SelectItem>
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
                     </SelectContent>
                 </Select>
             </div>

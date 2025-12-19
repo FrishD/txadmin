@@ -32,10 +32,33 @@ const warningsChannel = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
-export const revokeApprovalRole = "1113574262364712970";
-export const adminPermsChannel = "1423672462167511250";
-export const revokeApprovalChannel = "1423672518375641148";
-export const panelLoginChannel = "1423923548564754522";
+const revokeApprovalRole = typeNullableConfig({
+    name: 'Revoke Approval Role ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
+const adminPermsChannel = typeNullableConfig({
+    name: 'Admin Perms Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
+const revokeApprovalChannel = typeNullableConfig({
+    name: 'Revoke Approval Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
+const panelLoginChannel = typeNullableConfig({
+    name: 'Panel Login Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
 
 
 //We are not validating the JSON, only that it is a string
@@ -84,6 +107,13 @@ const wagerRevokeLogChannel = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
+const blacklistRole = typeNullableConfig({
+    name: 'Blacklist Role ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
 
 export default {
     enabled,
@@ -97,6 +127,7 @@ export default {
     wagerBlacklistRole,
     wagerBlacklistLogChannel,
     wagerRevokeLogChannel,
+    blacklistRole,
     embedJson,
     embedConfigJson,
 } as const;

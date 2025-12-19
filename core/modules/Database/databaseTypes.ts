@@ -37,10 +37,8 @@ export type DatabaseActionBanType = {
     hwids?: string[];
     expiration: number | false;
     banApprover?: string;
-<<<<<<< HEAD
     oldReason?: string;
-=======
->>>>>>> 0190bf6efdef9085e7c2bb40fb2d86616baf1216
+    blacklist?: boolean;
 } & DatabaseActionBaseType;
 export type DatabaseActionWarnType = {
     type: 'warn';
