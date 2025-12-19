@@ -60,6 +60,7 @@ export default function Dropzone({ onFileChange, disabled, className }: Dropzone
                     onChange={handleFileChange}
                     disabled={disabled}
                     id="file-upload"
+                    accept="image/*,video/*"
                 />
                 <label
                     htmlFor="file-upload"

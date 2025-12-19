@@ -22,6 +22,7 @@ type BanFormRespType = {
     duration: string;
     approver?: string;
     proofs?: string[];
+    proofFile?: File | null;
 }
 export type BanFormType = HTMLDivElement & {
     focusReason: () => void;
@@ -346,38 +347,6 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                     disabled={disabled}
                 />
             </div>
-
-            {showApproverDropdown && (
-                <div className="flex flex-col gap-3">
-                    <Label htmlFor="approverSelect">
-                        Approver
-                    </Label>
-                    <Select
-                        onValueChange={setSelectedApprover}
-                        value={selectedApprover}
-                        disabled={disabled}
-                    >
-                        <SelectTrigger id="approverSelect" className="tracking-wide">
-                            <SelectValue placeholder="Select an admin with ban approval perms" />
-                        </SelectTrigger>
-                        <SelectContent className="tracking-wide">
-                            {!approvers ? (
-                                <SelectItem value="loading" disabled>Loading...</SelectItem>
-                            ) : approvers.length ? (
-                                approvers.map((approver) => (
-                                    <SelectItem key={approver.name} value={approver.name}>
-                                        {approver.name}
-                                    </SelectItem>
-                                ))
-                            ) : (
-                                <SelectItem value="none" disabled>
-                                    No admins with ban approval perms found.
-                                </SelectItem>
-                            )}
-                        </SelectContent>
-                    </Select>
-                </div>
-            )}
         </div>
     );
 });

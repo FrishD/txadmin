@@ -53,7 +53,7 @@ export default async function PlayerActions(ctx: AuthedCtx) {
     } else if (action === 'unmute') {
         return sendTypedResp(await handleUnmute(ctx, player));
     } else if (action === 'edit_ban') {
-        return sendTypedResp(await handleEditBan(ctx));
+        return sendTypedResp(await handleEditBan(ctx, player));
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -467,7 +467,7 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
 /**
  * Handle Ban Edit
  */
-async function handleEditBan(ctx: AuthedCtx): Promise<GenericApiResp> {
+async function handleEditBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
     //Checking request
     if (
         anyUndefined(
