@@ -228,7 +228,7 @@ export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInf
             <div className="mt-4">
                 <Label>Proofs:</Label>
                 <div className="mt-1 flex flex-wrap gap-2">
-                    {action.proofs.map((proof, index) => (
+                    {action.proofs.filter(p => typeof p === 'string' && p.length).map((proof, index) => (
                         <Button
                             key={index}
                             variant="outline"
