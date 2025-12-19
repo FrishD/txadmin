@@ -273,8 +273,10 @@ export default function HistoryTable({ search, filterbyType, filterbyAdmin }: Hi
             setLoadError(null);
             setHasReachedEnd(resp.hasReachedEnd);
             setIsResetting(false);
-            if (resp.history.length) {
-                setHistory((prev) => resetOffset ? resp.history : [...prev, ...resp.history]);
+            const validActionTypes = ['ban', 'warn', 'mute', 'wagerblacklist'];
+            const validHistory = resp.history.filter(a => a.type && validActionTypes.includes(a.type));
+            if (validHistory.length) {
+                setHistory((prev) => resetOffset ? validHistory : [...prev, ...validHistory]);
             } else {
                 setHistory([]);
             }
