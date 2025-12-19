@@ -470,4 +470,40 @@ export default class ActionsDao {
             throw error;
         }
     }
+
+
+    /**
+     * Modifies the reason of a ban.
+     */
+    modifyBanReason(
+        actionId: string,
+        newReason: string,
+        author: string,
+    ): DatabaseActionType {
+        if (typeof actionId !== 'string' || !actionId.length) throw new Error('Invalid actionId.');
+        if (typeof newReason !== 'string' || !newReason.length) throw new Error('Invalid newReason.');
+        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
+
+        try {
+            const action = this.chain.get('actions')
+                .find({ id: actionId })
+                .value();
+
+            if (!action) throw new Error(`action not found`);
+            if (action.type !== 'ban') throw new Error(`action is not a ban`);
+            if (action.revocation.timestamp) throw new Error(`cannot modify a revoked ban`);
+
+            action.oldReason = action.reason;
+            action.reason = newReason;
+            this.db.writeFlag(SavePriority.HIGH);
+            //TODO: log this change? maybe a new array in the action object called 'modifications'
+            return cloneDeep(action);
+
+        } catch (error) {
+            const msg = `Failed to modify ban reason with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
 }

@@ -52,6 +52,8 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleMute(ctx, player));
     } else if (action === 'unmute') {
         return sendTypedResp(await handleUnmute(ctx, player));
+    } else if (action === 'edit_ban_reason') {
+        return sendTypedResp(await handleEditBanReason(ctx, player));
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -457,4 +459,37 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
     }
 
     return { success: true };
+}
+
+
+/**
+ * Handle Edit Ban Reason
+ */
+async function handleEditBanReason(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Checking request
+    if (anyUndefined(
+        ctx.request.body,
+        ctx.request.body.actionId,
+        ctx.request.body.reason,
+    )) {
+        return { error: 'Invalid request.' };
+    }
+    const { actionId, reason } = ctx.request.body;
+    const reasonTrimmed = reason.trim();
+    if (!reasonTrimmed.length) {
+        return { error: 'Cannot set an empty reason.' };
+    }
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.ban', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' }
+    }
+
+    try {
+        txCore.database.actions.modifyBanReason(actionId, reasonTrimmed, ctx.admin.name);
+        ctx.admin.logAction(`Edited ban reason for ${player.license}`);
+        return { success: true };
+    } catch (error) {
+        return { error: `Failed to edit ban reason: ${(error as Error).message}` };
+    }
 }
