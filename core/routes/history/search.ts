@@ -62,6 +62,7 @@ export default async function HistorySearch(ctx: AuthedCtx) {
     }
 
     //filter the actions by the simple filters (lightweight)
+    chain = chain.filter((a) => typeof a.type === 'string');
     const effectiveTypeFilter = typeof filterbyType === 'string' && filterbyType.length ? filterbyType : undefined;
     const effectiveAdminFilter = typeof filterbyAdmin === 'string' && filterbyAdmin.length ? filterbyAdmin : undefined;
     if (effectiveTypeFilter || effectiveAdminFilter) {
