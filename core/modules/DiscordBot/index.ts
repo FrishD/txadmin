@@ -536,12 +536,10 @@ export default class DiscordBot {
     }
 
     async addMemberRole(uid: string, roleId: string) {
-        const client = getDiscordBot();
-        const guild = client.guilds.cache.get(txConfig.discordBot.guild as string);
-        if (!guild) throw new Error('Guild not found.');
+        if (!this.guild) throw new Error('Guild not found.');
 
         try {
-            const member = await guild.members.fetch(uid);
+            const member = await this.guild.members.fetch(uid);
             await member.roles.add(roleId);
             return true;
         } catch (error) {
@@ -550,12 +548,10 @@ export default class DiscordBot {
     }
 
     async removeMemberRole(uid: string, roleId: string) {
-        const client = getDiscordBot();
-        const guild = client.guilds.cache.get(txConfig.discordBot.guild as string);
-        if (!guild) throw new Error('Guild not found.');
+        if (!this.guild) throw new Error('Guild not found.');
 
         try {
-            const member = await guild.members.fetch(uid);
+            const member = await this.guild.members.fetch(uid);
             await member.roles.remove(roleId);
             return true;
         } catch (error) {

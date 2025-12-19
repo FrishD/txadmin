@@ -78,7 +78,7 @@ export default function PlayerWagerTab({ playerRef }: PlayerWagerTabProps) {
                         <span className="flex items-center leading-relaxed">
                             <Loader2Icon className="inline animate-spin h-4" /> Adding...
                         </span>
-                    ) : 'Add to Blacklist'}
+                    ) : 'Add to Wager Blacklist'}
                 </Button>
             </div>
         </div>

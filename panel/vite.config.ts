@@ -52,8 +52,9 @@ const baseConfig = {
 } satisfies UserConfig;
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
-    if (command === 'serve') {
+export default defineConfig(({ command, mode }) => {
+    //in test mode, vitest will set the command to 'serve'
+    if (command === 'serve' && mode !== 'test') {
         process.loadEnvFile('../.env');
         const txDevEnv = parseTxDevEnv();
         if (!txDevEnv.VITE_URL) {
