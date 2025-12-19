@@ -18,6 +18,7 @@ import ActionIdsTab from "./ActionIdsTab";
 import ActionInfoTab from "./ActionInfoTab";
 import ActionRevokeTab from "./ActionRevokeTab";
 import ActionModifyBanTab from "./ActionModifyBanTab";
+import ActionModifyReasonTab from "./ActionModifyReasonTab";
 import { useMemo } from "react";
 
 
@@ -83,6 +84,13 @@ export default function ActionModal() {
             if (action.type === 'ban' && action.expiration !== false && (action.expiration - action.timestamp) <= 345600) {
                 tabs.push({
                     title: 'Modify Ban',
+                    icon: <GavelIcon className="mr-2 h-5 w-5 hidden xs:block" />,
+                    className: 'hover:bg-destructive hover:text-destructive-foreground',
+                });
+            }
+            if (action.type === 'ban' && !action.revocation.timestamp) {
+                tabs.push({
+                    title: 'Modify Reason',
                     icon: <GavelIcon className="mr-2 h-5 w-5 hidden xs:block" />,
                     className: 'hover:bg-destructive hover:text-destructive-foreground',
                 });
@@ -218,6 +226,11 @@ export default function ActionModal() {
                                 />}
                                 {selectedTab === 'Modify Ban' && <ActionModifyBanTab
                                     action={modalData.action}
+                                    refreshModalData={refreshModalData}
+                                />}
+                                {selectedTab === 'Modify Reason' && <ActionModifyReasonTab
+                                    action={modalData.action}
+                                    playerRef={{ license: modalData.action.ids.find(id => id.startsWith('license:'))?.substring(8) ?? '' }}
                                     refreshModalData={refreshModalData}
                                 />}
                             </>

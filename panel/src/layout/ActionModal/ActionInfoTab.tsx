@@ -156,6 +156,17 @@ export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInf
 
     return <div className="px-1 mb-1 md:mb-4">
         <dl className="pb-2">
+            {action.type === 'ban' && action.oldReason && (
+                <div className="pb-2">
+                    <Label>Old Reason:</Label>
+                    <Textarea
+                        className="w-full mt-1"
+                        readOnly={true}
+                        value={action.oldReason}
+                        rows={calcTextAreaLines(action.oldReason)}
+                    />
+                </div>
+            )}
             <div className="py-0.5 grid grid-cols-3 gap-4 px-0">
                 <dt className="text-sm font-medium leading-6 text-muted-foreground">Date/Time</dt>
                 <dd className="text-sm leading-6 col-span-2 mt-0">

@@ -110,7 +110,9 @@ export default class ActionsDao {
     ): T[] {
         if (!Array.isArray(idsArray)) throw new Error('idsArray should be an array');
         if (hwidsArray && !Array.isArray(hwidsArray)) throw new Error('hwidsArray should be an array or undefined');
-        const idsFilter = (action: DatabaseActionType) => idsArray.some((fi) => action.ids.includes(fi))
+        const idsFilter = (action: DatabaseActionType) => {
+            return Array.isArray(action.ids) && idsArray.some((fi) => action.ids.includes(fi));
+        }
         const hwidsFilter = (action: DatabaseActionType) => {
             if ('hwids' in action && action.hwids) {
                 const count = hwidsArray!.filter((fi) => action.hwids?.includes(fi)).length;
@@ -465,6 +467,42 @@ export default class ActionsDao {
 
         } catch (error) {
             const msg = `Failed to modify ban duration with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
+     * Modifies the reason of a ban.
+     */
+    modifyBanReason(
+        actionId: string,
+        newReason: string,
+        author: string,
+    ): DatabaseActionType {
+        if (typeof actionId !== 'string' || !actionId.length) throw new Error('Invalid actionId.');
+        if (typeof newReason !== 'string' || !newReason.length) throw new Error('Invalid newReason.');
+        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
+
+        try {
+            const action = this.chain.get('actions')
+                .find({ id: actionId })
+                .value();
+
+            if (!action) throw new Error(`action not found`);
+            if (action.type !== 'ban') throw new Error(`action is not a ban`);
+            if (action.revocation.timestamp) throw new Error(`cannot modify a revoked ban`);
+
+            action.oldReason = action.reason;
+            action.reason = newReason;
+            this.db.writeFlag(SavePriority.HIGH);
+            //TODO: log this change? maybe a new array in the action object called 'modifications'
+            return cloneDeep(action);
+
+        } catch (error) {
+            const msg = `Failed to modify ban reason with message: ${(error as Error).message}`;
             console.error(msg);
             console.verbose.dir(error);
             throw error;
