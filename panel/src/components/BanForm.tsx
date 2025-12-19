@@ -9,6 +9,7 @@ import { banDurationToShortString, banDurationToString, cn } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
 import type { BanTemplatesDataType, GetApproversSuccessResp } from "@shared/otherTypes";
 import { useAdminPerms } from "@/hooks/auth";
+import Dropzone from "./Dropzone";
 
 // Consts
 const reasonTruncateLength = 150;
@@ -26,6 +27,7 @@ export type BanFormType = HTMLDivElement & {
     focusReason: () => void;
     clearData: () => void;
     getData: () => BanFormRespType;
+    setData: (data: Partial<BanFormRespType>) => void;
     isLongBan: boolean;
 }
 type BanFormProps = {
@@ -91,6 +93,11 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                     proofs,
                     proofFile,
                 };
+            },
+            setData: (data) => {
+                if (data.reason && reasonRef.current) {
+                    reasonRef.current.value = data.reason;
+                }
             },
             clearData: () => {
                 if (!reasonRef.current || !customMultiplierRef.current) return;
@@ -319,13 +326,11 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                 </>
             )}
             <div className="flex flex-col gap-3">
-                <Label htmlFor="proofFile">
+                <Label>
                     Proof File (optional, max 15MB)
                 </Label>
-                <Input
-                    id="proofFile"
-                    type="file"
-                    onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
+                <Dropzone
+                    onFileChange={setProofFile}
                     disabled={disabled}
                 />
             </div>
@@ -340,60 +345,6 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                     onChange={(e) => setProofLink(e.target.value)}
                     disabled={disabled}
                 />
-            </div>
-            <div className="flex flex-col gap-3">
-                <Label htmlFor="durationSelect">
-                    Duration
-                </Label>
-                <div className="space-y-1">
-                    <Select
-                        onValueChange={setCurrentDuration}
-                        value={currentDuration}
-                        disabled={disabled}
-                    >
-                        <SelectTrigger id="durationSelect" className="tracking-wide">
-                            <SelectValue placeholder="Select Duration" />
-                        </SelectTrigger>
-                        <SelectContent className="tracking-wide">
-                            <SelectItem value="custom" className="font-bold">Custom (set below)</SelectItem>
-                            <SelectItem value="2 hours">2 HOURS</SelectItem>
-                            <SelectItem value="8 hours">8 HOURS</SelectItem>
-                            <SelectItem value="1 day">1 DAY</SelectItem>
-                            <SelectItem value="2 days">2 DAYS</SelectItem>
-                            <SelectItem value="1 week">1 WEEK</SelectItem>
-                            <SelectItem value="2 weeks">2 WEEKS</SelectItem>
-                            <SelectItem value="permanent" className="font-bold">Permanent</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <div className="flex flex-row gap-2">
-                        <Input
-                            id="durationMultiplier"
-                            type="number"
-                            placeholder="123"
-                            required
-                            disabled={currentDuration !== 'custom' || disabled}
-                            ref={customMultiplierRef}
-                        />
-                        <Select
-                            onValueChange={setCustomUnits}
-                            value={customUnits}
-                        >
-                            <SelectTrigger
-                                className="tracking-wide"
-                                id="durationUnits"
-                                disabled={currentDuration !== 'custom' || disabled}
-                            >
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="tracking-wide">
-                                <SelectItem value="hours">HOURS</SelectItem>
-                                <SelectItem value="days">DAYS</SelectItem>
-                                <SelectItem value="weeks">WEEKS</SelectItem>
-                                <SelectItem value="months">MONTHS</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
             </div>
 
             {showApproverDropdown && (

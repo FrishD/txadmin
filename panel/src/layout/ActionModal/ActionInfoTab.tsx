@@ -223,5 +223,60 @@ export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInf
         </dl>
 
         <ActionReasonBox actionReason={action.reason} />
+
+        {action.type === 'ban' && action.proofs && action.proofs.length > 0 && (
+            <div className="mt-4">
+                <Label>Proofs:</Label>
+                <div className="mt-1 flex flex-wrap gap-2">
+                    {action.proofs.map((proof, index) => {
+                        const isImage = /\.(jpg|jpeg|png|gif)$/i.test(proof);
+                        const isVideo = /\.(mp4|webm|ogg)$/i.test(proof);
+                        const isYoutube = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/i.test(proof);
+
+                        if (isImage || isVideo) {
+                            return (
+                                <a
+                                    key={index}
+                                    href={`/proofs/${proof}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="max-w-xs"
+                                >
+                                    {isImage ? (
+                                        <img src={`/proofs/${proof}`} alt="Proof" className="max-w-full h-auto rounded" />
+                                    ) : (
+                                        <video src={`/proofs/${proof}`} controls className="max-w-full h-auto rounded" />
+                                    )}
+                                </a>
+                            );
+                        } else if (isYoutube) {
+                            return (
+                                <a
+                                    key={index}
+                                    href={proof}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 hover:underline"
+                                >
+                                    {proof}
+                                </a>
+                            );
+                        } else {
+                            return (
+                                <a
+                                    key={index}
+                                    href={proof}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 hover:underline"
+                                >
+                                    {proof}
+                                </a>
+                            );
+                        }
+                    })}
+                </div>
+            </div>
+        )}
     </div>;
 }

@@ -7,6 +7,7 @@ import ModalCentralMessage from "@/components/ModalCentralMessage";
 import { Button } from "@/components/ui/button";
 import { useAdminPerms } from "@/hooks/auth";
 import { DatabaseActionBanType } from "@core/modules/Database/databaseTypes";
+import { ExternalLinkIcon, PencilIcon } from "lucide-react";
 
 
 type HistoryItemProps = {
@@ -61,24 +62,24 @@ function HistoryItem({ action, serverTime, modalOpener, onEditBan }: HistoryItem
                 </small>
             </div>
             <span className="text-sm">{action.reason}</span>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
                 {footerNote && <small className="block text-xs opacity-75">{footerNote}</small>}
-                <div>
+                <div className="flex gap-1">
                     {action.type === 'ban' && !action.revokedBy && hasPerm('players.ban') && (
                         <Button
-                            variant="link"
-                            size="xs"
+                            variant="ghost"
+                            size="icon-sm"
                             onClick={() => onEditBan(action as DatabaseActionBanType)}
                         >
-                            Edit
+                            <PencilIcon className="h-4 w-4" />
                         </Button>
                     )}
                     <Button
-                        variant="link"
-                        size="xs"
+                        variant="ghost"
+                        size="icon-sm"
                         onClick={() => { modalOpener(action.id) }}
                     >
-                        Details
+                        <ExternalLinkIcon className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
@@ -107,7 +108,9 @@ export default function PlayerHistoryTab({ actionHistory, serverTime, refreshMod
         openActionModal(actionId);
     }
 
-    const reversedActionHistory = [...actionHistory].reverse();
+    const validActionTypes = ['ban', 'warn', 'mute', 'wagerblacklist'];
+    const reversedActionHistory = [...actionHistory].reverse().filter(a => a.type && validActionTypes.includes(a.type));
+
     return <div className="flex flex-col gap-1 p-1">
         {reversedActionHistory.map((action) => (
             <HistoryItem

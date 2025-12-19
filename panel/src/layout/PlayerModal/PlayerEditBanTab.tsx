@@ -9,6 +9,7 @@ import ModalCentralMessage from "@/components/ModalCentralMessage";
 import BanForm, { BanFormType } from "@/components/BanForm";
 import { txToast } from "@/components/TxToaster";
 import { DatabaseActionBanType } from "@core/modules/Database/databaseTypes";
+import { useEffect } from "react";
 
 
 type PlayerEditBanTabProps = {
@@ -20,6 +21,12 @@ type PlayerEditBanTabProps = {
 export default function PlayerEditBanTab({ action, playerRef, onGoBack }: PlayerEditBanTabProps) {
     const banFormRef = useRef<BanFormType>(null);
     const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (banFormRef.current) {
+            banFormRef.current.setData({ reason: action.reason });
+        }
+    }, [action]);
     const { hasPerm } = useAdminPerms();
     const closeModal = useClosePlayerModal();
     const playerEditBanApi = useBackendApi<GenericApiOkResp>({
@@ -82,6 +89,18 @@ export default function PlayerEditBanTab({ action, playerRef, onGoBack }: Player
 
     return (
         <div className="grid gap-4 p-1">
+            {action.reasonHistory && action.reasonHistory.length > 0 && (
+                <div className="flex flex-col gap-2 text-sm">
+                    <h2 className="text-lg font-bold">Previous Reasons:</h2>
+                    <ul className="list-disc list-inside">
+                        {action.reasonHistory.map((entry, index) => (
+                            <li key={index}>
+                                <strong>{entry.author}</strong> on {new Date(entry.timestamp * 1000).toLocaleString()}: {entry.reason}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
             <BanForm
                 ref={banFormRef}
                 disabled={isSaving}
