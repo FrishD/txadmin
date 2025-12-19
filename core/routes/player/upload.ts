@@ -3,7 +3,7 @@ import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import { txEnv } from '@core/globalData';
 import path from 'node:path';
 import fse from 'fs-extra';
-import multer from 'multer';
+import multer from '@koa/multer';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
 import consoleFactory from '@lib/console';
@@ -34,21 +34,14 @@ export default async function PlayerUpload(ctx: AuthedCtx) {
     }
 
     const uploader = upload.single('proof');
-    await new Promise<void>((resolve, reject) => {
-        uploader(ctx.req, ctx.res, (err) => {
-            if (err) {
-                reject(err);
-            }
-            resolve();
-        });
-    });
+    await uploader(ctx, async () => { });
 
-    if (!ctx.req.file) {
+    if (!ctx.file) {
         return ctx.utils.error(400, 'No file uploaded.');
     }
 
     ctx.send({
         success: true,
-        filename: ctx.req.file.filename,
+        filename: ctx.file.filename,
     });
 }

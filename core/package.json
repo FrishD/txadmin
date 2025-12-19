@@ -37,6 +37,7 @@
     "jose": "^4.15.4",
     "js-yaml": "^4.1.0",
     "koa": "^2.15.4",
+    "@koa/multer": "^3.0.2",
     "koa-bodyparser": "^4.4.1",
     "koa-ratelimit": "^5.1.0",
     "lodash": "^4.17.21",
