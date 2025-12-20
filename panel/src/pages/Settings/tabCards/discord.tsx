@@ -5,9 +5,17 @@ import { RotateCcwIcon, XIcon } from 'lucide-react'
 import SwitchText from '@/components/SwitchText'
 import InlineCode from '@/components/InlineCode'
 import { SettingItem, SettingItemDesc } from '../settingsItems'
-import { useEffect, useRef, useMemo, useReducer } from "react"
+import { useEffect, useRef, useMemo, useReducer, useState } from "react"
 import { getConfigEmptyState, getConfigAccessors, SettingsCardProps, getPageConfig, configsReducer, getConfigDiff } from "../utils"
 import SettingsCardShell from "../SettingsCardShell"
+import { useBackendApi } from "@/hooks/fetch";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { txToast } from "@/components/TxToaster"
 
@@ -45,6 +53,18 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
     const cfg = useMemo(() => {
         return getConfigAccessors(cardCtx.cardId, pageConfigs, pageCtx.apiData, dispatch);
     }, [pageCtx.apiData, dispatch]);
+    const [roles, setRoles] = useState([]);
+    const getRolesApi = useBackendApi('discord/roles');
+
+    useEffect(() => {
+        if (states.botEnabled) {
+            getRolesApi({}).then((res) => {
+                if (res.data) {
+                    setRoles(res.data);
+                }
+            });
+        }
+    }, [states.botEnabled]);
 
     //Effects - handle changes and reset advanced settings
     useEffect(() => {
@@ -58,8 +78,6 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
     const wagerBlacklistRoleRef = useRef<HTMLInputElement | null>(null);
     const wagerBlacklistLogChannelRef = useRef<HTMLInputElement | null>(null);
     const wagerRevokeLogChannelRef = useRef<HTMLInputElement | null>(null);
-    const blacklistRoleRef = useRef<HTMLInputElement | null>(null);
-    const complementaryRoleRef = useRef<HTMLInputElement | null>(null);
 
     //Marshalling Utils
     const emptyToNull = (str?: string) => {
@@ -217,27 +235,39 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                 </SettingItemDesc>
             </SettingItem>
             <SettingItem label="Blacklist Role ID" htmlFor={cfg.blacklistRole.eid} showOptional>
-                <Input
-                    id={cfg.blacklistRole.eid}
-                    ref={blacklistRoleRef}
-                    defaultValue={cfg.blacklistRole.initialValue}
-                    onInput={updatePageState}
+                <Select
+                    onValueChange={cfg.blacklistRole.state.set}
+                    value={states.blacklistRole}
                     disabled={pageCtx.isReadOnly}
-                    placeholder='000000000000000000'
-                />
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {roles.map((role) => (
+                            <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <SettingItemDesc>
                     The ID of the role to assign to blacklisted players.
                 </SettingItemDesc>
             </SettingItem>
             <SettingItem label="Complementary Role ID" htmlFor={cfg.complementaryRole.eid} showOptional>
-                <Input
-                    id={cfg.complementaryRole.eid}
-                    ref={complementaryRoleRef}
-                    defaultValue={cfg.complementaryRole.initialValue}
-                    onInput={updatePageState}
+                <Select
+                    onValueChange={cfg.complementaryRole.state.set}
+                    value={states.complementaryRole}
                     disabled={pageCtx.isReadOnly}
-                    placeholder='000000000000000000'
-                />
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {roles.map((role) => (
+                            <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <SettingItemDesc>
                     The ID of the role to remove when a player is blacklisted.
                 </SettingItemDesc>

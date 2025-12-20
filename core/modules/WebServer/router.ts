@@ -83,6 +83,9 @@ export default () => {
     //Control routes
     router.post('/intercom/:scope', intercomAuthMw, routes.intercom);
 
+    //Discord routes
+    router.get('/discord/roles', apiAuthMw, routes.discord_roles);
+
     //Diagnostic routes
     router.post('/diagnostics/sendReport', apiAuthMw, routes.diagnostics_sendReport);
     router.post('/advanced', apiAuthMw, routes.advanced_actions);

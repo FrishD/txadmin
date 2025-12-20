@@ -72,6 +72,7 @@ export { default as advanced_page } from './advanced/get';
 export { default as advanced_actions } from './advanced/actions';
 
 export { default as admins_list } from './admins/list';
+export { default as discord_roles } from './discord';
 
 //FIXME: reorganizar TODAS rotas de logs, incluindo listagem e download
 export { default as serverLog } from './serverLog.js';
