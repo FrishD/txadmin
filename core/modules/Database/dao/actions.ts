@@ -403,12 +403,12 @@ export default class ActionsDao {
     /**
      * Approves a revocation request for an action
      */
-    approveRevoke(
+    async approveRevoke(
         actionId: string,
         author: string,
         allowedTypes: string[] | true = true,
         reason?: string,
-    ): DatabaseActionType {
+    ): Promise<{ action: DatabaseActionType, blacklistRoleRemoved: boolean }> {
         if (typeof actionId !== 'string' || !actionId.length) throw new Error('Invalid actionId.');
         if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
         if (allowedTypes !== true && !Array.isArray(allowedTypes)) throw new Error('Invalid allowedTypes.');
@@ -430,7 +430,9 @@ export default class ActionsDao {
                 action.revocation.reason = reason;
             }
             this.db.writeFlag(SavePriority.HIGH);
-            return cloneDeep(action);
+            const revokedAction = cloneDeep(action);
+            const { blacklistRoleRemoved } = await this._handleRevocationSideEffects(revokedAction, author, reason);
+            return { action: revokedAction, blacklistRoleRemoved };
 
         } catch (error) {
             const msg = `Failed to revoke action with message: ${(error as Error).message}`;
@@ -438,6 +440,103 @@ export default class ActionsDao {
             console.verbose.dir(error);
             throw error;
         }
+    }
+
+
+    /**
+     * Handles the side effects of a revocation, such as removing discord roles.
+     * This is not supposed to be called directly, only by approveRevoke.
+     */
+    private async _handleRevocationSideEffects(
+        revokedAction: DatabaseActionType,
+        author: string,
+        reason?: string,
+    ): Promise<{ blacklistRoleRemoved: boolean }> {
+        let blacklistRoleRemoved = false;
+
+        // Mute specific logic
+        if (revokedAction.type === 'mute') {
+            const license = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('license:'));
+            if (license) {
+                txCore.fxRunner.sendEvent('playerUnmuted', {
+                    author,
+                    targetLicense: license,
+                    targetName: revokedAction.playerName,
+                });
+            }
+        }
+
+        // Wager blacklist specific logic
+        if (revokedAction.type === 'wagerblacklist') {
+            if (txConfig.discordBot.wagerBlacklistRole) {
+                try {
+                    const discordId = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('discord:'));
+                    if (discordId) {
+                        const uid = discordId.substring(8);
+                        await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.wagerBlacklistRole);
+                        if (txConfig.discordBot.wagerRevokeLogChannel) {
+                            const member = await txCore.discordBot.guild?.members.fetch(uid);
+                            if (member) {
+                                sendWagerBlacklistLog(txConfig.discordBot.wagerRevokeLogChannel, author, member, reason ?? 'no reason provided', true);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Failed to remove wager blacklist role or send log for action ${revokedAction.id}:`);
+                    console.error(error);
+                }
+            }
+        }
+
+        // Ban blacklist specific logic
+        if (revokedAction.type === 'ban' && 'blacklist' in revokedAction && revokedAction.blacklist && txConfig.discordBot.blacklistRole) {
+            console.log(`[Blacklist Revoke] Action ${revokedAction.id} is a blacklisted ban. Processing...`);
+            try {
+                const discordId = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('discord:'));
+                if (discordId) {
+                    console.log(`[Blacklist Revoke] Found Discord ID: ${discordId}`);
+                    const uid = discordId.substring(8);
+                    const activeBlacklist = this.findMany(
+                        [discordId],
+                        undefined,
+                        { type: 'ban', 'revocation.timestamp': null, blacklist: true }
+                    );
+                    console.log(`[Blacklist Revoke] Found ${activeBlacklist.length} other active blacklist bans for this user.`);
+                    if (!activeBlacklist.length) {
+                        console.log(`[Blacklist Revoke] No other active blacklist bans found. Removing blacklist role and adding complementary role.`);
+                        await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.blacklistRole);
+                        if (txConfig.discordBot.complementaryRole) {
+                            await txCore.discordBot.addMemberRole(uid, txConfig.discordBot.complementaryRole);
+                        }
+                        //TODO: log this to the admin?
+                        // ctx.admin.logAction(`Removed blacklist role from "${revokedAction.playerName}".`);
+                        console.log(`[Blacklist Revoke] Roles updated successfully.`);
+                        blacklistRoleRemoved = true;
+                    }
+                } else {
+                    console.log(`[Blacklist Revoke] No Discord ID found for this user.`);
+                }
+            } catch (error) {
+                console.error(`[Blacklist Revoke] Failed to remove blacklist role for action ${revokedAction.id}:`);
+                console.error(error);
+            }
+        }
+
+        // Dispatch `txAdmin:events:actionRevoked`
+        try {
+            txCore.fxRunner.sendEvent('actionRevoked', {
+                actionId: revokedAction.id,
+                actionType: revokedAction.type,
+                actionReason: revokedAction.reason,
+                actionAuthor: revokedAction.author,
+                playerName: revokedAction.playerName,
+                playerIds: revokedAction.ids,
+                playerHwids: 'hwids' in revokedAction ? revokedAction.hwids : [],
+                revokedBy: author,
+            });
+        } catch (error) { }
+
+        return { blacklistRoleRemoved };
     }
 
 
