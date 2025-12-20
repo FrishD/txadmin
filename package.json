@@ -31,6 +31,17 @@
         "url": "https://github.com/tabarra/txAdmin/issues"
     },
     "homepage": "https://txadmin.gg/",
+    "optionalDependencies": {
+        "@swc/core-win32-x64-msvc": "1.15.7",
+        "@swc/core-win32-ia32-msvc": "1.15.7",
+        "@swc/core-win32-arm64-msvc": "1.15.7",
+        "@swc/core-linux-x64-gnu": "1.15.7",
+        "@swc/core-linux-x64-musl": "1.15.7",
+        "@swc/core-linux-arm64-gnu": "1.15.7",
+        "@swc/core-linux-arm64-musl": "1.15.7",
+        "@swc/core-darwin-x64": "1.15.7",
+        "@swc/core-darwin-arm64": "1.15.7"
+    },
     "dependencies": {
         "@mui/icons-material": "^6.5.0",
         "@mui/material": "^6.5.0",
