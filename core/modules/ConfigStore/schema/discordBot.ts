@@ -114,6 +114,13 @@ const blacklistRole = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
+const complementaryRole = typeNullableConfig({
+    name: 'Complementary Role ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
 
 export default {
     enabled,
@@ -128,6 +135,7 @@ export default {
     wagerBlacklistLogChannel,
     wagerRevokeLogChannel,
     blacklistRole,
+    complementaryRole,
     embedJson,
     embedConfigJson,
 } as const;

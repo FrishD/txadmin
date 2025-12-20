@@ -229,6 +229,9 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
                 if (discordId) {
                     const uid = discordId.substring(8);
                     await txCore.discordBot.addMemberRole(uid, txConfig.discordBot.blacklistRole);
+                    if (txConfig.discordBot.complementaryRole) {
+                        await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.complementaryRole);
+                    }
                     ctx.admin.logAction(`Added blacklist role to "${player.displayName}".`);
                 } else {
                     console.warn(`Could not find Discord ID for ${player.displayName}, skipping blacklist role assignment.`);

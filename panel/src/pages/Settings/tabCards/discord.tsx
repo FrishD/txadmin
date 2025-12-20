@@ -31,6 +31,7 @@ export const pageConfigs = {
     wagerBlacklistLogChannel: getPageConfig('discordBot', 'wagerBlacklistLogChannel'),
     wagerRevokeLogChannel: getPageConfig('discordBot', 'wagerRevokeLogChannel'),
     blacklistRole: getPageConfig('discordBot', 'blacklistRole'),
+    complementaryRole: getPageConfig('discordBot', 'complementaryRole'),
     embedJson: getPageConfig('discordBot', 'embedJson'),
     embedConfigJson: getPageConfig('discordBot', 'embedConfigJson'),
 } as const;
@@ -58,6 +59,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
     const wagerBlacklistLogChannelRef = useRef<HTMLInputElement | null>(null);
     const wagerRevokeLogChannelRef = useRef<HTMLInputElement | null>(null);
     const blacklistRoleRef = useRef<HTMLInputElement | null>(null);
+    const complementaryRoleRef = useRef<HTMLInputElement | null>(null);
 
     //Marshalling Utils
     const emptyToNull = (str?: string) => {
@@ -76,6 +78,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
             wagerBlacklistLogChannel: emptyToNull(wagerBlacklistLogChannelRef.current?.value),
             wagerRevokeLogChannel: emptyToNull(wagerRevokeLogChannelRef.current?.value),
             blacklistRole: emptyToNull(blacklistRoleRef.current?.value),
+            complementaryRole: emptyToNull(complementaryRoleRef.current?.value),
         };
 
         const res = getConfigDiff(cfg, states, overwrites, false);
@@ -141,6 +144,8 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                     <strong>Note:</strong> Do not reuse the same token for another bot. <br />
                     <strong>Note:</strong> The bot requires the <strong>Server Members</strong> intent, which can be set at the
                     <TxAnchor href="https://discord.com/developers/applications">Discord Developer Portal</TxAnchor>.
+                    <br />
+                    <strong className="text-destructive-inline">Warning:</strong> Granting the bot `Administrator` permissions is a security risk. If the bot's token is compromised, an attacker could cause permanent damage to your server.
                 </SettingItemDesc>
             </SettingItem>
             <SettingItem label="Guild/Server ID" htmlFor={cfg.discordGuild.eid} required={states.botEnabled}>
@@ -224,6 +229,19 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                 />
                 <SettingItemDesc>
                     The ID of the role to assign to blacklisted players.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem label="Complementary Role ID" htmlFor={cfg.complementaryRole.eid} showOptional>
+                <Input
+                    id={cfg.complementaryRole.eid}
+                    ref={complementaryRoleRef}
+                    defaultValue={cfg.complementaryRole.initialValue}
+                    onInput={updatePageState}
+                    disabled={pageCtx.isReadOnly}
+                    placeholder='000000000000000000'
+                />
+                <SettingItemDesc>
+                    The ID of the role to remove when a player is blacklisted.
                 </SettingItemDesc>
             </SettingItem>
             {/* <SettingItem label="Status Embed">

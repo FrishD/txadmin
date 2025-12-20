@@ -320,41 +320,41 @@ export default class DiscordBot {
                 this.guildName = guild.name;
 
                 //Checking for dangerous permissions
-                //https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags
-                //These are the same perms that require 2fa enabled - although it doesn't apply here
-                // const prohibitedPerms = [
-                //     'Administrator', //'ADMINISTRATOR',
-                //     'BanMembers', //'BAN_MEMBERS'
-                //     'KickMembers', //'KICK_MEMBERS'
-                //     'ManageChannels', //'MANAGE_CHANNELS',
-                //     'ManageGuildExpressions', //'MANAGE_GUILD_EXPRESSIONS'
-                //     'ManageGuild', //'MANAGE_GUILD',
-                //     'ManageMessages', //'MANAGE_MESSAGES'
-                //     'ManageThreads', //'MANAGE_THREADS'
-                //     'ManageWebhooks', //'MANAGE_WEBHOOKS'
-                //     'ViewCreatorMonetizationAnalytics', //'VIEW_CREATOR_MONETIZATION_ANALYTICS'
-                // ]
-                // const botPerms = this.guild.members.me?.permissions.serialize();
-                // if (!botPerms) {
-                //     return sendError(`Discord bot could not detect its own permissions.`);
-                // }
-                // const prohibitedPermsInUse = Object.entries(botPerms)
-                //     .filter(([permName, permEnabled]) => prohibitedPerms.includes(permName) && permEnabled)
-                //     .map((x) => x[0])
-                // if (prohibitedPermsInUse.length) {
-                //     if (prohibitedPermsInUse.length === 1 && prohibitedPermsInUse[0] === 'ManageRoles') {
-                //         //allow only ManageRoles
-                //     } else {
-                //         const name = this.#client.user.username;
-                //         const perms = prohibitedPermsInUse.includes('Administrator')
-                //             ? 'Administrator'
-                //             : prohibitedPermsInUse.join(', ');
-                //         return sendError(
-                //             `This bot (${name}) has dangerous permissions (${perms}) and for your safety the bot has been disabled.`,
-                //             { code: 'DangerousPermission' }
-                //         );
-                //     }
-                // }
+                // https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags
+                // These are the same perms that require 2fa enabled - although it doesn't apply here
+                const prohibitedPerms = [
+                    'Administrator', //'ADMINISTRATOR',
+                    'BanMembers', //'BAN_MEMBERS'
+                    'KickMembers', //'KICK_MEMBERS'
+                    'ManageChannels', //'MANAGE_CHANNELS',
+                    'ManageGuildExpressions', //'MANAGE_GUILD_EXPRESSIONS'
+                    'ManageGuild', //'MANAGE_GUILD',
+                    'ManageMessages', //'MANAGE_MESSAGES'
+                    'ManageThreads', //'MANAGE_THREADS'
+                    'ManageWebhooks', //'MANAGE_WEBHOOKS'
+                    'ViewCreatorMonetizationAnalytics', //'VIEW_CREATOR_MONETIZATION_ANALYTICS'
+                ]
+                const botPerms = this.guild.members.me?.permissions.serialize();
+                if (!botPerms) {
+                    return sendError(`Discord bot could not detect its own permissions.`);
+                }
+                const prohibitedPermsInUse = Object.entries(botPerms)
+                    .filter(([permName, permEnabled]) => prohibitedPerms.includes(permName) && permEnabled)
+                    .map((x) => x[0])
+                if (prohibitedPermsInUse.length) {
+                    if (prohibitedPermsInUse.length === 1 && prohibitedPermsInUse[0] === 'ManageRoles') {
+                        //allow only ManageRoles
+                    } else {
+                        const name = this.#client.user.username;
+                        const perms = prohibitedPermsInUse.includes('Administrator')
+                            ? 'Administrator'
+                            : prohibitedPermsInUse.join(', ');
+                        return sendError(
+                            `This bot (${name}) has dangerous permissions (${perms}) and for your safety the bot has been disabled.`,
+                            { code: 'DangerousPermission' }
+                        );
+                    }
+                }
 
                 //Fetching announcements channel
                 if (botCfg.warningsChannel) {
@@ -398,22 +398,6 @@ export default class DiscordBot {
                 this.refreshWsStatus();
             });
             this.#client.on('interactionCreate', interactionCreateHandler);
-            this.#client.on('guildMemberUpdate', async (oldMember, newMember) => {
-                try {
-                    const activeBlacklist = txCore.database.actions.findMany(
-                        [`discord:${newMember.id}`],
-                        undefined,
-                        { type: 'ban', 'revocation.timestamp': null, blacklist: true }
-                    );
-                    if (activeBlacklist.length && txConfig.discordBot.blacklistRole) {
-                        if (!newMember.roles.cache.has(txConfig.discordBot.blacklistRole)) {
-                            await newMember.roles.add(txConfig.discordBot.blacklistRole);
-                        }
-                    }
-                } catch (error) {
-                    console.error(`Failed to check for blacklist for user ${newMember.id}: ${(error as Error).message}`);
-                }
-            });
             this.#client.on('guildMemberAdd', async (member) => {
                 try {
                     const activeWagerBlacklist = txCore.database.actions.findMany(
@@ -428,7 +412,7 @@ export default class DiscordBot {
                     const activeBlacklist = txCore.database.actions.findMany(
                         [`discord:${member.id}`],
                         undefined,
-                        { type: 'ban', 'revocation.timestamp': null, blacklist: true }
+                        { type: 'ban', 'revocation.timestamp': null, expiration: false, blacklist: true }
                     );
                     if (activeBlacklist.length && txConfig.discordBot.blacklistRole) {
                         await member.roles.add(txConfig.discordBot.blacklistRole);
