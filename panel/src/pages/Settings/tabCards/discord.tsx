@@ -144,8 +144,6 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                     <strong>Note:</strong> Do not reuse the same token for another bot. <br />
                     <strong>Note:</strong> The bot requires the <strong>Server Members</strong> intent, which can be set at the
                     <TxAnchor href="https://discord.com/developers/applications">Discord Developer Portal</TxAnchor>.
-                    <br />
-                    <strong className="text-destructive-inline">Warning:</strong> Granting the bot `Administrator` permissions is a security risk. If the bot's token is compromised, an attacker could cause permanent damage to your server.
                 </SettingItemDesc>
             </SettingItem>
             <SettingItem label="Guild/Server ID" htmlFor={cfg.discordGuild.eid} required={states.botEnabled}>
