@@ -473,3 +473,37 @@ export const sendWagerBlacklistLog = async (
         console.error(`Failed to send wager blacklist log to discord channel with error: ${(error as Error).message}`);
     }
 }
+
+
+/**
+ * Send a log of a rate limit violation to a discord channel
+ */
+export const sendRateLimitLog = async (
+    channelId: string,
+    adminName: string,
+) => {
+    console.log(`Attempting to send rate limit log to channel ${channelId}`);
+    const client = getDiscordBot();
+
+    const channel = client.channels.cache.get(channelId);
+    if (!channel || !channel.isTextBased()) {
+        console.warn(`The configured rate limit log channel '${channelId}' is not a valid text channel.`);
+        return;
+    }
+
+    const embed = new EmbedBuilder({
+        title: 'Rate Limit Exceeded',
+        timestamp: new Date(),
+        color: embedColors.warning,
+        fields: [
+            { name: 'Admin', value: adminName, inline: true },
+        ]
+    });
+
+    try {
+        await channel.send({ embeds: [embed] });
+        console.log(`Successfully sent rate limit log to channel ${channelId}`);
+    } catch (error) {
+        console.error(`Failed to send rate limit log to discord channel with error: ${(error as Error).message}`);
+    }
+}

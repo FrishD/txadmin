@@ -122,6 +122,14 @@ const complementaryRole = typeNullableConfig({
 });
 
 
+const rateLimitLogChannel = typeNullableConfig({
+    name: 'Rate Limit Log Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
+
 export default {
     enabled,
     token,
@@ -136,6 +144,7 @@ export default {
     wagerRevokeLogChannel,
     blacklistRole,
     complementaryRole,
+    rateLimitLogChannel,
     embedJson,
     embedConfigJson,
 } as const;

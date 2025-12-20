@@ -9,6 +9,8 @@ import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import { SYM_CURRENT_MUTEX } from '@lib/symbols';
 import { sendWagerBlacklistLog } from '@modules/DiscordBot/discordHelpers';
 import { handleMute, handleUnmute } from './mute';
+import { checkBanRateLimit } from '@lib/rateLimiter';
+import { sendRateLimitLog } from '@modules/DiscordBot/discordHelpers';
 const console = consoleFactory(modulename);
 
 
@@ -143,6 +145,14 @@ async function handleWarning(ctx: AuthedCtx, player: PlayerClass): Promise<Gener
  * Handle Banning command
  */
 async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Check rate limit
+    if (!checkBanRateLimit(ctx.admin.name)) {
+        if (txConfig.discordBot.rateLimitLogChannel) {
+            sendRateLimitLog(txConfig.discordBot.rateLimitLogChannel, ctx.admin.name);
+        }
+        return { error: 'You are banning players too quickly. Please wait a moment and try again.' };
+    }
+
     //Checking request
     if (
         anyUndefined(
@@ -229,9 +239,8 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
                 if (discordId) {
                     const uid = discordId.substring(8);
                     await txCore.discordBot.addMemberRole(uid, txConfig.discordBot.blacklistRole);
-                    if (txConfig.discordBot.complementaryRole) {
-                        await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.complementaryRole);
-                    }
+                    //remove the complementary role
+                    await txCore.discordBot.removeMemberRole(uid, '1418819921789456445');
                     ctx.admin.logAction(`Added blacklist role to "${player.displayName}".`);
                 } else {
                     console.warn(`Could not find Discord ID for ${player.displayName}, skipping blacklist role assignment.`);

@@ -244,12 +244,19 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                     </Select>
                     {currentDuration === 'permanent' && (
                         <div className="flex items-center space-x-2 mt-2">
-                            <Switch
-                                id="blacklist-switch"
-                                checked={blacklist}
-                                onCheckedChange={setBlacklist}
-                            />
-                            <Label htmlFor="blacklist-switch">Add to Blacklist</Label>
+                            <Select
+                                onValueChange={(value) => setBlacklist(value === 'true')}
+                                value={blacklist.toString()}
+                                disabled={disabled}
+                            >
+                                <SelectTrigger id="blacklist-select" className="tracking-wide">
+                                    <SelectValue placeholder="Select Blacklist Option" />
+                                </SelectTrigger>
+                                <SelectContent className="tracking-wide">
+                                    <SelectItem value="true">Blacklist</SelectItem>
+                                    <SelectItem value="false">Without Blacklist</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     )}
                     <div className="flex flex-row gap-2">

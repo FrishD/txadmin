@@ -308,22 +308,31 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
 
     // Ban blacklist specific logic
     if (revokedAction.type === 'ban' && 'blacklist' in revokedAction && revokedAction.blacklist && txConfig.discordBot.blacklistRole) {
+        console.log(`[Blacklist Revoke] Action ${actionId} is a blacklisted ban. Processing...`);
         try {
             const discordId = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('discord:'));
             if (discordId) {
+                console.log(`[Blacklist Revoke] Found Discord ID: ${discordId}`);
                 const uid = discordId.substring(8);
                 const activeBlacklist = txCore.database.actions.findMany(
                     [discordId],
                     undefined,
                     { type: 'ban', 'revocation.timestamp': null, blacklist: true }
                 );
+                console.log(`[Blacklist Revoke] Found ${activeBlacklist.length} other active blacklist bans for this user.`);
                 if (!activeBlacklist.length) {
+                    console.log(`[Blacklist Revoke] No other active blacklist bans found. Removing blacklist role and adding complementary role.`);
                     await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.blacklistRole);
+                    //add back the complementary role
+                    await txCore.discordBot.addMemberRole(uid, '1418819921789456445');
                     ctx.admin.logAction(`Removed blacklist role from "${revokedAction.playerName}".`);
+                    console.log(`[Blacklist Revoke] Roles updated successfully.`);
                 }
+            } else {
+                console.log(`[Blacklist Revoke] No Discord ID found for this user.`);
             }
         } catch (error) {
-            console.error(`Failed to remove blacklist role for action ${actionId}:`);
+            console.error(`[Blacklist Revoke] Failed to remove blacklist role for action ${actionId}:`);
             console.error(error);
         }
     }
