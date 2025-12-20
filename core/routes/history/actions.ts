@@ -264,92 +264,15 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
     }
 
     //Revoking action for non-long bans or warnings
-    let revokedAction;
     try {
-        revokedAction = txCore.database.actions.approveRevoke(actionId, ctx.admin.name, perms, reason) as DatabaseActionType;
-        ctx.admin.logAction(`Revoked ${revokedAction.type} id ${actionId} from ${revokedAction.playerName ?? 'identifiers'}`);
+        const { action, blacklistRoleRemoved } = await txCore.database.actions.approveRevoke(actionId, ctx.admin.name, perms, reason);
+        ctx.admin.logAction(`Revoked ${action.type} id ${actionId} from ${action.playerName ?? 'identifiers'}`);
+        if (blacklistRoleRemoved) {
+            ctx.admin.logAction(`Removed blacklist role from "${action.playerName}".`);
+        }
     } catch (error) {
         return { error: `Failed to revoke action: ${(error as Error).message}` };
     }
-
-    // Mute specific logic
-    if (revokedAction.type === 'mute') {
-        const license = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('license:'));
-        if (license) {
-            txCore.fxRunner.sendEvent('playerUnmuted', {
-                author: ctx.admin.name,
-                targetLicense: license,
-                targetName: revokedAction.playerName,
-            });
-        }
-    }
-
-    // Wager blacklist specific logic
-    if (revokedAction.type === 'wagerblacklist') {
-        if (txConfig.discordBot.wagerBlacklistRole) {
-            try {
-                const discordId = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('discord:'));
-                if (discordId) {
-                    const uid = discordId.substring(8);
-                    await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.wagerBlacklistRole);
-                    if (txConfig.discordBot.wagerRevokeLogChannel) {
-                        const member = await txCore.discordBot.guild?.members.fetch(uid);
-                        if (member) {
-                            sendWagerBlacklistLog(txConfig.discordBot.wagerRevokeLogChannel, ctx.admin.name, member, reason ?? 'no reason provided', true);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error(`Failed to remove wager blacklist role or send log for action ${actionId}:`);
-                console.error(error);
-            }
-        }
-    }
-
-    // Ban blacklist specific logic
-    if (revokedAction.type === 'ban' && 'blacklist' in revokedAction && revokedAction.blacklist && txConfig.discordBot.blacklistRole) {
-        console.log(`[Blacklist Revoke] Action ${actionId} is a blacklisted ban. Processing...`);
-        try {
-            const discordId = revokedAction.ids.find(id => typeof id === 'string' && id.startsWith('discord:'));
-            if (discordId) {
-                console.log(`[Blacklist Revoke] Found Discord ID: ${discordId}`);
-                const uid = discordId.substring(8);
-                const activeBlacklist = txCore.database.actions.findMany(
-                    [discordId],
-                    undefined,
-                    { type: 'ban', 'revocation.timestamp': null, blacklist: true }
-                );
-                console.log(`[Blacklist Revoke] Found ${activeBlacklist.length} other active blacklist bans for this user.`);
-                if (!activeBlacklist.length) {
-                    console.log(`[Blacklist Revoke] No other active blacklist bans found. Removing blacklist role and adding complementary role.`);
-                    await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.blacklistRole);
-                    //add back the complementary role
-                    await txCore.discordBot.addMemberRole(uid, '1418819921789456445');
-                    ctx.admin.logAction(`Removed blacklist role from "${revokedAction.playerName}".`);
-                    console.log(`[Blacklist Revoke] Roles updated successfully.`);
-                }
-            } else {
-                console.log(`[Blacklist Revoke] No Discord ID found for this user.`);
-            }
-        } catch (error) {
-            console.error(`[Blacklist Revoke] Failed to remove blacklist role for action ${actionId}:`);
-            console.error(error);
-        }
-    }
-
-    // Dispatch `txAdmin:events:actionRevoked`
-    try {
-        txCore.fxRunner.sendEvent('actionRevoked', {
-            actionId: revokedAction.id,
-            actionType: revokedAction.type,
-            actionReason: revokedAction.reason,
-            actionAuthor: revokedAction.author,
-            playerName: revokedAction.playerName,
-            playerIds: revokedAction.ids,
-            playerHwids: 'hwids' in revokedAction ? revokedAction.hwids : [],
-            revokedBy: ctx.admin.name,
-        });
-    } catch (error) { }
 
     return { success: true };
 }
