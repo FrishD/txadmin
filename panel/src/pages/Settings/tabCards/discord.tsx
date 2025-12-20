@@ -30,6 +30,7 @@ export const pageConfigs = {
     wagerBlacklistRole: getPageConfig('discordBot', 'wagerBlacklistRole'),
     wagerBlacklistLogChannel: getPageConfig('discordBot', 'wagerBlacklistLogChannel'),
     wagerRevokeLogChannel: getPageConfig('discordBot', 'wagerRevokeLogChannel'),
+    blacklistRole: getPageConfig('discordBot', 'blacklistRole'),
     embedJson: getPageConfig('discordBot', 'embedJson'),
     embedConfigJson: getPageConfig('discordBot', 'embedConfigJson'),
 } as const;
@@ -56,6 +57,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
     const wagerBlacklistRoleRef = useRef<HTMLInputElement | null>(null);
     const wagerBlacklistLogChannelRef = useRef<HTMLInputElement | null>(null);
     const wagerRevokeLogChannelRef = useRef<HTMLInputElement | null>(null);
+    const blacklistRoleRef = useRef<HTMLInputElement | null>(null);
 
     //Marshalling Utils
     const emptyToNull = (str?: string) => {
@@ -73,6 +75,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
             wagerBlacklistRole: emptyToNull(wagerBlacklistRoleRef.current?.value),
             wagerBlacklistLogChannel: emptyToNull(wagerBlacklistLogChannelRef.current?.value),
             wagerRevokeLogChannel: emptyToNull(wagerRevokeLogChannelRef.current?.value),
+            blacklistRole: emptyToNull(blacklistRoleRef.current?.value),
         };
 
         const res = getConfigDiff(cfg, states, overwrites, false);
@@ -208,6 +211,19 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                 />
                 <SettingItemDesc>
                     The ID of the channel to send wager blacklist revocation logs to.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem label="Blacklist Role ID" htmlFor={cfg.blacklistRole.eid} showOptional>
+                <Input
+                    id={cfg.blacklistRole.eid}
+                    ref={blacklistRoleRef}
+                    defaultValue={cfg.blacklistRole.initialValue}
+                    onInput={updatePageState}
+                    disabled={pageCtx.isReadOnly}
+                    placeholder='000000000000000000'
+                />
+                <SettingItemDesc>
+                    The ID of the role to assign to blacklisted players.
                 </SettingItemDesc>
             </SettingItem>
             {/* <SettingItem label="Status Embed">
