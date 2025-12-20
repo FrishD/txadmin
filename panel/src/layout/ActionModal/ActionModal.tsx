@@ -1,6 +1,6 @@
 import {
     Dialog,
-    DialogContent, DialogHeader,
+    DialogContent, DialogDescription, DialogHeader,
     DialogTitle
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -175,6 +175,9 @@ export default function ActionModal() {
                     <DialogTitle className="tracking-wide line-clamp-1 leading-7 break-all mr-6">
                         {pageTitle}
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Modal for viewing and interacting with a player's history item.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="flex flex-col md:flex-row md:px-4 h-full">

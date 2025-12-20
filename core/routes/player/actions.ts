@@ -220,7 +220,7 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
     ctx.admin.logAction(`Banned player "${player.displayName}": ${reason}`);
 
     //Give blacklist role
-    if (expiration === false && blacklist && txConfig.discordBot.blacklistRole) {
+    if (blacklist && txConfig.discordBot.blacklistRole) {
         try {
             if (!txCore.discordBot.isClientReady) {
                 console.warn(`Discord bot not ready, skipping blacklist role assignment for ${player.displayName}.`);
