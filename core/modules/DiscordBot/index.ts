@@ -410,6 +410,7 @@ export default class DiscordBot {
                     console.error(`Failed to check for wager blacklist for user ${member.id}: ${(error as Error).message}`);
                 }
             });
+            this.checkWagerBlacklist().catch((e) => {});
             // this.#client.on('debug', console.verbose.debug);
 
             //Start bot
@@ -549,6 +550,37 @@ export default class DiscordBot {
             return true;
         } catch (error) {
             throw new Error(`Failed to remove role: ${(error as Error).message}`);
+        }
+    }
+
+    async checkWagerBlacklist() {
+        if (!txConfig.discordBot.enabled) return;
+        if (!this.#client?.isReady() || !this.guild) {
+            console.verbose.warn('not ready yet to check wager blacklist');
+            return;
+        }
+
+        const activeBlacklist = txCore.database.actions.findMany(
+            undefined,
+            undefined,
+            { type: 'wagerblacklist', 'revocation.timestamp': null }
+        );
+
+        if (!activeBlacklist.length) return;
+
+        for (const action of activeBlacklist) {
+            const discordId = action.identifiers.find(id => id.startsWith('discord:'));
+            if (!discordId) continue;
+
+            const uid = discordId.substring(8);
+            try {
+                const member = await this.guild.members.fetch(uid);
+                if (member && txConfig.discordBot.wagerBlacklistRole && !member.roles.cache.has(txConfig.discordBot.wagerBlacklistRole)) {
+                    await member.roles.add(txConfig.discordBot.wagerBlacklistRole);
+                }
+            } catch (error) {
+                console.error(`Failed to check/add wager blacklist role for user ${uid}: ${(error as Error).message}`);
+            }
         }
     }
 };

@@ -12,7 +12,10 @@ const console = consoleFactory(modulename);
  */
 export async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<{ success: boolean; error?: string }> {
     //Checking request
-    if (anyUndefined(ctx.request.body, ctx.request.body.duration, ctx.request.body.reason)) {
+    if (
+        anyUndefined(ctx.request.body, ctx.request.body.reason)
+        || typeof ctx.request.body.duration !== 'string'
+    ) {
         return { error: 'Invalid request.' };
     }
     const durationInput = ctx.request.body.duration.trim();
