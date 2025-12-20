@@ -32,6 +32,10 @@ export default async function FXServerControls(ctx: AuthedCtx) {
         const respawnDelay = txCore.fxRunner.restartSpawnDelay;
         if (respawnDelay.ms > 10_000) {
             txCore.fxRunner.restartServer('admin request', ctx.admin.name).catch((e) => { });
+            if (txCore.discordBot.isClientReady) {
+                txCore.discordBot.syncBlacklistRoles();
+                txCore.discordBot.syncWagerBlacklistRoles();
+            }
             const durationStr = msToShortishDuration(
                 respawnDelay.ms,
                 { units: ['m', 's', 'ms'] }
@@ -42,6 +46,10 @@ export default async function FXServerControls(ctx: AuthedCtx) {
             });
         } else {
             const restartError = await txCore.fxRunner.restartServer('admin request', ctx.admin.name);
+            if (txCore.discordBot.isClientReady) {
+                txCore.discordBot.syncBlacklistRoles();
+                txCore.discordBot.syncWagerBlacklistRoles();
+            }
             if (restartError !== null) {
                 return ctx.send<ApiToastResp>({ type: 'error', md: true, msg: restartError });
             } else {
