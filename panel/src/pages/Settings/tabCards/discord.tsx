@@ -40,6 +40,7 @@ export const pageConfigs = {
     wagerRevokeLogChannel: getPageConfig('discordBot', 'wagerRevokeLogChannel'),
     blacklistRole: getPageConfig('discordBot', 'blacklistRole'),
     complementaryRole: getPageConfig('discordBot', 'complementaryRole'),
+    rateLimitLogChannel: getPageConfig('discordBot', 'rateLimitLogChannel'),
     embedJson: getPageConfig('discordBot', 'embedJson'),
     embedConfigJson: getPageConfig('discordBot', 'embedConfigJson'),
 } as const;
@@ -78,6 +79,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
     const wagerBlacklistRoleRef = useRef<HTMLInputElement | null>(null);
     const wagerBlacklistLogChannelRef = useRef<HTMLInputElement | null>(null);
     const wagerRevokeLogChannelRef = useRef<HTMLInputElement | null>(null);
+    const rateLimitLogChannelRef = useRef<HTMLInputElement | null>(null);
 
     //Marshalling Utils
     const emptyToNull = (str?: string) => {
@@ -97,6 +99,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
             wagerRevokeLogChannel: emptyToNull(wagerRevokeLogChannelRef.current?.value),
             blacklistRole: emptyToNull(blacklistRoleRef.current?.value),
             complementaryRole: emptyToNull(complementaryRoleRef.current?.value),
+            rateLimitLogChannel: emptyToNull(rateLimitLogChannelRef.current?.value),
         };
 
         const res = getConfigDiff(cfg, states, overwrites, false);
@@ -270,6 +273,19 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                 </Select>
                 <SettingItemDesc>
                     The ID of the role to remove when a player is blacklisted.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem label="Rate Limit Log Channel ID" htmlFor={cfg.rateLimitLogChannel.eid} showOptional>
+                <Input
+                    id={cfg.rateLimitLogChannel.eid}
+                    ref={rateLimitLogChannelRef}
+                    defaultValue={cfg.rateLimitLogChannel.initialValue}
+                    onInput={updatePageState}
+                    disabled={pageCtx.isReadOnly}
+                    placeholder='000000000000000000'
+                />
+                <SettingItemDesc>
+                    The ID of the channel to send ban rate limit logs to.
                 </SettingItemDesc>
             </SettingItem>
             {/* <SettingItem label="Status Embed">

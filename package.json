@@ -19,7 +19,7 @@
         "locale:check": "node scripts/locale-utils.js check --color",
         "license:report": "rimraf .reports/license && mkdir \".reports/license\" && npm run license:report --workspaces",
         "license:list": "node scripts/list-licenses.js",
-        "license:distfile": "generate-license-file --ci --no-spinner --input package.json --output dist/THIRD-PARTY-LICENSES.txt"
+        "license:distfile": "npx generate-license-file --ci --no-spinner --input package.json --output dist/THIRD-PARTY-LICENSES.txt"
     },
     "repository": {
         "type": "git",

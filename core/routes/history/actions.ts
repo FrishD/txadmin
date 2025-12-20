@@ -319,6 +319,8 @@ async function handleRevokeAction(ctx: AuthedCtx): Promise<GenericApiOkResp> {
                 );
                 if (!activeBlacklist.length) {
                     await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.blacklistRole);
+                    //add back the complementary role
+                    await txCore.discordBot.addMemberRole(uid, '1418819921789456445');
                     ctx.admin.logAction(`Removed blacklist role from "${revokedAction.playerName}".`);
                 }
             }
