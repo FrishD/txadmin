@@ -5,8 +5,9 @@ import TxAnchor from '@/components/TxAnchor';
 import { cn } from '@/lib/utils';
 import { convertRowDateTime } from '@/lib/dateTime';
 import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2Icon, GavelIcon, AlertTriangleIcon, Undo2Icon, TimerOffIcon, TimerIcon, HourglassIcon, MicOffIcon } from 'lucide-react';
+import { Loader2Icon, GavelIcon, AlertTriangleIcon, Undo2Icon, TimerOffIcon, TimerIcon, HourglassIcon, MicOffIcon, LinkIcon } from 'lucide-react';
 import { useBackendApi } from '@/hooks/fetch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { HistoryTableActionType, HistoryTableSearchResp, HistoryTableSearchType, HistoryTableSortingType } from '@shared/historyApiTypes';
 import { useOpenActionModal } from '@/hooks/actionModal';
 import { SEARCH_ANY_STRING } from './HistorySearchBox';
@@ -98,6 +99,20 @@ function HistoryRow({ action, modalOpener }: HistoryRowProps) {
                 <span className='text-ellipsis overflow-hidden line-clamp-1 break-all'>
                     {action.reason}
                 </span>
+                {action.linkedPcCheckId && (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <a href={`#${action.linkedPcCheckId}`} className="ml-2">
+                                    <LinkIcon className="inline h-4 w-4" />
+                                </a>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Linked PC Check: {action.linkedPcCheckId}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
             </TableCell>
             <TableCell className='px-4 py-2 border-r'>
                 <span className='text-ellipsis overflow-hidden line-clamp-1 break-all'>

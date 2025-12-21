@@ -134,10 +134,30 @@ export default async function HistorySearch(ctx: AuthedCtx) {
     const actions = chain.value();
     const hasReachedEnd = actions.length <= DEFAULT_LIMIT;
     const currTs = now();
+
+    const pcChecks = dbo.chain.get('actions').filter({ type: 'pccheck' }).value();
+    const pcCheckMap = new Map<string, any>();
+    for (const pcCheck of pcChecks) {
+        for (const id of pcCheck.ids) {
+            pcCheckMap.set(id, pcCheck);
+        }
+    }
+
     const processedActions = actions.slice(0, DEFAULT_LIMIT).map((a) => {
-        let banExpiration, warnAcked;
+        let banExpiration, warnAcked, linkedPcCheckId;
         if (a.type === 'ban' || a.type === 'wagerblacklist') {
             if (a.expiration === false) {
+                if (a.type === 'ban' && a.blacklist) {
+                    for (const id of a.ids) {
+                        if (pcCheckMap.has(id)) {
+                            const pcCheck = pcCheckMap.get(id);
+                            if (Math.abs(pcCheck.timestamp - a.timestamp) < 60 * 60 * 24 * 7) {
+                                linkedPcCheckId = pcCheck.id;
+                                break;
+                            }
+                        }
+                    }
+                }
                 banExpiration = 'permanent' as const;
             } else if (typeof a.expiration === 'number' && a.expiration < currTs) {
                 banExpiration = 'expired' as const;
@@ -147,7 +167,7 @@ export default async function HistorySearch(ctx: AuthedCtx) {
         } else if (a.type === 'warn') {
             warnAcked = a.acked;
         }
-        return {
+        const action = {
             id: a.id,
             type: a.type,
             playerName: a.playerName,
@@ -157,7 +177,15 @@ export default async function HistorySearch(ctx: AuthedCtx) {
             revocation: a.revocation,
             banExpiration,
             warnAcked,
-        } satisfies HistoryTableActionType;
+            linkedPcCheckId,
+        } as HistoryTableActionType;
+        if (a.type === 'pccheck') {
+            action.caught = a.caught;
+            action.supervisor = a.supervisor;
+            action.approver = a.approver;
+            action.proofs = a.proofs;
+        }
+        return action;
     });
 
     txCore.metrics.txRuntime.historyTableSearchTime.count(searchTime.stop().milliseconds);

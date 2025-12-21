@@ -47,7 +47,7 @@ export type HistoryTableActionRevocationType = {
 
 export type HistoryTableActionType = {
     id: string;
-    type: "ban" | "warn" | "wagerblacklist" | "mute";
+    type: "ban" | "warn" | "wagerblacklist" | "mute" | "pccheck";
     playerName: string | false;
     author: string;
     reason: string;
@@ -55,6 +55,15 @@ export type HistoryTableActionType = {
     revocation: HistoryTableActionRevocationType;
     banExpiration?: 'expired' | 'active' | 'permanent';
     warnAcked?: boolean;
+
+    //pccheck only
+    caught?: boolean;
+    supervisor?: string;
+    approver?: string;
+    proofs?: string[];
+
+    //ban only
+    linkedPcCheckId?: string;
 }
 
 export type HistoryTableSearchResp = {
