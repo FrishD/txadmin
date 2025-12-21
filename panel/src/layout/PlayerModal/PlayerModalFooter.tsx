@@ -181,15 +181,6 @@ export default function PlayerModalFooter({ playerRef, player }: PlayerModalFoot
             >
                 <AlertTriangleIcon className="h-5 mr-1" /> Warn
             </Button>
-            <Button
-                variant='outline'
-                size='sm'
-                disabled={!isPcChecker || !player}
-                onClick={handleReport}
-                className="pl-2"
-            >
-                <ShieldCheckIcon className="h-5 mr-1" /> Report
-            </Button>
         </DialogFooter>
     )
 }

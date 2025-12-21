@@ -14,6 +14,7 @@ import PlayerHistoryTab from "./PlayerHistoryTab";
 import PlayerBanTab from "./PlayerBanTab";
 import PlayerMuteTab from "./PlayerMuteTab";
 import PlayerWagerTab from "./PlayerWagerTab";
+import PlayerPcCheckTab from "./PlayerPcCheckTab";
 import GenericSpinner from "@/components/GenericSpinner";
 import { cn } from "@/lib/utils";
 import { useBackendApi } from "@/hooks/fetch";
@@ -50,6 +51,11 @@ const modalTabs = [
         title: 'Wager',
         icon: <GavelIcon className="mr-2 h-5 w-5 hidden xs:block" />,
         className: 'hover:bg-destructive hover:text-destructive-foreground',
+    },
+    {
+        title: 'PC Report',
+        icon: <ShieldCheckIcon className="mr-2 h-5 w-5 hidden xs:block" />,
+        className: 'hover:bg-destructive hover:text-destructive-foreground',
     }
 ]
 
@@ -57,9 +63,13 @@ const modalTabs = [
 export default function PlayerModal() {
     const { isModalOpen, closeModal, playerRef } = usePlayerModalStateValue();
     const { isPcChecker } = usePermissions();
+    const { hasPerm } = useAdminPerms();
 
     const visibleTabs = modalTabs.filter(tab => {
         if (isPcChecker && tab.title === 'IDs') {
+            return false;
+        }
+        if (tab.title === 'PC Report' && !isPcChecker && !hasPerm('master')) {
             return false;
         }
         return true;
@@ -238,6 +248,7 @@ export default function PlayerModal() {
                                     playerRef={playerRef!}
                                     refreshModalData={refreshModalData}
                                 />}
+                                {selectedTab === 'PC Report' && <PlayerPcCheckTab />}
                             </>
                         )}
                     </ScrollArea>

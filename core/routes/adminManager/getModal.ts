@@ -15,7 +15,7 @@ const getPerms = (checkPerms: string[], allPermissions: [string, string][]) => {
     const permsGeneral: PermType[] = [];
     const permsMenu: PermType[] = [];
     for (const [id, desc] of allPermissions) {
-        const bucket = (id.startsWith('players.') || id.startsWith('menu.')) ? permsGeneral : permsMenu;
+        const bucket = (id.startsWith('players.') || id.startsWith('menu.') || id.startsWith('web.')) ? permsGeneral : permsMenu;
         bucket.push({
             id,
             desc,
