@@ -38,7 +38,6 @@ try {
         //To satisfy the license's "full text" requirement, it will be generated 
         //by another npm script and it is referenced in the banner.
         legalComments: 'none',
-        external: ['formidable'],
     });
     if (errors.length) {
         console.log(`[BUNDLER] Failed with ${errors.length} errors.`);
