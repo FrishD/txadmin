@@ -22,6 +22,7 @@ import { PlayerModalResp, PlayerModalSuccess } from "@shared/playerApiTypes";
 import PlayerModalFooter from "./PlayerModalFooter";
 import ModalCentralMessage from "@/components/ModalCentralMessage";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAdminPerms } from "@/hooks/auth";
 
 
 const modalTabs = [
