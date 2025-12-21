@@ -17,7 +17,7 @@ import { useBackendApi } from '@/hooks/fetch';
 import { useAtom } from 'jotai';
 import { pcCheckDialogAtom } from '@/hooks/dialogs';
 import { FormEvent, useState } from 'react';
-import { usePlayerModalState } from '@/hooks/playerModal';
+import { usePlayerModalStateValue } from '@/hooks/playerModal';
 import { GenericApiOkResp } from '@shared/genericApiTypes';
 import { Textarea } from './ui/textarea';
 
@@ -28,7 +28,7 @@ export default function PcCheckDialog() {
     const [approver, setApprover] = useState('');
     const [reason, setReason] = useState('');
     const [proofs, setProofs] = useState<FileList | null>(null);
-    const { ref: playerRef } = usePlayerModalState();
+    const { playerRef } = usePlayerModalStateValue();
 
     const { data: approvers } = useBackendApi<any>({
         path: '/adminManager/getApprovers',
