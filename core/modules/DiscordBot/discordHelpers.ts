@@ -507,3 +507,93 @@ export const sendRateLimitLog = async (
         console.error(`Failed to send rate limit log to discord channel with error: ${(error as Error).message}`);
     }
 }
+
+
+/**
+ * Send a log of a player search to a discord channel
+ */
+export const sendPlayerSearchLog = async (
+    channelId: string,
+    adminName: string,
+    searchValue: string,
+    searchType: string,
+    filters: string,
+) => {
+    console.log(`Attempting to send player search log to channel ${channelId}`);
+    const client = getDiscordBot();
+
+    const channel = client.channels.cache.get(channelId);
+    if (!channel || !channel.isTextBased()) {
+        console.warn(`The configured player search log channel '${channelId}' is not a valid text channel.`);
+        return;
+    }
+
+    const embed = new EmbedBuilder({
+        title: 'Player Search',
+        timestamp: new Date(),
+        color: embedColors.info,
+        fields: [
+            { name: 'Admin', value: adminName, inline: true },
+            { name: 'Search Type', value: searchType, inline: true },
+            { name: 'Search Value', value: searchValue, inline: false },
+        ]
+    });
+
+    if (filters) {
+        embed.addFields({ name: 'Filters', value: filters, inline: false });
+    }
+
+    try {
+        await channel.send({ embeds: [embed] });
+        console.log(`Successfully sent player search log to channel ${channelId}`);
+    } catch (error) {
+        console.error(`Failed to send player search log to discord channel with error: ${(error as Error).message}`);
+    }
+}
+
+
+/**
+ * Send a log of a history search to a discord channel
+ */
+export const sendHistorySearchLog = async (
+    channelId: string,
+    adminName: string,
+    searchValue: string,
+    searchType: string,
+    filterbyType: string,
+    filterbyAdmin: string,
+) => {
+    console.log(`Attempting to send history search log to channel ${channelId}`);
+    const client = getDiscordBot();
+
+    const channel = client.channels.cache.get(channelId);
+    if (!channel || !channel.isTextBased()) {
+        console.warn(`The configured history search log channel '${channelId}' is not a valid text channel.`);
+        return;
+    }
+
+    const embed = new EmbedBuilder({
+        title: 'History Search',
+        timestamp: new Date(),
+        color: embedColors.info,
+        fields: [
+            { name: 'Admin', value: adminName, inline: true },
+            { name: 'Search Type', value: searchType, inline: true },
+            { name: 'Search Value', value: searchValue, inline: false },
+        ]
+    });
+
+    if (filterbyType) {
+        embed.addFields({ name: 'Filter by Type', value: filterbyType, inline: true });
+    }
+    if (filterbyAdmin) {
+        embed.addFields({ name: 'Filter by Admin', value: filterbyAdmin, inline: true });
+    }
+
+    try {
+        await channel.send({ embeds: [embed] });
+        console.log(`Successfully sent history search log to channel ${channelId}`);
+    } catch (error) {
+        console.error(`Failed to send history search log to discord channel with error: ${(error as Error).message}`);
+    }
+}

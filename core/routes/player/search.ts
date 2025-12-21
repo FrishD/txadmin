@@ -8,6 +8,7 @@ import { chain as createChain } from 'lodash-es';
 import Fuse from 'fuse.js';
 import { parseLaxIdsArrayInput } from '@lib/player/idUtils';
 import { TimeCounter } from '@modules/Metrics/statsUtils';
+import { sendPlayerSearchLog } from '@modules/DiscordBot/discordHelpers';
 const console = consoleFactory(modulename);
 
 //Helpers
@@ -25,6 +26,20 @@ export default async function PlayerSearch(ctx: AuthedCtx) {
     if (typeof ctx.query === 'undefined') {
         return ctx.utils.error(400, 'Invalid Request');
     }
+
+    if(
+        txConfig.discordBot.playerSearchLogChannel
+        && (ctx.query.searchValue || ctx.query.filters)
+    ){
+        sendPlayerSearchLog(
+            txConfig.discordBot.playerSearchLogChannel,
+            ctx.admin.name,
+            ctx.query.searchValue,
+            ctx.query.searchType,
+            ctx.query.filters,
+        );
+    }
+
     const {
         searchValue,
         searchType,

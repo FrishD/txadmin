@@ -8,6 +8,7 @@ import { now } from '@lib/misc';
 import { parseLaxIdsArrayInput } from '@lib/player/idUtils';
 import { HistoryTableActionType, HistoryTableSearchResp } from '@shared/historyApiTypes';
 import { TimeCounter } from '@modules/Metrics/statsUtils';
+import { sendHistorySearchLog } from '@modules/DiscordBot/discordHelpers';
 const console = consoleFactory(modulename);
 
 //Helpers
@@ -22,6 +23,20 @@ export default async function HistorySearch(ctx: AuthedCtx) {
     //Sanity check
     if (typeof ctx.query === 'undefined') {
         return ctx.utils.error(400, 'Invalid Request');
+    }
+
+    if(
+        txConfig.discordBot.historySearchLogChannel
+        && (ctx.query.searchValue || ctx.query.filterbyType || ctx.query.filterbyAdmin)
+    ){
+        sendHistorySearchLog(
+            txConfig.discordBot.historySearchLogChannel,
+            ctx.admin.name,
+            ctx.query.searchValue,
+            ctx.query.searchType,
+            ctx.query.filterbyType,
+            ctx.query.filterbyAdmin,
+        );
     }
     const {
         searchValue,
