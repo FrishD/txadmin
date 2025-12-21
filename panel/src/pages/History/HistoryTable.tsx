@@ -48,6 +48,11 @@ function HistoryRow({ action, modalOpener }: HistoryRowProps) {
             <ShieldCheckIcon className='size-5' />
         </div>
         rowId = <span className='tracking-wider text-info'>{action.id}</span>
+    } else if (action.type === 'pcCheck') {
+        rowPrefix = <div className='flex items-center px-1 bg-info-hint text-info'>
+            <ShieldCheckIcon className='size-5' />
+        </div>
+        rowId = <span className='tracking-wider text-info'>{action.id}</span>
     } else {
         throw new Error(`Invalid action type: ${(action as any).type}`);
     }
