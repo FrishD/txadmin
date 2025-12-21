@@ -6,6 +6,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { setPlayerModalUrlParam, usePlayerModalStateValue } from "@/hooks/playerModal";
 import { InfoIcon, ListIcon, HistoryIcon, GavelIcon, MicOffIcon, ShieldCheckIcon } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 import PlayerInfoTab from "./PlayerInfoTab";
 import { useEffect, useState } from "react";
 import PlayerIdsTab from "./PlayerIdsTab";
@@ -21,8 +22,6 @@ import { useBackendApi } from "@/hooks/fetch";
 import { PlayerModalResp, PlayerModalSuccess } from "@shared/playerApiTypes";
 import PlayerModalFooter from "./PlayerModalFooter";
 import ModalCentralMessage from "@/components/ModalCentralMessage";
-import { usePermissions } from "@/hooks/usePermissions";
-import { useAdminPerms } from "@/hooks/auth";
 
 
 const modalTabs = [
@@ -64,19 +63,7 @@ const modalTabs = [
 export default function PlayerModal() {
     const { isModalOpen, closeModal, playerRef } = usePlayerModalStateValue();
     const { isPcChecker } = usePermissions();
-    const { hasPerm } = useAdminPerms();
-
-    const visibleTabs = modalTabs.filter(tab => {
-        if (isPcChecker && tab.title === 'IDs') {
-            return false;
-        }
-        if (tab.title === 'PC Report' && !isPcChecker && !hasPerm('master')) {
-            return false;
-        }
-        return true;
-    });
-
-    const [selectedTab, setSelectedTab] = useState(visibleTabs[0].title);
+    const [selectedTab, setSelectedTab] = useState(modalTabs[0].title);
     const [currRefreshKey, setCurrRefreshKey] = useState(0);
     const [modalData, setModalData] = useState<PlayerModalSuccess | undefined>(undefined);
     const [modalError, setModalError] = useState('');
@@ -189,8 +176,9 @@ export default function PlayerModal() {
 
                 <div className="flex flex-col md:flex-row md:px-4 h-full">
                     <div className="flex flex-row md:flex-col gap-1 bg-muted md:bg-transparent p-1 md:p-0 mx-2 md:mx-0 rounded-md">
-                        {visibleTabs.map((tab) => (
-                            <Button
+                        {modalTabs.map((tab) => {
+                            if (tab.title === 'PC Report' && !isPcChecker) return null;
+                            return <Button
                                 id={`player-modal-tab-${tab.title}`}
                                 key={tab.title}
                                 variant={selectedTab === tab.title ? "secondary" : "ghost"}
@@ -205,7 +193,7 @@ export default function PlayerModal() {
                             >
                                 {tab.icon} {tab.title}
                             </Button>
-                        ))}
+                        })}
                     </div>
                     {/* NOTE: consistent height: sm:h-[16.5rem] */}
                     {/* FIXME: the number below is based off mobile screen sizes, and should be h-full while the modal content controls the actual height  */}

@@ -52,13 +52,13 @@ export { default as fxserver_schedule } from './fxserver/schedule';
 export { default as history_stats } from './history/stats';
 export { default as history_search } from './history/search';
 export { default as history_actionModal } from './history/actionModal';
+export { default as history_linkBan } from './history/linkBan';
 export { default as history_actions } from './history/actions.js';
 
 export { default as player_stats } from './player/stats';
 export { default as player_search } from './player/search';
 export { default as player_modal } from './player/modal';
 export { default as player_actions } from './player/actions';
-export { default as player_pcCheck } from './player/pcCheck';
 export { default as player_checkJoin } from './player/checkJoin';
 
 export { default as whitelist_page } from './whitelist/page';
@@ -87,5 +87,3 @@ export {
     get as dev_get,
     post as dev_post,
 } from './devDebug.js';
-
-export { default as proof } from './proof';

@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash-es';
 import { DbInstance, SavePriority } from "../instance";
-import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionPcCheckType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType } from "../databaseTypes";
+import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType, DatabaseActionPcCheckType } from "../databaseTypes";
 import { genActionID } from "../dbUtils";
 import { now } from '@lib/misc';
 import { sendRevocationLog } from '@modules/DiscordBot/discordHelpers';
@@ -62,6 +62,17 @@ export default class ActionsDao {
                     status: null,
                 },
             };
+
+            //Auto link ban
+            if (caught) {
+                const bans = this.findMany(ids, undefined, { type: 'ban' }) as DatabaseActionBanType[];
+                const recentBans = bans.filter(ban => ban.timestamp > timestamp - 3600);
+                if (recentBans.length) {
+                    const sortedBans = recentBans.sort((a, b) => b.timestamp - a.timestamp);
+                    toDB.banId = sortedBans[0].id;
+                }
+            }
+
             this.chain.get('actions')
                 .push(toDB)
                 .value();
@@ -75,109 +86,6 @@ export default class ActionsDao {
         }
     }
 
-    /**
-     * Registers a pc check action and returns its id
-     */
-    registerPcCheck(
-        ids: string[],
-        author: string,
-        reason: string,
-        caught: boolean,
-        supervisor: string,
-        approver: string,
-        proofs: string[],
-        playerName: string | false = false,
-    ): string {
-        //Sanity check
-        if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
-        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
-        if (typeof reason !== 'string' || !reason.length) throw new Error('Invalid reason.');
-        if (typeof caught !== 'boolean') throw new Error('Invalid caught boolean.');
-        if (typeof supervisor !== 'string' || !supervisor.length) throw new Error('Invalid supervisor.');
-        if (typeof approver !== 'string' || !approver.length) throw new Error('Invalid approver.');
-        if (!Array.isArray(proofs)) throw new Error('Invalid proofs array.');
-        if (playerName !== false && (typeof playerName !== 'string' || !playerName.length)) throw new Error('Invalid playerName.');
-
-        //Saves it to the database
-        const timestamp = now();
-        try {
-            const actionID = genActionID(this.dbo, 'pcCheck');
-            const toDB: DatabaseActionPcCheckType = {
-                id: actionID,
-                type: 'pcCheck',
-                ids,
-                playerName,
-                reason,
-                author,
-                timestamp,
-                caught,
-                supervisor,
-                approver,
-                proofs,
-                revocation: {
-                    timestamp: null,
-                    approver: null,
-                    requestor: null,
-                    status: null,
-                },
-            };
-            this.chain.get('actions')
-                .push(toDB)
-                                .value();
-            this.db.writeFlag(SavePriority.HIGH);
-            return actionID;
-        } catch (error) {
-            let msg = `Failed to register pc check to database with message: ${(error as Error).message}`;
-            console.error(msg);
-            console.verbose.dir(error);
-            throw error;
-        }
-    }
-
-    /**
-     * Finds a recent pc check for a player
-     */
-    findRecentPcCheck(ids: string[]): DatabaseActionPcCheckType | null {
-        if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
-
-        const action = this.chain.get('actions')
-            .filter((a) => {
-                return a.type === 'pcCheck'
-                    && a.caught === true
-                    && a.timestamp > now() - 3600
-                    && Array.isArray(a.ids) && ids.some((fi) => a.ids.includes(fi))
-            })
-            .last()
-            .cloneDeep()
-            .value();
-
-        return (typeof action === 'undefined') ? null : action;
-    }
-
-    /**
-     * Links a ban to a pc check
-     */
-    linkBanToPcCheck(pcCheckId: string, banId: string) {
-        if (typeof pcCheckId !== 'string' || !pcCheckId.length) throw new Error('Invalid pcCheckId.');
-        if (typeof banId !== 'string' || !banId.length) throw new Error('Invalid banId.');
-
-        try {
-            const action = this.chain.get('actions')
-                .find({ id: pcCheckId })
-                .value();
-
-            if (!action) throw new Error(`action not found`);
-            if (action.type !== 'pcCheck') throw new Error(`action is not a pc check`);
-
-            action.banId = banId;
-            this.db.writeFlag(SavePriority.HIGH);
-        } catch (error) {
-            const msg = `Failed to link ban to pc check with message: ${(error as Error).message}`;
-            console.error(msg);
-            console.verbose.dir(error);
-            throw error;
-        }
-    }
 
     /**
      * Searches for an action in the database by the id, returns action or null if not found
@@ -707,6 +615,100 @@ export default class ActionsDao {
 
         } catch (error) {
             const msg = `Failed to modify ban reason with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+    /**
+     * Registers a PC Check action and returns its id
+     */
+    registerPcCheck(
+        ids: string[],
+        author: string,
+        reason: string,
+        caught: boolean,
+        supervisor: string,
+        approver: string,
+        proofs: string[],
+        playerName: string | false = false,
+    ): string {
+        //Sanity check
+        if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
+        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
+        if (typeof reason !== 'string' || !reason.length) throw new Error('Invalid reason.');
+        if (typeof caught !== 'boolean') throw new Error('Invalid caught value.');
+        if (typeof supervisor !== 'string' || !supervisor.length) throw new Error('Invalid supervisor.');
+        if (typeof approver !== 'string' || !approver.length) throw new Error('Invalid approver.');
+        if (!Array.isArray(proofs) || !proofs.length) throw new Error('Invalid proofs array.');
+        if (playerName !== false && (typeof playerName !== 'string' || !playerName.length)) throw new Error('Invalid playerName.');
+
+        //Saves it to the database
+        const timestamp = now();
+        try {
+            const actionID = genActionID(this.dbo, 'pc_check');
+            const toDB: DatabaseActionPcCheckType = {
+                id: actionID,
+                type: 'pc_check',
+                ids,
+                playerName,
+                reason,
+                author,
+                timestamp,
+                expiration: false,
+                caught,
+                supervisor,
+                approver,
+                proofs,
+                revocation: {
+                    timestamp: null,
+                    approver: null,
+                    requestor: null,
+                    status: null,
+                },
+            };
+            this.chain.get('actions')
+                .push(toDB)
+                .value();
+            this.db.writeFlag(SavePriority.HIGH);
+            return actionID;
+        } catch (error) {
+            let msg = `Failed to register PC Check to database with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+    /**
+     * Links a ban to a PC Check action
+     */
+    linkBan(pcCheckId: string, banId: string) {
+        if (typeof pcCheckId !== 'string' || !pcCheckId.length) throw new Error('Invalid pcCheckId.');
+        if (typeof banId !== 'string' || !banId.length) throw new Error('Invalid banId.');
+
+        try {
+            const pcCheck = this.chain.get('actions')
+                .find({ id: pcCheckId })
+                .value() as DatabaseActionPcCheckType;
+
+            if (!pcCheck) throw new Error(`PC Check action not found`);
+            if (pcCheck.type !== 'pc_check') throw new Error(`Action is not a PC Check`);
+
+            const ban = this.chain.get('actions')
+                .find({ id: banId })
+                .value() as DatabaseActionBanType;
+
+            if (!ban) throw new Error(`Ban action not found`);
+            if (ban.type !== 'ban') throw new Error(`Action is not a ban`);
+
+            pcCheck.banId = banId;
+            this.db.writeFlag(SavePriority.HIGH);
+            return cloneDeep(pcCheck);
+
+        } catch (error) {
+            const msg = `Failed to link ban to PC Check with message: ${(error as Error).message}`;
             console.error(msg);
             console.verbose.dir(error);
             throw error;

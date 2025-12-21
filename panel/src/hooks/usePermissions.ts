@@ -1,16 +1,13 @@
-import { useAdminPerms } from './auth';
+import { useAdminPerms } from "./auth";
 
 export const usePermissions = () => {
-  const { hasPerm } = useAdminPerms();
+    const { hasPerm, isMaster } = useAdminPerms();
 
-  const isAdmin = hasPerm('web.admin');
-  const isPcChecker = hasPerm('web.pc_checker');
+    const isAdmin = isMaster || hasPerm('all_permissions') || hasPerm('web.admin');
+    const isPcChecker = isMaster || hasPerm('all_permissions') || hasPerm('web.pc_checker');
 
-  return {
-    isAdmin,
-    isPcChecker,
-    canSeePlayers: isAdmin || isPcChecker,
-    canSeeHistory: isAdmin || isPcChecker,
-    canSeeAdminManager: hasPerm('manage.admins'),
-  };
+    return {
+        isAdmin,
+        isPcChecker,
+    };
 };

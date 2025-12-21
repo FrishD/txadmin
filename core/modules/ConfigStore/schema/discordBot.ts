@@ -129,6 +129,20 @@ const rateLimitLogChannel = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
+const playerSearchLogChannel = typeNullableConfig({
+    name: 'Player Search Log Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
+const historySearchLogChannel = typeNullableConfig({
+    name: 'History Search Log Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
 
 export default {
     enabled,
@@ -145,6 +159,8 @@ export default {
     blacklistRole,
     complementaryRole,
     rateLimitLogChannel,
+    playerSearchLogChannel,
+    historySearchLogChannel,
     embedJson,
     embedConfigJson,
 } as const;

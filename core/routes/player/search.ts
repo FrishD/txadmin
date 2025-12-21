@@ -26,20 +26,6 @@ export default async function PlayerSearch(ctx: AuthedCtx) {
     if (typeof ctx.query === 'undefined') {
         return ctx.utils.error(400, 'Invalid Request');
     }
-
-    if(
-        txConfig.discordBot.playerSearchLogChannel
-        && (ctx.query.searchValue || ctx.query.filters)
-    ){
-        sendPlayerSearchLog(
-            txConfig.discordBot.playerSearchLogChannel,
-            ctx.admin.name,
-            ctx.query.searchValue,
-            ctx.query.searchType,
-            ctx.query.filters,
-        );
-    }
-
     const {
         searchValue,
         searchType,
@@ -192,6 +178,15 @@ export default async function PlayerSearch(ctx: AuthedCtx) {
     });
 
     txCore.metrics.txRuntime.playersTableSearchTime.count(searchTime.stop().milliseconds);
+
+    //Sending log
+    if (
+        txConfig.discordBot.playerSearchLogChannel &&
+        (searchValue || (filters && filters.length))
+    ) {
+        sendPlayerSearchLog(ctx.admin.name, searchValue, searchType, filters, processedPlayers.length);
+    }
+
     return sendTypedResp({
         players: processedPlayers,
         hasReachedEnd,

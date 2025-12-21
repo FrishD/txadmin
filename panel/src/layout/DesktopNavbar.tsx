@@ -13,7 +13,6 @@ import MainPageLink from '@/components/MainPageLink';
 import { cva } from 'class-variance-authority';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAdminPerms } from '@/hooks/auth';
-import { usePermissions } from '@/hooks/usePermissions';
 
 const buttonVariants = cva(
     `group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50 ring-offset-background  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`,
@@ -83,11 +82,6 @@ function HeaderMenuItem(props: HeaderMenuLinkProps) {
 //NOTE: breaking NavigationMenuItem into a separate menu because the dropdown is positioned wrong otherwise
 export default function DesktopNavbar() {
     const { hasPerm } = useAdminPerms();
-    const { isAdmin, isPcChecker } = usePermissions();
-
-    if (!isAdmin && !isPcChecker) {
-        return null;
-    }
 
     return (
         <div className='space-x-1 flex flex-row select-none'>
@@ -97,84 +91,78 @@ export default function DesktopNavbar() {
                     {/* <DynamicNewItem featName='xxxxxxxx' durationDays={7}>
                         <div className="ml-1 mb-2 rounded-md size-2 bg-accent" />
                     </DynamicNewItem> */}
-                    {(isAdmin || isPcChecker) && (
-                        <>
-                            <HeaderMenuItem href="/players">
-                                Players
-                            </HeaderMenuItem>
-                            <HeaderMenuItem href="/history">
-                                History
-                            </HeaderMenuItem>
-                        </>
-                    )}
-                    {isAdmin && (
-                        <>
-                            <HeaderMenuItem href="/statistics" disabled={!hasPerm('manage.admins')}>
-                                Statistics
-                            </HeaderMenuItem>
-                            <HeaderMenuItem href="/insights/player-drops">
-                                Player Drops
-                            </HeaderMenuItem>
-                            <HeaderMenuItem href="/whitelist">
-                                Whitelist
-                            </HeaderMenuItem>
-                            <HeaderMenuItem href="/admins" disabled={!hasPerm('manage.admins')}>
-                                Admins
-                            </HeaderMenuItem>
-                            <HeaderMenuItem href="/settings" disabled={!hasPerm('settings.view')}>
-                                Settings
-                            </HeaderMenuItem>
-                        </>
-                    )}
+                    <HeaderMenuItem href="/players">
+                        Players
+                    </HeaderMenuItem>
+                    <HeaderMenuItem href="/history">
+                        History
+                    </HeaderMenuItem>
+                    <HeaderMenuItem href="/statistics" disabled={!hasPerm('manage.admins')}>
+                        Statistics
+                    </HeaderMenuItem>
+                    <HeaderMenuItem href="/insights/player-drops">
+                        Player Drops
+                    </HeaderMenuItem>
+                    <HeaderMenuItem href="/whitelist">
+                        Whitelist
+                    </HeaderMenuItem>
+                    <HeaderMenuItem href="/admins" disabled={!hasPerm('manage.admins')}>
+                        Admins
+                    </HeaderMenuItem>
+                    <HeaderMenuItem href="/pc_reports" disabled={!hasPerm('web.pc_checker')}>
+                        PC Reports
+                    </HeaderMenuItem>
+                    <HeaderMenuItem href="/settings" disabled={!hasPerm('settings.view')}>
+                        Settings
+                    </HeaderMenuItem>
                 </NavigationMenuList>
             </NavigationMenu>
-            {isAdmin && (
-                <NavigationMenu>
-                    <NavigationMenuList>
-                        <NavigationMenuItem>
-                            <NavigationMenuTrigger
-                                onClick={(e) => {
-                                    //To prevent very annoying behavior where you go click on the menu
-                                    //item and it will close the menu because it just opened on hover
-                                    if (e.currentTarget.dataset['state'] === 'open') {
-                                        e.preventDefault();
-                                    }
-                                }}
+
+            <NavigationMenu>
+                <NavigationMenuList className='aaaaaaaaaaa'>
+                    <NavigationMenuItem>
+                        <NavigationMenuTrigger
+                            onClick={(e) => {
+                                //To prevent very annoying behavior where you go click on the menu
+                                //item and it will close the menu because it just opened on hover
+                                if (e.currentTarget.dataset['state'] === 'open') {
+                                    e.preventDefault();
+                                }
+                            }}
+                        >
+                            System
+                        </NavigationMenuTrigger>
+                        <NavigationMenuContent className="flex flex-col gap-2 p-4 list-none">
+                            <HeaderMenuLink
+                                className="w-36 justify-start"
+                                href="/system/master-actions"
                             >
-                                System
-                            </NavigationMenuTrigger>
-                            <NavigationMenuContent className="flex flex-col gap-2 p-4 list-none">
-                                <HeaderMenuLink
-                                    className="w-36 justify-start"
-                                    href="/system/master-actions"
-                                >
-                                    Master Actions
-                                </HeaderMenuLink>
-                                <HeaderMenuLink
-                                    className="w-36 justify-start"
-                                    href="/system/diagnostics"
-                                >
-                                    Diagnostics
-                                </HeaderMenuLink>
-                                <HeaderMenuLink
-                                    className="w-36 justify-start"
-                                    href="/system/console-log"
-                                    disabled={!hasPerm('txadmin.log.view')}
-                                >
-                                    Console Log
-                                </HeaderMenuLink>
-                                <HeaderMenuLink
-                                    className="w-36 justify-start"
-                                    href="/system/action-log"
-                                    disabled={!hasPerm('txadmin.log.view')}
-                                >
-                                    Action Log
-                                </HeaderMenuLink>
-                            </NavigationMenuContent>
-                        </NavigationMenuItem>
-                    </NavigationMenuList>
-                </NavigationMenu>
-            )}
+                                Master Actions
+                            </HeaderMenuLink>
+                            <HeaderMenuLink
+                                className="w-36 justify-start"
+                                href="/system/diagnostics"
+                            >
+                                Diagnostics
+                            </HeaderMenuLink>
+                            <HeaderMenuLink
+                                className="w-36 justify-start"
+                                href="/system/console-log"
+                                disabled={!hasPerm('txadmin.log.view')}
+                            >
+                                Console Log
+                            </HeaderMenuLink>
+                            <HeaderMenuLink
+                                className="w-36 justify-start"
+                                href="/system/action-log"
+                                disabled={!hasPerm('txadmin.log.view')}
+                            >
+                                Action Log
+                            </HeaderMenuLink>
+                        </NavigationMenuContent>
+                    </NavigationMenuItem>
+                </NavigationMenuList>
+            </NavigationMenu>
         </div>
     );
 }

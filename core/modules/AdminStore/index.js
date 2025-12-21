@@ -80,6 +80,9 @@ export default class AdminStore {
             'players.troll': 'Troll Actions', //all the troll options in the player modal
             'wager.staff': 'Wager: Staff',
             'wager.head': 'Wager: Head',
+
+            'web.admin': 'Web: Admin',
+            'web.pc_checker': 'Web: PC Checker',
         };
         //FIXME: pode remover, hardcode na cron function
         this.hardConfigs = {

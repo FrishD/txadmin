@@ -5,7 +5,7 @@ import TxAnchor from '@/components/TxAnchor';
 import { cn } from '@/lib/utils';
 import { convertRowDateTime } from '@/lib/dateTime';
 import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2Icon, GavelIcon, AlertTriangleIcon, Undo2Icon, TimerOffIcon, TimerIcon, HourglassIcon, MicOffIcon } from 'lucide-react';
+import { Loader2Icon, GavelIcon, AlertTriangleIcon, Undo2Icon, TimerOffIcon, TimerIcon, HourglassIcon, MicOffIcon, ShieldCheckIcon } from 'lucide-react';
 import { useBackendApi } from '@/hooks/fetch';
 import { HistoryTableActionType, HistoryTableSearchResp, HistoryTableSearchType, HistoryTableSortingType } from '@shared/historyApiTypes';
 import { useOpenActionModal } from '@/hooks/actionModal';
@@ -43,16 +43,11 @@ function HistoryRow({ action, modalOpener }: HistoryRowProps) {
             <MicOffIcon className='size-5' />
         </div>
         rowId = <span className='tracking-wider text-info'>{action.id}</span>
-    } else if (action.type === 'pcCheck') {
-        rowPrefix = <div className='flex items-center px-1 bg-info-hint text-info'>
+    } else if (action.type === 'pc_check') {
+        rowPrefix = <div className='flex items-center px-1 bg-success-hint text-success'>
             <ShieldCheckIcon className='size-5' />
         </div>
-        rowId = <span className='tracking-wider text-info'>{action.id}</span>
-    } else if (action.type === 'pcCheck') {
-        rowPrefix = <div className='flex items-center px-1 bg-info-hint text-info'>
-            <ShieldCheckIcon className='size-5' />
-        </div>
-        rowId = <span className='tracking-wider text-info'>{action.id}</span>
+        rowId = <span className='tracking-wider text-success'>{action.id}</span>
     } else {
         throw new Error(`Invalid action type: ${(action as any).type}`);
     }

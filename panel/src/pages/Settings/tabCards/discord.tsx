@@ -33,8 +33,6 @@ export const pageConfigs = {
     blacklistRole: getPageConfig('discordBot', 'blacklistRole'),
     complementaryRole: getPageConfig('discordBot', 'complementaryRole'),
     rateLimitLogChannel: getPageConfig('discordBot', 'rateLimitLogChannel'),
-    playerSearchLogChannel: getPageConfig('discordBot', 'playerSearchLogChannel'),
-    historySearchLogChannel: getPageConfig('discordBot', 'historySearchLogChannel'),
     embedJson: getPageConfig('discordBot', 'embedJson'),
     embedConfigJson: getPageConfig('discordBot', 'embedConfigJson'),
 } as const;
@@ -64,8 +62,6 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
     const blacklistRoleRef = useRef<HTMLInputElement | null>(null);
     const complementaryRoleRef = useRef<HTMLInputElement | null>(null);
     const rateLimitLogChannelRef = useRef<HTMLInputElement | null>(null);
-    const playerSearchLogChannelRef = useRef<HTMLInputElement | null>(null);
-    const historySearchLogChannelRef = useRef<HTMLInputElement | null>(null);
 
     //Marshalling Utils
     const emptyToNull = (str?: string) => {
@@ -86,8 +82,6 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
             blacklistRole: emptyToNull(blacklistRoleRef.current?.value),
             complementaryRole: emptyToNull(complementaryRoleRef.current?.value),
             rateLimitLogChannel: emptyToNull(rateLimitLogChannelRef.current?.value),
-            playerSearchLogChannel: emptyToNull(playerSearchLogChannelRef.current?.value),
-            historySearchLogChannel: emptyToNull(historySearchLogChannelRef.current?.value),
         };
 
         const res = getConfigDiff(cfg, states, overwrites, false);
@@ -266,32 +260,6 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                 />
                 <SettingItemDesc>
                     The ID of the channel to send ban rate limit logs to.
-                </SettingItemDesc>
-            </SettingItem>
-            <SettingItem label="Player Search Log Channel ID" htmlFor={cfg.playerSearchLogChannel.eid} showOptional>
-                <Input
-                    id={cfg.playerSearchLogChannel.eid}
-                    ref={playerSearchLogChannelRef}
-                    defaultValue={cfg.playerSearchLogChannel.initialValue}
-                    onInput={updatePageState}
-                    disabled={pageCtx.isReadOnly}
-                    placeholder='000000000000000000'
-                />
-                <SettingItemDesc>
-                    The ID of the channel to send player search logs to.
-                </SettingItemDesc>
-            </SettingItem>
-            <SettingItem label="History Search Log Channel ID" htmlFor={cfg.historySearchLogChannel.eid} showOptional>
-                <Input
-                    id={cfg.historySearchLogChannel.eid}
-                    ref={historySearchLogChannelRef}
-                    defaultValue={cfg.historySearchLogChannel.initialValue}
-                    onInput={updatePageState}
-                    disabled={pageCtx.isReadOnly}
-                    placeholder='000000000000000000'
-                />
-                <SettingItemDesc>
-                    The ID of the channel to send history search logs to.
                 </SettingItemDesc>
             </SettingItem>
             <SettingItem label="Status Embed JSON" htmlFor={cfg.embedJson.eid} required={states.botEnabled}>

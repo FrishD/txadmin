@@ -24,20 +24,6 @@ export default async function HistorySearch(ctx: AuthedCtx) {
     if (typeof ctx.query === 'undefined') {
         return ctx.utils.error(400, 'Invalid Request');
     }
-
-    if(
-        txConfig.discordBot.historySearchLogChannel
-        && (ctx.query.searchValue || ctx.query.filterbyType || ctx.query.filterbyAdmin)
-    ){
-        sendHistorySearchLog(
-            txConfig.discordBot.historySearchLogChannel,
-            ctx.admin.name,
-            ctx.query.searchValue,
-            ctx.query.searchType,
-            ctx.query.filterbyType,
-            ctx.query.filterbyAdmin,
-        );
-    }
     const {
         searchValue,
         searchType,
@@ -176,6 +162,17 @@ export default async function HistorySearch(ctx: AuthedCtx) {
     });
 
     txCore.metrics.txRuntime.historyTableSearchTime.count(searchTime.stop().milliseconds);
+
+    //Sending log
+    const fType = filterbyType ? filterbyType as string : undefined;
+    const fAdmin = filterbyAdmin ? filterbyAdmin as string : undefined;
+    if (
+        txConfig.discordBot.historySearchLogChannel &&
+        (searchValue || fType || fAdmin)
+    ) {
+        sendHistorySearchLog(ctx.admin.name, searchValue, searchType, fType, fAdmin, processedActions.length);
+    }
+
     return sendTypedResp({
         history: processedActions,
         hasReachedEnd,

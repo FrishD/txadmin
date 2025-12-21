@@ -18,6 +18,7 @@ import ActionInfoTab from "./ActionInfoTab";
 import ActionRevokeTab from "./ActionRevokeTab";
 import ActionModifyBanTab from "./ActionModifyBanTab";
 import ActionModifyReasonTab from "./ActionModifyReasonTab";
+import ActionPcCheckTab from "./ActionPcCheckTab";
 import { useMemo } from "react";
 
 
@@ -94,6 +95,12 @@ export default function ActionModal() {
                     className: 'hover:bg-destructive hover:text-destructive-foreground',
                 });
             }
+            if (action.type === 'pc_check') {
+                tabs.push({
+                    title: 'PC Report',
+                    icon: <InfoIcon className="mr-2 h-5 w-5 hidden xs:block" />,
+                });
+            }
         }
         return tabs;
     }, [modalData]);
@@ -155,6 +162,11 @@ export default function ActionModal() {
             pageTitle = <>
                 <span className="text-info-inline font-mono mr-2">[{modalData.action.id}]</span>
                 Muted {displayName}
+            </>;
+        } else if (modalData.action.type === 'pc_check') {
+            pageTitle = <>
+                <span className="text-success-inline font-mono mr-2">[{modalData.action.id}]</span>
+                PC Check on {displayName}
             </>;
         } else {
             throw new Error(`Unknown action type: ${modalData.action.type}`);
@@ -234,6 +246,9 @@ export default function ActionModal() {
                                     action={modalData.action}
                                     playerRef={{ license: modalData.action.ids.find(id => id.startsWith('license:'))?.substring(8) ?? '' }}
                                     refreshModalData={refreshModalData}
+                                />}
+                                {selectedTab === 'PC Report' && <ActionPcCheckTab
+                                    action={modalData.action}
                                 />}
                             </>
                         )}

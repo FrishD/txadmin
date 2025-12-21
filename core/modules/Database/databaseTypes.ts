@@ -57,7 +57,8 @@ export type DatabaseActionMuteType = {
 } & DatabaseActionBaseType;
 
 export type DatabaseActionPcCheckType = {
-    type: 'pcCheck';
+    type: 'pc_check';
+    expiration: false;
     caught: boolean;
     supervisor: string;
     approver: string;

@@ -11,7 +11,7 @@
         "shared"
     ],
     "scripts": {
-        "build": "rimraf dist tmp_core_tsc && npm run build -w nui && npm run build -w panel && npm run build -w core && (npm run license:distfile || true)",
+      "build": "rimraf dist tmp_core_tsc && npm run build -w nui && npm run build -w panel && npm run build -w core && (npm run license:distfile || true)",
         "prepare": "husky",
         "test": "npm run test --workspaces",
         "typecheck": "npm run typecheck --workspaces",
@@ -32,15 +32,15 @@
     },
     "homepage": "https://txadmin.gg/",
     "optionalDependencies": {
-        "@swc/core-darwin-arm64": "1.15.7",
-        "@swc/core-darwin-x64": "1.15.7",
-        "@swc/core-linux-arm64-gnu": "1.15.7",
-        "@swc/core-linux-arm64-musl": "1.15.7",
+        "@swc/core-win32-x64-msvc": "1.15.7",
+        "@swc/core-win32-ia32-msvc": "1.15.7",
+        "@swc/core-win32-arm64-msvc": "1.15.7",
         "@swc/core-linux-x64-gnu": "1.15.7",
         "@swc/core-linux-x64-musl": "1.15.7",
-        "@swc/core-win32-arm64-msvc": "1.15.7",
-        "@swc/core-win32-ia32-msvc": "1.15.7",
-        "@swc/core-win32-x64-msvc": "1.15.7"
+        "@swc/core-linux-arm64-gnu": "1.15.7",
+        "@swc/core-linux-arm64-musl": "1.15.7",
+        "@swc/core-darwin-x64": "1.15.7",
+        "@swc/core-darwin-arm64": "1.15.7"
     },
     "dependencies": {
         "@mui/icons-material": "^6.5.0",
@@ -58,7 +58,6 @@
     "devDependencies": {
         "@commitlint/cli": "^19.5.0",
         "@commitlint/config-conventional": "^19.5.0",
-        "@types/formidable": "^3.4.6",
         "@types/humanize-duration": "^3.27.4",
         "@types/lodash-es": "^4.17.12",
         "@types/node": "^22.7.5",

@@ -108,6 +108,7 @@ export default () => {
     router.get('/history/stats', apiAuthMw, routes.history_stats);
     router.get('/history/search', apiAuthMw, routes.history_search);
     router.get('/history/action', apiAuthMw, routes.history_actionModal);
+    router.post('/history/linkBan', apiAuthMw, routes.history_linkBan);
     router.post('/history/:action', apiAuthMw, routes.history_actions);
 
     //Player routes
@@ -115,7 +116,6 @@ export default () => {
     router.get('/player/stats', apiAuthMw, routes.player_stats);
     router.get('/player/search', apiAuthMw, routes.player_search);
     router.post('/player/checkJoin', intercomAuthMw, routes.player_checkJoin);
-    router.post('/player/pc_check', apiAuthMw, routes.player_pcCheck);
     router.post('/player/:action', apiAuthMw, routes.player_actions);
     router.get('/whitelist/:table', apiAuthMw, routes.whitelist_list);
     router.post('/whitelist/:table/:action', apiAuthMw, routes.whitelist_actions);
@@ -138,12 +138,13 @@ export default () => {
         router.post('/dev/:scope', routes.dev_post);
     };
 
+    //Proofs
+    router.get('/proofs/:fileName', webAuthMw, routes.proofs);
+
     //Insights page mock
     // router.get('/insights', (ctx) => {
     //     return ctx.utils.render('main/insights', { headerTitle: 'Insights' });
     // });
-
-    router.get('/proof/:filename', webAuthMw, routes.proof);
 
     //Return router
     return router;

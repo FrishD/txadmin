@@ -7,17 +7,11 @@ import { ClipboardCheckIcon, DoorOpenIcon, ListIcon, PieChartIcon, ScrollIcon, S
 import { PlayerlistSidebar } from "./PlayerlistSidebar/PlayerlistSidebar";
 import { useAdminPerms } from "@/hooks/auth";
 import { LogoFullSquareGreen } from "@/components/Logos";
-import { usePermissions } from "@/hooks/usePermissions";
 
 
 export function GlobalMenuSheet() {
     const { isSheetOpen, setIsSheetOpen } = useGlobalMenuSheet();
     const { hasPerm } = useAdminPerms();
-    const { isAdmin, isPcChecker } = usePermissions();
-
-    if (!isAdmin && !isPcChecker) {
-        return null;
-    }
 
     return (
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -40,55 +34,48 @@ export function GlobalMenuSheet() {
                             Global Menu
                         </h2>
                         <div className="flex flex-wrap flex-row xs:grid grid-cols-2 gap-4">
-                            {(isAdmin || isPcChecker) && (
-                                <>
-                                    <MenuNavLink href="/players">
-                                        <UsersIcon className="mr-2 h-4 w-4" />Players
-                                    </MenuNavLink>
-                                    <MenuNavLink href="/history">
-                                        <ScrollIcon className="mr-2 h-4 w-4" />History
-                                    </MenuNavLink>
-                                </>
-                            )}
-                            {isAdmin && (
-                                <>
-                                    <MenuNavLink href="/insights/player-drops">
-                                        <DoorOpenIcon className="mr-2 h-4 w-4" />Player Drops
-                                    </MenuNavLink>
-                                    <MenuNavLink href="/whitelist">
-                                        <ClipboardCheckIcon className="mr-2 h-4 w-4" />Whitelist
-                                    </MenuNavLink>
-                                    <MenuNavLink href="/admins" disabled={!hasPerm('manage.admins')}>
-                                        <UserSquare2Icon className="mr-2 h-4 w-4" />Admins
-                                    </MenuNavLink>
-                                    <MenuNavLink href="/settings" disabled={!hasPerm('settings.view')}>
-                                        <SettingsIcon className="mr-2 h-4 w-4" />Settings
-                                    </MenuNavLink>
-                                </>
-                            )}
+                            <MenuNavLink href="/players">
+                                <UsersIcon className="mr-2 h-4 w-4" />Players
+                            </MenuNavLink>
+                            <MenuNavLink href="/history">
+                                <ScrollIcon className="mr-2 h-4 w-4" />History
+                            </MenuNavLink>
+                            <MenuNavLink href="/insights/player-drops">
+                                <DoorOpenIcon className="mr-2 h-4 w-4" />Player Drops
+                            </MenuNavLink>
+                            <MenuNavLink href="/whitelist">
+                                <ClipboardCheckIcon className="mr-2 h-4 w-4" />Whitelist
+                            </MenuNavLink>
+                            <MenuNavLink href="/admins" disabled={!hasPerm('manage.admins')}>
+                                <UserSquare2Icon className="mr-2 h-4 w-4" />Admins
+                            </MenuNavLink>
+                            <MenuNavLink href="/pc_reports" disabled={!hasPerm('web.pc_checker')}>
+                                <UserSquare2Icon className="mr-2 h-4 w-4" />PC Reports
+                            </MenuNavLink>
+                            <MenuNavLink href="/settings" disabled={!hasPerm('settings.view')}>
+                                <SettingsIcon className="mr-2 h-4 w-4" />Settings
+                            </MenuNavLink>
                         </div>
                     </div>
-                    {isAdmin && (
-                        <div className="mb-4">
-                            <h2 className="mb-1.5 text-lg font-semibold tracking-tight">
-                                System Menu
-                            </h2>
-                            <div className="flex flex-wrap flex-row xs:grid grid-cols-2 gap-4">
-                                <MenuNavLink href="/system/master-actions">
-                                    <ZapIcon className="mr-2 h-4 w-4" />Master Actions
-                                </MenuNavLink>
-                                <MenuNavLink href="/system/diagnostics">
-                                    <PieChartIcon className="mr-2 h-4 w-4" />Diagnostics
-                                </MenuNavLink>
-                                <MenuNavLink href="/system/console-log" disabled={!hasPerm('txadmin.log.view')}>
-                                    <ListIcon className="mr-2 h-4 w-4" />Console Log
-                                </MenuNavLink>
-                                <MenuNavLink href="/system/action-log" disabled={!hasPerm('txadmin.log.view')}>
-                                    <ListIcon className="mr-2 h-4 w-4" />Action Log
-                                </MenuNavLink>
-                            </div>
+                    <div className="mb-4">
+                        <h2 className="mb-1.5 text-lg font-semibold tracking-tight">
+                            System Menu
+                        </h2>
+                        <div className="flex flex-wrap flex-row xs:grid grid-cols-2 gap-4">
+                            <MenuNavLink href="/system/master-actions">
+                                <ZapIcon className="mr-2 h-4 w-4" />Master Actions
+                            </MenuNavLink>
+                            <MenuNavLink href="/system/diagnostics">
+                                <PieChartIcon className="mr-2 h-4 w-4" />Diagnostics
+                            </MenuNavLink>
+                            <MenuNavLink href="/system/console-log" disabled={!hasPerm('txadmin.log.view')}>
+                                <ListIcon className="mr-2 h-4 w-4" />Console Log
+                            </MenuNavLink>
+                            <MenuNavLink href="/system/action-log" disabled={!hasPerm('txadmin.log.view')}>
+                                <ListIcon className="mr-2 h-4 w-4" />Action Log
+                            </MenuNavLink>
                         </div>
-                    )}
+                    </div>
                 </ScrollArea>
             </SheetContent>
         </Sheet>
@@ -129,13 +116,10 @@ export function PlayersSidebarSheet() {
     );
 }
 
-import PcCheckDialog from "@/components/PcCheckDialog";
-
 export default function MainSheets() {
     return <>
         <GlobalMenuSheet />
         <ServerSidebarSheet />
         <PlayersSidebarSheet />
-        <PcCheckDialog />
     </>;
 }

@@ -78,9 +78,9 @@ export default function PlayerPcCheckTab() {
                             <SelectValue placeholder="Select supervisor" />
                         </SelectTrigger>
                         <SelectContent>
-                            {approvers?.map((approver: any) => (
-                                <SelectItem key={approver.name} value={approver.name}>
-                                    {approver.name}
+                            {approvers?.map((approver: string) => (
+                                <SelectItem key={approver} value={approver}>
+                                    {approver}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -95,9 +95,9 @@ export default function PlayerPcCheckTab() {
                             <SelectValue placeholder="Select approver" />
                         </SelectTrigger>
                         <SelectContent>
-                            {approvers?.map((approver: any) => (
-                                <SelectItem key={approver.name} value={approver.name}>
-                                    {approver.name}
+                            {approvers?.map((approver: string) => (
+                                <SelectItem key={approver} value={approver}>
+                                    {approver}
                                 </SelectItem>
                             ))}
                         </SelectContent>

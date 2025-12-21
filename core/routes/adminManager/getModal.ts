@@ -14,8 +14,16 @@ const getPerms = (checkPerms: string[], allPermissions: [string, string][]) => {
     };
     const permsGeneral: PermType[] = [];
     const permsMenu: PermType[] = [];
+    const permsWeb: PermType[] = [];
     for (const [id, desc] of allPermissions) {
-        const bucket = (id.startsWith('players.') || id.startsWith('menu.') || id.startsWith('web.')) ? permsGeneral : permsMenu;
+        let bucket;
+        if (id.startsWith('players.') || id.startsWith('menu.')) {
+            bucket = permsGeneral;
+        } else if (id.startsWith('web.')) {
+            bucket = permsWeb;
+        } else {
+            bucket = permsMenu;
+        }
         bucket.push({
             id,
             desc,
@@ -23,7 +31,7 @@ const getPerms = (checkPerms: string[], allPermissions: [string, string][]) => {
             dangerous: dangerousPerms.includes(id),
         });
     }
-    return [permsGeneral, permsMenu];
+    return [permsGeneral, permsMenu, permsWeb];
 };
 
 
@@ -61,7 +69,7 @@ export default async function AdminManagerGetModal(ctx: AuthedCtx) {
     //If it's a modal for new admin, all fields will be empty
     const allPermissions = Object.entries(txCore.adminStore.getPermissionsList());
     if (isNewAdmin) {
-        const [permsGeneral, permsMenu] = getPerms([], allPermissions);
+        const [permsGeneral, permsMenu, permsWeb] = getPerms([], allPermissions);
         const renderData = {
             isNewAdmin: true,
             username: '',
@@ -69,6 +77,7 @@ export default async function AdminManagerGetModal(ctx: AuthedCtx) {
             discord_id: '',
             permsGeneral,
             permsMenu,
+            permsWeb,
         };
         return ctx.utils.render('parts/adminModal', renderData);
     }
@@ -89,7 +98,7 @@ export default async function AdminManagerGetModal(ctx: AuthedCtx) {
     }
 
     //Prepare permissions
-    const [permsGeneral, permsMenu] = getPerms(admin.permissions, allPermissions);
+    const [permsGeneral, permsMenu, permsWeb] = getPerms(admin.permissions, allPermissions);
 
     //Set render data
     const renderData = {
@@ -99,6 +108,7 @@ export default async function AdminManagerGetModal(ctx: AuthedCtx) {
         discord_id: (admin.providers.discord) ? admin.providers.discord.id : '',
         permsGeneral,
         permsMenu,
+        permsWeb,
     };
 
     //Give output

@@ -513,15 +513,16 @@ export const sendRateLimitLog = async (
  * Send a log of a player search to a discord channel
  */
 export const sendPlayerSearchLog = async (
-    channelId: string,
     adminName: string,
     searchValue: string,
     searchType: string,
     filters: string,
+    results: number
 ) => {
-    console.log(`Attempting to send player search log to channel ${channelId}`);
-    const client = getDiscordBot();
+    const channelId = txConfig.discordBot.playerSearchLogChannel;
+    if (!channelId) return;
 
+    const client = getDiscordBot();
     const channel = client.channels.cache.get(channelId);
     if (!channel || !channel.isTextBased()) {
         console.warn(`The configured player search log channel '${channelId}' is not a valid text channel.`);
@@ -534,18 +535,15 @@ export const sendPlayerSearchLog = async (
         color: embedColors.info,
         fields: [
             { name: 'Admin', value: adminName, inline: true },
-            { name: 'Search Type', value: searchType, inline: true },
-            { name: 'Search Value', value: searchValue, inline: false },
+            { name: 'Search Value', value: searchValue || 'N/A', inline: true },
+            { name: 'Search Type', value: searchType || 'N/A', inline: true },
+            { name: 'Filters', value: filters || 'N/A', inline: true },
+            { name: 'Results', value: results.toString(), inline: true },
         ]
     });
 
-    if (filters) {
-        embed.addFields({ name: 'Filters', value: filters, inline: false });
-    }
-
     try {
         await channel.send({ embeds: [embed] });
-        console.log(`Successfully sent player search log to channel ${channelId}`);
     } catch (error) {
         console.error(`Failed to send player search log to discord channel with error: ${(error as Error).message}`);
     }
@@ -556,16 +554,17 @@ export const sendPlayerSearchLog = async (
  * Send a log of a history search to a discord channel
  */
 export const sendHistorySearchLog = async (
-    channelId: string,
     adminName: string,
     searchValue: string,
     searchType: string,
-    filterbyType: string,
-    filterbyAdmin: string,
+    filterType: string | undefined,
+    filterAdmin: string | undefined,
+    results: number
 ) => {
-    console.log(`Attempting to send history search log to channel ${channelId}`);
-    const client = getDiscordBot();
+    const channelId = txConfig.discordBot.historySearchLogChannel;
+    if (!channelId) return;
 
+    const client = getDiscordBot();
     const channel = client.channels.cache.get(channelId);
     if (!channel || !channel.isTextBased()) {
         console.warn(`The configured history search log channel '${channelId}' is not a valid text channel.`);
@@ -578,21 +577,16 @@ export const sendHistorySearchLog = async (
         color: embedColors.info,
         fields: [
             { name: 'Admin', value: adminName, inline: true },
-            { name: 'Search Type', value: searchType, inline: true },
-            { name: 'Search Value', value: searchValue, inline: false },
+            { name: 'Search Value', value: searchValue || 'N/A', inline: true },
+            { name: 'Search Type', value: searchType || 'N/A', inline: true },
+            { name: 'Filter Type', value: filterType || 'N/A', inline: true },
+            { name: 'Filter Admin', value: filterAdmin || 'N/A', inline: true },
+            { name: 'Results', value: results.toString(), inline: true },
         ]
     });
 
-    if (filterbyType) {
-        embed.addFields({ name: 'Filter by Type', value: filterbyType, inline: true });
-    }
-    if (filterbyAdmin) {
-        embed.addFields({ name: 'Filter by Admin', value: filterbyAdmin, inline: true });
-    }
-
     try {
         await channel.send({ embeds: [embed] });
-        console.log(`Successfully sent history search log to channel ${channelId}`);
     } catch (error) {
         console.error(`Failed to send history search log to discord channel with error: ${(error as Error).message}`);
     }

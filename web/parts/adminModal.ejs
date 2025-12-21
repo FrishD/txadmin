@@ -74,6 +74,15 @@
         </div>
         <% } %>
     </div>
+    <div class="col-sm-6">
+        <% for (const [key, perm] of permsWeb.entries()) { %>
+        <div class="form-check checkbox">
+            <input class="form-check-input permsCheckbox" id="modAdmin-permsWeb-<%= perm.id %>-<%= key %>" type="checkbox" name="modAdmin-permissions[]"
+                value="<%= perm.id %>" <%= perm.checked %>>
+            <label class="form-check-label <%= perm.dangerous ? 'text-danger' : '' %>" for="modAdmin-permsWeb-<%= perm.id %>-<%= key %>"><%= perm.desc %></label>
+        </div>
+        <% } %>
+    </div>
 </div>
 
 <!-- Just signaling for the save action -->
