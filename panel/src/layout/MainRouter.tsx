@@ -21,6 +21,7 @@ import SettingsPage from "@/pages/Settings/SettingsPage";
 import WagerBlacklistPage from "@/pages/WagerBlacklist/WagerBlacklistPage";
 import { useAdminPerms } from "@/hooks/auth";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
+import { usePermissions } from "@/hooks/usePermissions";
 
 
 type RouteType = {
@@ -181,9 +182,23 @@ function Route(route: RouteType) {
 
 
 export function MainRouterInner() {
+    const { isAdmin, isPcChecker } = usePermissions();
+    const { hasPerm } = useAdminPerms();
+
+    const visibleRoutes = allRoutes.filter((route) => {
+        if (hasPerm('master') || hasPerm('all_permissions')) return true;
+        if (isAdmin) return true;
+        if (isPcChecker) return route.path === '/players' || route.path === '/history';
+        return false;
+    });
+
+    if (!visibleRoutes.length) {
+        return <UnauthorizedPage />;
+    }
+
     return (
         <Switch>
-            {allRoutes.map((route) => <Route key={route.path} {...route} />)}
+            {visibleRoutes.map((route) => <Route key={route.path} {...route} />)}
 
             {/* Other Routes - they need to set the title manuually */}
             {import.meta.env.DEV && (

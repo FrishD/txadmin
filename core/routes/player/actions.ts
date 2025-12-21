@@ -56,6 +56,8 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleUnmute(ctx, player));
     } else if (action === 'edit_ban_reason') {
         return sendTypedResp(await handleEditBanReason(ctx, player));
+    } else if (action === 'link_ban_to_pc_check') {
+        return sendTypedResp(await handleLinkBanToPcCheck(ctx));
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -227,6 +229,13 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
             banApprover,
             blacklist
         );
+
+        if (expiration === false && blacklist) {
+            const pcCheck = txCore.database.actions.findRecentPcCheck(allIds);
+            if (pcCheck) {
+                txCore.database.actions.linkBanToPcCheck(pcCheck.id, actionId);
+            }
+        }
     } catch (error) {
         return { error: `Failed to ban player: ${(error as Error).message}` };
     }
@@ -530,5 +539,34 @@ async function handleEditBanReason(ctx: AuthedCtx, player: PlayerClass): Promise
         return { success: true };
     } catch (error) {
         return { error: `Failed to edit ban reason: ${(error as Error).message}` };
+    }
+}
+
+
+/**
+ * Handle Link Ban to PC Check
+ */
+async function handleLinkBanToPcCheck(ctx: AuthedCtx): Promise<GenericApiResp> {
+    //Checking request
+    if (anyUndefined(
+        ctx.request.body,
+        ctx.request.body.pcCheckId,
+        ctx.request.body.banId,
+    )) {
+        return { error: 'Invalid request.' };
+    }
+    const { pcCheckId, banId } = ctx.request.body;
+
+    //Check permissions
+    if (!ctx.admin.testPermission('web.pc_checker', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' }
+    }
+
+    try {
+        txCore.database.actions.linkBanToPcCheck(pcCheckId, banId);
+        ctx.admin.logAction(`Linked ban ${banId} to PC Check ${pcCheckId}`);
+        return { success: true };
+    } catch (error) {
+        return { error: `Failed to link ban to PC Check: ${(error as Error).message}` };
     }
 }

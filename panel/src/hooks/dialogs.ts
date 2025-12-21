@@ -88,6 +88,12 @@ export const useConfirmDialogState = () => {
 
 
 /**
+ * MARK: PC Check Dialog Stuff
+ */
+export const pcCheckDialogAtom = atom(false);
+
+
+/**
  * MARK: Prompt Dialog Stuff
  */
 type PromptDialogType = {

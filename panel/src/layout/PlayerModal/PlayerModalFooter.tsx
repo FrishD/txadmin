@@ -5,8 +5,10 @@ import { AlertTriangleIcon, MailIcon, ShieldCheckIcon } from "lucide-react";
 import { KickOneIcon } from '@/components/KickIcons';
 import { useBackendApi } from "@/hooks/fetch";
 import { useAdminPerms } from "@/hooks/auth";
-import { useOpenPromptDialog } from "@/hooks/dialogs";
+import { usePermissions } from "@/hooks/usePermissions";
+import { pcCheckDialogAtom, useOpenPromptDialog } from "@/hooks/dialogs";
 import { GenericApiOkResp } from "@shared/genericApiTypes";
+import { useSetAtom } from "jotai";
 import { PlayerModalPlayerData } from "@shared/playerApiTypes";
 import { useLocation, useRoute } from "wouter";
 import { useContentRefresh } from "@/hooks/pages";
@@ -20,6 +22,8 @@ type PlayerModalFooterProps = {
 
 export default function PlayerModalFooter({ playerRef, player }: PlayerModalFooterProps) {
     const { hasPerm } = useAdminPerms();
+    const { isPcChecker } = usePermissions();
+    const setPcCheckDialogOpen = useSetAtom(pcCheckDialogAtom);
     const openPromptDialog = useOpenPromptDialog();
     const closeModal = useClosePlayerModal();
     const setLocation = useLocation()[1];
@@ -129,6 +133,11 @@ export default function PlayerModalFooter({ playerRef, player }: PlayerModalFoot
         });
     }
 
+    const handleReport = () => {
+        if (!player) return;
+        setPcCheckDialogOpen(true);
+    }
+
     return (
         <DialogFooter className="max-w-2xl gap-2 p-2 md:p-4 border-t grid grid-cols-2 sm:flex">
             <Button
@@ -171,6 +180,15 @@ export default function PlayerModalFooter({ playerRef, player }: PlayerModalFoot
                 className="pl-2"
             >
                 <AlertTriangleIcon className="h-5 mr-1" /> Warn
+            </Button>
+            <Button
+                variant='outline'
+                size='sm'
+                disabled={!isPcChecker || !player}
+                onClick={handleReport}
+                className="pl-2"
+            >
+                <ShieldCheckIcon className="h-5 mr-1" /> Report
             </Button>
         </DialogFooter>
     )

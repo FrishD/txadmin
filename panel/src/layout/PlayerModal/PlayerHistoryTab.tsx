@@ -4,15 +4,19 @@ import { PlayerHistoryItem } from "@shared/playerApiTypes";
 import InlineCode from "@/components/InlineCode";
 import { useOpenActionModal } from "@/hooks/actionModal";
 import ModalCentralMessage from "@/components/ModalCentralMessage";
+import { useOpenPromptDialog } from "@/hooks/dialogs";
+import { useBackendApi } from "@/hooks/fetch";
+import { GenericApiOkResp } from "@shared/genericApiTypes";
 
 
 type HistoryItemProps = {
     action: PlayerHistoryItem,
     serverTime: number,
     modalOpener: (actionId: string) => void,
+    handleLinkBanToPcCheck: (pcCheckId: string) => void,
 }
 
-function HistoryItem({ action, serverTime, modalOpener }: HistoryItemProps) {
+function HistoryItem({ action, serverTime, modalOpener, handleLinkBanToPcCheck }: HistoryItemProps) {
     let footerNote, borderColorClass, actionMessage;
     if (action.type === 'ban') {
         borderColorClass = 'border-destructive';
@@ -26,6 +30,9 @@ function HistoryItem({ action, serverTime, modalOpener }: HistoryItemProps) {
     } else if (action.type === 'mute') {
         borderColorClass = 'border-info';
         actionMessage = `MUTED by ${action.author}`;
+    } else if (action.type === 'pcCheck') {
+        borderColorClass = 'border-info';
+        actionMessage = `PC CHECK by ${action.author}`;
     }
     if (action.revokedBy) {
         borderColorClass = '';
@@ -57,6 +64,40 @@ function HistoryItem({ action, serverTime, modalOpener }: HistoryItemProps) {
                 </small>
             </div>
             <span className="text-sm">{action.reason}</span>
+            {action.type === 'pcCheck' && (
+                <div className="flex justify-between items-center">
+                    <span className={cn(
+                        "text-xs font-bold",
+                        action.caught ? "text-destructive-inline" : "text-success-inline"
+                    )}>
+                        {action.caught ? "Caught" : "Not Caught"}
+                    </span>
+                    <div className="flex gap-2">
+                        {action.proofs?.map((proof, i) => (
+                            <a
+                                key={proof}
+                                href={`/proof/${proof}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline"
+                            >
+                                Proof #{i + 1}
+                            </a>
+                        ))}
+                    </div>
+                    {!action.banId && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleLinkBanToPcCheck(action.id);
+                            }}
+                            className="text-xs text-primary hover:underline"
+                        >
+                            Link to Ban
+                        </button>
+                    )}
+                </div>
+            )}
             {footerNote && <small className="block text-xs opacity-75">{footerNote}</small>}
         </div>
     );
@@ -78,6 +119,32 @@ export default function PlayerHistoryTab({ actionHistory, serverTime, refreshMod
         </ModalCentralMessage>;
     }
 
+    const openPromptDialog = useOpenPromptDialog();
+    const linkBanApi = useBackendApi<GenericApiOkResp>({
+        method: 'POST',
+        path: `/player/link_ban_to_pc_check`,
+    });
+
+    const handleLinkBanToPcCheck = (pcCheckId: string) => {
+        openPromptDialog({
+            title: `Link Ban to PC Check`,
+            message: 'Enter the Ban ID to link to this PC Check report.',
+            placeholder: 'Ban ID',
+            submitLabel: 'Link',
+            required: true,
+            onSubmit: (banId) => {
+                linkBanApi({
+                    data: { pcCheckId, banId },
+                    genericHandler: { successMsg: 'Ban linked to PC Check report.' },
+                    toastLoadingMessage: 'Linking ban to PC Check report...',
+                    success: () => {
+                        refreshModalData();
+                    }
+                });
+            }
+        });
+    }
+
     const doOpenActionModal = (actionId: string) => {
         openActionModal(actionId);
     }
@@ -90,6 +157,7 @@ export default function PlayerHistoryTab({ actionHistory, serverTime, refreshMod
                 action={action}
                 serverTime={serverTime}
                 modalOpener={doOpenActionModal}
+                handleLinkBanToPcCheck={handleLinkBanToPcCheck}
             />
         ))}
     </div>;

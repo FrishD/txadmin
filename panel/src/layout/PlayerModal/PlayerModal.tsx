@@ -20,6 +20,7 @@ import { useBackendApi } from "@/hooks/fetch";
 import { PlayerModalResp, PlayerModalSuccess } from "@shared/playerApiTypes";
 import PlayerModalFooter from "./PlayerModalFooter";
 import ModalCentralMessage from "@/components/ModalCentralMessage";
+import { usePermissions } from "@/hooks/usePermissions";
 
 
 const modalTabs = [
@@ -55,7 +56,16 @@ const modalTabs = [
 
 export default function PlayerModal() {
     const { isModalOpen, closeModal, playerRef } = usePlayerModalStateValue();
-    const [selectedTab, setSelectedTab] = useState(modalTabs[0].title);
+    const { isPcChecker } = usePermissions();
+
+    const visibleTabs = modalTabs.filter(tab => {
+        if (isPcChecker && tab.title === 'IDs') {
+            return false;
+        }
+        return true;
+    });
+
+    const [selectedTab, setSelectedTab] = useState(visibleTabs[0].title);
     const [currRefreshKey, setCurrRefreshKey] = useState(0);
     const [modalData, setModalData] = useState<PlayerModalSuccess | undefined>(undefined);
     const [modalError, setModalError] = useState('');
@@ -168,7 +178,7 @@ export default function PlayerModal() {
 
                 <div className="flex flex-col md:flex-row md:px-4 h-full">
                     <div className="flex flex-row md:flex-col gap-1 bg-muted md:bg-transparent p-1 md:p-0 mx-2 md:mx-0 rounded-md">
-                        {modalTabs.map((tab) => (
+                        {visibleTabs.map((tab) => (
                             <Button
                                 id={`player-modal-tab-${tab.title}`}
                                 key={tab.title}

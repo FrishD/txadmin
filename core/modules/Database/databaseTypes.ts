@@ -56,7 +56,16 @@ export type DatabaseActionMuteType = {
     expiration: number | false;
 } & DatabaseActionBaseType;
 
-export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType | DatabaseActionMuteType;
+export type DatabaseActionPcCheckType = {
+    type: 'pcCheck';
+    caught: boolean;
+    supervisor: string;
+    approver: string;
+    proofs: string[];
+    banId?: string;
+} & DatabaseActionBaseType;
+
+export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType | DatabaseActionMuteType | DatabaseActionPcCheckType;
 
 export type DatabaseWhitelistApprovalsType = {
     identifier: string;
