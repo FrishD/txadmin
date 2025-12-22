@@ -1,12 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { useBackendApi } from '@/hooks/fetch';
 import { FormEvent, useState } from 'react';
 import { usePlayerModalStateValue } from '@/hooks/playerModal';

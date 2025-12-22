@@ -16,34 +16,22 @@ const console = consoleFactory(modulename);
  * Handle PC Check
  */
 export default async function PlayerPcCheck(ctx: AuthedCtx) {
-    let fields, files;
-    if (txEnv.dataPath) {
-        //Parse form
-        const form = formidable({
-            uploadDir: path.join(txEnv.dataPath, 'proofs'),
-            keepExtensions: true,
-            maxFileSize: 1 * 1024 * 1024,
-            maxFiles: 3,
-            filter: function ({ mimetype }) {
-                return mimetype && mimetype.includes('image');
-            }
-        });
-
-        try {
-            [fields, files] = await form.parse(ctx.req);
-        } catch (error) {
-            return ctx.send({ error: `Failed to parse form: ${(error as Error).message}` });
+    let fields, files = {};
+    const form = formidable();
+    try {
+        if (txEnv.dataPath) {
+            form.options.uploadDir = path.join(txEnv.dataPath, 'proofs');
+            form.options.keepExtensions = true;
+            form.options.maxFileSize = 1 * 1024 * 1024;
+            form.options.maxFiles = 3;
+            form.options.filter = ({ mimetype }) => mimetype && mimetype.includes('image');
+        } else {
+            form.options.maxFileSize = 0;
+            form.options.maxFiles = 0;
         }
-    } else {
-        const form = formidable({
-            maxFileSize: 0,
-            maxFiles: 0,
-        });
-        try {
-            [fields, files] = await form.parse(ctx.req);
-        } catch (error) {
-            return ctx.send({ error: `Failed to parse form: ${(error as Error).message}` });
-        }
+        [fields, files] = await form.parse(ctx.req);
+    } catch (error) {
+        return ctx.send({ error: `Failed to parse form: ${(error as Error).message}` });
     }
 
     //Sanity check
