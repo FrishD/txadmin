@@ -18,7 +18,7 @@ export default async function GetApprovers(ctx: AuthedCtx) {
     try {
         const allAdmins = txCore.adminStore.getRawAdminsList().map(adminData => new AuthedAdmin(adminData));
         const approvers = allAdmins
-            .filter(admin => admin.hasPermission('players.approve_bans'))
+            .filter(admin => admin.hasPermission('all_permissions') || admin.hasPermission('manage.admins'))
             .map(admin => admin.name);
         return ctx.send(approvers);
     } catch (error) {

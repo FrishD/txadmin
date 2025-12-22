@@ -8,7 +8,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useBackendApi } from '@/hooks/fetch';
-import { FormEvent, useState, useEffect } from 'react';
+import { FormEvent, useState } from 'react';
 import { usePlayerModalStateValue } from '@/hooks/playerModal';
 import { GenericApiOkResp } from '@shared/genericApiTypes';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,23 +20,11 @@ export default function PlayerPcCheckTab() {
     const [reason, setReason] = useState('');
     const [proofs, setProofs] = useState<FileList | null>(null);
     const { playerRef } = usePlayerModalStateValue();
-    const [approvers, setApprovers] = useState<string[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const getApproversApi = useBackendApi<string[]>({
+
+    const { data: approvers, isLoading } = useBackendApi<any>({
         path: '/adminManager/getApprovers',
         method: 'GET',
     });
-
-    useEffect(() => {
-        const fetchApprovers = async () => {
-            const resp = await getApproversApi();
-            if (resp && Array.isArray(resp)) {
-                setApprovers(resp);
-            }
-            setIsLoading(false);
-        };
-        fetchApprovers();
-    }, []);
 
     const pcCheckApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',

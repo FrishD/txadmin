@@ -16,6 +16,11 @@ const console = consoleFactory(modulename);
  * Handle PC Check
  */
 export default async function PlayerPcCheck(ctx: AuthedCtx) {
+    //Sanity check
+    if (!txEnv.dataPath) {
+        return ctx.send({ error: 'txEnv.dataPath is not set.' });
+    }
+
     //Parse form
     const form = formidable({
         uploadDir: path.join(txEnv.dataPath, 'proofs'),
