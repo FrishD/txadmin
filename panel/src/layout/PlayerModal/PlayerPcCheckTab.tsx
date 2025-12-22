@@ -12,6 +12,7 @@ import { FormEvent, useState } from 'react';
 import { usePlayerModalStateValue } from '@/hooks/playerModal';
 import { GenericApiOkResp } from '@shared/genericApiTypes';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 export default function PlayerPcCheckTab() {
     const [caught, setCaught] = useState('');
@@ -20,11 +21,6 @@ export default function PlayerPcCheckTab() {
     const [reason, setReason] = useState('');
     const [proofs, setProofs] = useState<FileList | null>(null);
     const { playerRef } = usePlayerModalStateValue();
-
-    const { data: approvers, isLoading } = useBackendApi<any>({
-        path: '/adminManager/getApprovers',
-        method: 'GET',
-    });
 
     const pcCheckApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
@@ -73,49 +69,39 @@ export default function PlayerPcCheckTab() {
                     <Label htmlFor="supervisor" className="text-right">
                         Supervisor
                     </Label>
-                    <Select name="supervisor" onValueChange={setSupervisor}>
-                        <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder={isLoading ? 'Loading...' : 'Select supervisor'} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {approvers?.map((approver: string) => (
-                                <SelectItem key={approver} value={approver}>
-                                    {approver}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Input
+                        id="supervisor"
+                        value={supervisor}
+                        onChange={(e) => setSupervisor(e.target.value)}
+                        className="col-span-3"
+                    />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="approver" className="text-right">
                         Approver
                     </Label>
-                    <Select name="approver" onValueChange={setApprover}>
-                        <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder={isLoading ? 'Loading...' : 'Select approver'} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {approvers?.map((approver: string) => (
-                                <SelectItem key={approver} value={approver}>
-                                    {approver}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="proof" className="text-right">
-                        Proof
-                    </Label>
-                    <input
-                        type="file"
-                        name="proof"
-                        multiple
-                        accept="image/png, image/jpeg"
+                    <Input
+                        id="approver"
+                        value={approver}
+                        onChange={(e) => setApprover(e.target.value)}
                         className="col-span-3"
-                        onChange={(e) => setProofs(e.target.files)}
                     />
                 </div>
+                {window.txConsts.isProofsEnabled && (
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="proof" className="text-right">
+                            Proof
+                        </Label>
+                        <input
+                            type="file"
+                            name="proof"
+                            multiple
+                            accept="image/png, image/jpeg"
+                            className="col-span-3"
+                            onChange={(e) => setProofs(e.target.files)}
+                        />
+                    </div>
+                )}
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="reason" className="text-right">
                         Reason
