@@ -21,7 +21,6 @@ import SettingsPage from "@/pages/Settings/SettingsPage";
 import WagerBlacklistPage from "@/pages/WagerBlacklist/WagerBlacklistPage";
 import { useAdminPerms } from "@/hooks/auth";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
-import PcReportsPage from "@/pages/PcReports/PcReportsPage";
 
 
 type RouteType = {
@@ -64,12 +63,6 @@ const allRoutes: RouteType[] = [
         title: 'Admins',
         permission: 'manage.admins',
         Page: <Iframe legacyUrl="adminManager" />
-    },
-    {
-        path: '/pc_reports',
-        title: 'PC Reports',
-        permission: 'web.pc_checker',
-        Page: <PcReportsPage />
     },
     {
         path: '/settings',

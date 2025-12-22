@@ -63,14 +63,12 @@ export default class ActionsDao {
                 },
             };
 
-            //Auto link ban
-            if (caught) {
-                const bans = this.findMany(ids, undefined, { type: 'ban' }) as DatabaseActionBanType[];
-                const recentBans = bans.filter(ban => ban.timestamp > timestamp - 3600);
-                if (recentBans.length) {
-                    const sortedBans = recentBans.sort((a, b) => b.timestamp - a.timestamp);
-                    toDB.banId = sortedBans[0].id;
-                }
+            //Auto link PC Check
+            const pcChecks = this.findMany(ids, undefined, { type: 'pc_check' }) as DatabaseActionPcCheckType[];
+            const recentChecks = pcChecks.filter(check => check.timestamp > timestamp - 3600 && check.caught && !check.banId);
+            if (recentChecks.length) {
+                const sortedChecks = recentChecks.sort((a, b) => b.timestamp - a.timestamp);
+                sortedChecks[0].banId = actionID;
             }
 
             this.chain.get('actions')

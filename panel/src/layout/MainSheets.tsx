@@ -7,11 +7,13 @@ import { ClipboardCheckIcon, DoorOpenIcon, ListIcon, PieChartIcon, ScrollIcon, S
 import { PlayerlistSidebar } from "./PlayerlistSidebar/PlayerlistSidebar";
 import { useAdminPerms } from "@/hooks/auth";
 import { LogoFullSquareGreen } from "@/components/Logos";
+import { usePermissions } from "@/hooks/usePermissions";
 
 
 export function GlobalMenuSheet() {
     const { isSheetOpen, setIsSheetOpen } = useGlobalMenuSheet();
     const { hasPerm } = useAdminPerms();
+    const { isAdmin, isPcChecker } = usePermissions();
 
     return (
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -34,30 +36,31 @@ export function GlobalMenuSheet() {
                             Global Menu
                         </h2>
                         <div className="flex flex-wrap flex-row xs:grid grid-cols-2 gap-4">
-                            <MenuNavLink href="/players">
-                                <UsersIcon className="mr-2 h-4 w-4" />Players
-                            </MenuNavLink>
-                            <MenuNavLink href="/history">
-                                <ScrollIcon className="mr-2 h-4 w-4" />History
-                            </MenuNavLink>
-                            <MenuNavLink href="/insights/player-drops">
-                                <DoorOpenIcon className="mr-2 h-4 w-4" />Player Drops
-                            </MenuNavLink>
-                            <MenuNavLink href="/whitelist">
-                                <ClipboardCheckIcon className="mr-2 h-4 w-4" />Whitelist
-                            </MenuNavLink>
-                            <MenuNavLink href="/admins" disabled={!hasPerm('manage.admins')}>
-                                <UserSquare2Icon className="mr-2 h-4 w-4" />Admins
-                            </MenuNavLink>
-                            <MenuNavLink href="/pc_reports" disabled={!hasPerm('web.pc_checker')}>
-                                <UserSquare2Icon className="mr-2 h-4 w-4" />PC Reports
-                            </MenuNavLink>
-                            <MenuNavLink href="/settings" disabled={!hasPerm('settings.view')}>
-                                <SettingsIcon className="mr-2 h-4 w-4" />Settings
-                            </MenuNavLink>
+                            {(isAdmin || isPcChecker) && <>
+                                <MenuNavLink href="/players">
+                                    <UsersIcon className="mr-2 h-4 w-4" />Players
+                                </MenuNavLink>
+                                <MenuNavLink href="/history">
+                                    <ScrollIcon className="mr-2 h-4 w-4" />History
+                                </MenuNavLink>
+                            </>}
+                            {isAdmin && <>
+                                <MenuNavLink href="/insights/player-drops">
+                                    <DoorOpenIcon className="mr-2 h-4 w-4" />Player Drops
+                                </MenuNavLink>
+                                <MenuNavLink href="/whitelist">
+                                    <ClipboardCheckIcon className="mr-2 h-4 w-4" />Whitelist
+                                </MenuNavLink>
+                                <MenuNavLink href="/admins" disabled={!hasPerm('manage.admins')}>
+                                    <UserSquare2Icon className="mr-2 h-4 w-4" />Admins
+                                </MenuNavLink>
+                                <MenuNavLink href="/settings" disabled={!hasPerm('settings.view')}>
+                                    <SettingsIcon className="mr-2 h-4 w-4" />Settings
+                                </MenuNavLink>
+                            </>}
                         </div>
                     </div>
-                    <div className="mb-4">
+                    {isAdmin && <div className="mb-4">
                         <h2 className="mb-1.5 text-lg font-semibold tracking-tight">
                             System Menu
                         </h2>
@@ -75,7 +78,7 @@ export function GlobalMenuSheet() {
                                 <ListIcon className="mr-2 h-4 w-4" />Action Log
                             </MenuNavLink>
                         </div>
-                    </div>
+                    </div>}
                 </ScrollArea>
             </SheetContent>
         </Sheet>

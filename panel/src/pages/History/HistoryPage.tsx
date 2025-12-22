@@ -10,6 +10,7 @@ import {
 import HistoryTable from './HistoryTable';
 import { HistoryStatsResp, HistoryTableSearchType } from '@shared/historyApiTypes';
 import { useBackendApi } from '@/hooks/fetch';
+import { usePermissions } from '@/hooks/usePermissions';
 import { createRandomHslColor } from '@/lib/utils';
 
 
@@ -67,6 +68,7 @@ const getInitialState = () => {
 export default function HistoryPage() {
     const [calloutData, setCalloutData] = useState<HistoryStatsResp | undefined>(undefined);
     const [searchBoxReturn, setSearchBoxReturn] = useState<HistorySearchBoxReturnStateType | undefined>(undefined);
+    const { isAdmin, isPcChecker } = usePermissions();
     const statsApi = useBackendApi<HistoryStatsResp>({
         method: 'GET',
         path: '/history/stats',
@@ -88,9 +90,12 @@ export default function HistoryPage() {
         filterbyType: string | undefined,
         filterbyAdmin: string | undefined
     ) => {
+        if (isPcChecker && !isAdmin) {
+            filterbyType = 'pc_check';
+        }
         setSearchBoxReturn({ search, filterbyType, filterbyAdmin });
         updateUrlSearchParams(search, filterbyType, filterbyAdmin);
-    }, []);
+    }, [isAdmin, isPcChecker]);
     const initialState = useMemo(getInitialState, []);
 
     const calloutRowData = useMemo(() => {
@@ -137,7 +142,7 @@ export default function HistoryPage() {
 
         <PageCalloutRowMemo callouts={calloutRowData} />
 
-        {calloutData && !('error' in calloutData) ? (
+        {isAdmin && calloutData && !('error' in calloutData) ? (
             <HistorySearchBoxMemo
                 doSearch={doSearch}
                 initialState={initialState}

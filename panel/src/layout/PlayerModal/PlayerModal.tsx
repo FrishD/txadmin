@@ -62,7 +62,7 @@ const modalTabs = [
 
 export default function PlayerModal() {
     const { isModalOpen, closeModal, playerRef } = usePlayerModalStateValue();
-    const { isPcChecker } = usePermissions();
+    const { isAdmin, isPcChecker } = usePermissions();
     const [selectedTab, setSelectedTab] = useState(modalTabs[0].title);
     const [currRefreshKey, setCurrRefreshKey] = useState(0);
     const [modalData, setModalData] = useState<PlayerModalSuccess | undefined>(undefined);
@@ -178,6 +178,7 @@ export default function PlayerModal() {
                     <div className="flex flex-row md:flex-col gap-1 bg-muted md:bg-transparent p-1 md:p-0 mx-2 md:mx-0 rounded-md">
                         {modalTabs.map((tab) => {
                             if (tab.title === 'PC Report' && !isPcChecker) return null;
+                            if (tab.title === 'IDs' && !isAdmin) return null;
                             return <Button
                                 id={`player-modal-tab-${tab.title}`}
                                 key={tab.title}

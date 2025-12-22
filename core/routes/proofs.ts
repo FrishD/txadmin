@@ -16,7 +16,7 @@ export default async function GetProofs(ctx: AuthedCtx) {
     }
 
     //Check permissions
-    if (!ctx.admin.testPermission('players.ban', modulename)) {
+    if (!ctx.admin.testPermission('players.ban', modulename) && !ctx.admin.testPermission('web.pc_checker', modulename)) {
         return ctx.send({
             error: 'You don\'t have permission to execute this action.',
         });

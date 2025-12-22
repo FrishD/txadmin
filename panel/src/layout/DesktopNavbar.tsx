@@ -13,6 +13,7 @@ import MainPageLink from '@/components/MainPageLink';
 import { cva } from 'class-variance-authority';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAdminPerms } from '@/hooks/auth';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const buttonVariants = cva(
     `group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50 ring-offset-background  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`,
@@ -82,49 +83,45 @@ function HeaderMenuItem(props: HeaderMenuLinkProps) {
 //NOTE: breaking NavigationMenuItem into a separate menu because the dropdown is positioned wrong otherwise
 export default function DesktopNavbar() {
     const { hasPerm } = useAdminPerms();
+    const { isAdmin, isPcChecker } = usePermissions();
 
     return (
         <div className='space-x-1 flex flex-row select-none'>
             <NavigationMenu>
                 <NavigationMenuList>
-                    {/* TODO: copypaste for new menu items */}
-                    {/* <DynamicNewItem featName='xxxxxxxx' durationDays={7}>
-                        <div className="ml-1 mb-2 rounded-md size-2 bg-accent" />
-                    </DynamicNewItem> */}
-                    <HeaderMenuItem href="/players">
-                        Players
-                    </HeaderMenuItem>
-                    <HeaderMenuItem href="/history">
-                        History
-                    </HeaderMenuItem>
-                    <HeaderMenuItem href="/statistics" disabled={!hasPerm('manage.admins')}>
-                        Statistics
-                    </HeaderMenuItem>
-                    <HeaderMenuItem href="/insights/player-drops">
-                        Player Drops
-                    </HeaderMenuItem>
-                    <HeaderMenuItem href="/whitelist">
-                        Whitelist
-                    </HeaderMenuItem>
-                    <HeaderMenuItem href="/admins" disabled={!hasPerm('manage.admins')}>
-                        Admins
-                    </HeaderMenuItem>
-                    <HeaderMenuItem href="/pc_reports" disabled={!hasPerm('web.pc_checker')}>
-                        PC Reports
-                    </HeaderMenuItem>
-                    <HeaderMenuItem href="/settings" disabled={!hasPerm('settings.view')}>
-                        Settings
-                    </HeaderMenuItem>
+                    {(isAdmin || isPcChecker) && <>
+                        <HeaderMenuItem href="/players">
+                            Players
+                        </HeaderMenuItem>
+                        <HeaderMenuItem href="/history">
+                            History
+                        </HeaderMenuItem>
+                    </>}
+                    {isAdmin && <>
+                        <HeaderMenuItem href="/statistics" disabled={!hasPerm('manage.admins')}>
+                            Statistics
+                        </HeaderMenuItem>
+                        <HeaderMenuItem href="/insights/player-drops">
+                            Player Drops
+                        </HeaderMenuItem>
+                        <HeaderMenuItem href="/whitelist">
+                            Whitelist
+                        </HeaderMenuItem>
+                        <HeaderMenuItem href="/admins" disabled={!hasPerm('manage.admins')}>
+                            Admins
+                        </HeaderMenuItem>
+                        <HeaderMenuItem href="/settings" disabled={!hasPerm('settings.view')}>
+                            Settings
+                        </HeaderMenuItem>
+                    </>}
                 </NavigationMenuList>
             </NavigationMenu>
 
-            <NavigationMenu>
-                <NavigationMenuList className='aaaaaaaaaaa'>
+            {isAdmin && <NavigationMenu>
+                <NavigationMenuList>
                     <NavigationMenuItem>
                         <NavigationMenuTrigger
                             onClick={(e) => {
-                                //To prevent very annoying behavior where you go click on the menu
-                                //item and it will close the menu because it just opened on hover
                                 if (e.currentTarget.dataset['state'] === 'open') {
                                     e.preventDefault();
                                 }
@@ -162,7 +159,7 @@ export default function DesktopNavbar() {
                         </NavigationMenuContent>
                     </NavigationMenuItem>
                 </NavigationMenuList>
-            </NavigationMenu>
+            </NavigationMenu>}
         </div>
     );
 }
