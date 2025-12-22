@@ -45,7 +45,7 @@ export default async function PlayerPcCheck(ctx: AuthedCtx) {
     }
 
     const { caught, supervisor, approver, reason } = fields;
-    const proofs = files.proofs.map(f => f.newFilename);
+    const proofs = files.proofs ? files.proofs.map(f => f.newFilename) : [];
 
     //Finding the player
     let player;

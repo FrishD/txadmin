@@ -77,9 +77,10 @@ type HistorySearchBoxProps = {
         name: string;
         actions: number;
     }[];
+    disableTypeFilter?: boolean;
 };
 
-export function HistorySearchBox({ doSearch, initialState, adminStats }: HistorySearchBoxProps) {
+export function HistorySearchBox({ doSearch, initialState, adminStats, disableTypeFilter }: HistorySearchBoxProps) {
     const { authData } = useAuth();
     const inputRef = useRef<HTMLInputElement>(null);
     const [isSearchTypeDropdownOpen, setSearchTypeDropdownOpen] = useState(false);
@@ -205,7 +206,7 @@ export function HistorySearchBox({ doSearch, initialState, adminStats }: History
                     </DropdownMenu>
 
 
-                    <Select defaultValue={typeFilter} onValueChange={setTypeFilter}>
+                    <Select defaultValue={typeFilter} onValueChange={setTypeFilter} disabled={disableTypeFilter}>
                         <SelectTrigger className="w-36 grow md:grow-0" >
                             <SelectValue placeholder="Filter by admin" />
                         </SelectTrigger>

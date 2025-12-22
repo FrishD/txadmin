@@ -142,11 +142,12 @@ export default function HistoryPage() {
 
         <PageCalloutRowMemo callouts={calloutRowData} />
 
-        {isAdmin && calloutData && !('error' in calloutData) ? (
+        {calloutData && !('error' in calloutData) ? (
             <HistorySearchBoxMemo
                 doSearch={doSearch}
                 initialState={initialState}
                 adminStats={calloutData.groupedByAdmins}
+                disableTypeFilter={isPcChecker && !isAdmin}
             />
         ) : null}
 

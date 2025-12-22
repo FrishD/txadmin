@@ -8,7 +8,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useBackendApi } from '@/hooks/fetch';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, useEffect } from 'react';
 import { usePlayerModalStateValue } from '@/hooks/playerModal';
 import { GenericApiOkResp } from '@shared/genericApiTypes';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,11 +20,23 @@ export default function PlayerPcCheckTab() {
     const [reason, setReason] = useState('');
     const [proofs, setProofs] = useState<FileList | null>(null);
     const { playerRef } = usePlayerModalStateValue();
-
-    const { data: approvers } = useBackendApi<any>({
+    const [approvers, setApprovers] = useState<string[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const getApproversApi = useBackendApi<string[]>({
         path: '/adminManager/getApprovers',
         method: 'GET',
     });
+
+    useEffect(() => {
+        const fetchApprovers = async () => {
+            const resp = await getApproversApi();
+            if (resp && Array.isArray(resp)) {
+                setApprovers(resp);
+            }
+            setIsLoading(false);
+        };
+        fetchApprovers();
+    }, []);
 
     const pcCheckApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
@@ -75,7 +87,7 @@ export default function PlayerPcCheckTab() {
                     </Label>
                     <Select name="supervisor" onValueChange={setSupervisor}>
                         <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Select supervisor" />
+                            <SelectValue placeholder={isLoading ? 'Loading...' : 'Select supervisor'} />
                         </SelectTrigger>
                         <SelectContent>
                             {approvers?.map((approver: string) => (
@@ -92,7 +104,7 @@ export default function PlayerPcCheckTab() {
                     </Label>
                     <Select name="approver" onValueChange={setApprover}>
                         <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Select approver" />
+                            <SelectValue placeholder={isLoading ? 'Loading...' : 'Select approver'} />
                         </SelectTrigger>
                         <SelectContent>
                             {approvers?.map((approver: string) => (
