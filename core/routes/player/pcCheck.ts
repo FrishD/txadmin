@@ -1,5 +1,5 @@
 const modulename = 'WebServer:PlayerPcCheck';
-import { txEnv } from '@txAdmin/txAdmin';
+import { txEnv } from '@core/globalData';
 import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import { GenericApiResp } from '@shared/genericApiTypes';
 import consoleFactory from '@lib/console';

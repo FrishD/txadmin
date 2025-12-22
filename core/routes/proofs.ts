@@ -1,7 +1,7 @@
 const modulename = 'WebServer:Proofs';
 import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import consoleFactory from '@lib/console';
-import { txEnv } from '@txAdmin/txAdmin';
+import { txEnv } from '@core/globalData';
 import path from 'path';
 import fs from 'fs-extra';
 const console = consoleFactory(modulename);
