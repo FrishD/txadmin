@@ -5,6 +5,7 @@ export { default as resources } from './resources.js';
 export { default as perfChart } from './perfChart';
 export { default as playerDrops } from './playerDrops';
 export { default as systemLogs } from './systemLogs';
+export { default as proofs } from './proofs';
 
 export { default as auth_addMasterPin } from './authentication/addMasterPin.js';
 export { default as auth_addMasterCallback } from './authentication/addMasterCallback.js';
