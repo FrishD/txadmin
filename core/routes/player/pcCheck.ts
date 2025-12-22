@@ -16,19 +16,18 @@ const console = consoleFactory(modulename);
  * Handle PC Check
  */
 export default async function PlayerPcCheck(ctx: AuthedCtx) {
-    let fields, files = {};
-    const form = formidable();
+    const formOptions: formidable.Options = {};
+    if (txEnv.dataPath) {
+        formOptions.uploadDir = path.join(txEnv.dataPath, 'proofs');
+        formOptions.keepExtensions = true;
+        formOptions.maxFileSize = 1 * 1024 * 1024;
+        formOptions.maxFiles = 3;
+        formOptions.filter = ({ mimetype }) => mimetype && mimetype.includes('image');
+    }
+
+    let fields, files;
     try {
-        if (txEnv.dataPath) {
-            form.options.uploadDir = path.join(txEnv.dataPath, 'proofs');
-            form.options.keepExtensions = true;
-            form.options.maxFileSize = 1 * 1024 * 1024;
-            form.options.maxFiles = 3;
-            form.options.filter = ({ mimetype }) => mimetype && mimetype.includes('image');
-        } else {
-            form.options.maxFileSize = 0;
-            form.options.maxFiles = 0;
-        }
+        const form = formidable(formOptions);
         [fields, files] = await form.parse(ctx.req);
     } catch (error) {
         return ctx.send({ error: `Failed to parse form: ${(error as Error).message}` });
