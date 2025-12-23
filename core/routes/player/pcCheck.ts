@@ -46,7 +46,9 @@ export default async function PlayerPcCheck(ctx: AuthedCtx) {
     const supervisor = fields.supervisor[0];
     const approver = fields.approver[0];
     const reason = fields.reason?.[0];
-    const proofs = files.proofs ? files.proofs.map(f => f.newFilename) : [];
+    const proofs = (files.proofs && Array.isArray(files.proofs))
+        ? files.proofs.map(f => f.newFilename)
+        : (files.proofs ? [files.proofs.newFilename] : []);
 
     //Finding the player
     let player;
