@@ -55,14 +55,23 @@ export const useAuthedFetcher = () => {
         }
 
         fetchOpts.method ??= 'GET';
+
+        const reqHeaders: Record<string, string> = {
+            ...defaultHeaders,
+            'User-Agent': headeruserAgent,
+            'X-TxAdmin-CsrfToken': csrfToken,
+        };
+        let reqBody: BodyInit | undefined = fetchOpts.body ? JSON.stringify(fetchOpts.body) : undefined;
+
+        if (fetchOpts.body instanceof FormData) {
+            delete reqHeaders['Content-Type'];
+            reqBody = fetchOpts.body;
+        }
+
         const resp = await fetch(fetchUrl, {
             method: fetchOpts.method,
-            headers: {
-                ...defaultHeaders,
-                'User-Agent': headeruserAgent,
-                'X-TxAdmin-CsrfToken': csrfToken,
-            },
-            body: fetchOpts.body ? JSON.stringify(fetchOpts.body) : undefined,
+            headers: reqHeaders,
+            body: reqBody,
             signal: abortController?.signal,
         });
         const data = await resp.json();
