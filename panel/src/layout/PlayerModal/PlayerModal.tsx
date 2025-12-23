@@ -14,6 +14,7 @@ import PlayerHistoryTab from "./PlayerHistoryTab";
 import PlayerBanTab from "./PlayerBanTab";
 import PlayerMuteTab from "./PlayerMuteTab";
 import PlayerWagerTab from "./PlayerWagerTab";
+import PlayerEditBanTab from "./PlayerEditBanTab";
 import GenericSpinner from "@/components/GenericSpinner";
 import { cn } from "@/lib/utils";
 import { useBackendApi } from "@/hooks/fetch";
@@ -49,13 +50,21 @@ const modalTabs = [
         title: 'Wager',
         icon: <GavelIcon className="mr-2 h-5 w-5 hidden xs:block" />,
         className: 'hover:bg-destructive hover:text-destructive-foreground',
+    },
+    {
+        title: 'Edit Ban',
+        icon: <GavelIcon className="mr-2 h-5 w-5 hidden xs:block" />,
+        className: 'hidden',
     }
 ]
 
 
+import { DatabaseActionBanType } from "@core/modules/Database/databaseTypes";
+
 export default function PlayerModal() {
     const { isModalOpen, closeModal, playerRef } = usePlayerModalStateValue();
     const [selectedTab, setSelectedTab] = useState(modalTabs[0].title);
+    const [editingAction, setEditingAction] = useState<DatabaseActionBanType | null>(null);
     const [currRefreshKey, setCurrRefreshKey] = useState(0);
     const [modalData, setModalData] = useState<PlayerModalSuccess | undefined>(undefined);
     const [modalError, setModalError] = useState('');
@@ -211,6 +220,18 @@ export default function PlayerModal() {
                                     actionHistory={modalData.player.actionHistory}
                                     serverTime={modalData.serverTime}
                                     refreshModalData={refreshModalData}
+                                    onEditBan={(action) => {
+                                        setEditingAction(action);
+                                        setSelectedTab('Edit Ban');
+                                    }}
+                                />}
+                                {selectedTab === 'Edit Ban' && editingAction && <PlayerEditBanTab
+                                    action={editingAction}
+                                    playerRef={playerRef!}
+                                    onGoBack={() => {
+                                        setEditingAction(null);
+                                        setSelectedTab('History');
+                                    }}
                                 />}
                                 {selectedTab === 'IDs' && <PlayerIdsTab
                                     player={modalData.player}

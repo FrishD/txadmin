@@ -223,5 +223,24 @@ export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInf
         </dl>
 
         <ActionReasonBox actionReason={action.reason} />
+
+        {action.type === 'ban' && action.proofs && action.proofs.length > 0 && (
+            <div className="mt-4">
+                <Label>Proofs:</Label>
+                <div className="mt-1 flex flex-wrap gap-2">
+                    {action.proofs.filter(p => typeof p === 'string' && p.length).map((proof, index) => (
+                        <Button
+                            key={index}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(proof.startsWith('http') ? proof : `/proofs/${proof}`, '_blank')}
+                        >
+                            <Link className="mr-1 h-4 w-4" />
+                            View Proof {index + 1}
+                        </Button>
+                    ))}
+                </div>
+            </div>
+        )}
     </div>;
 }

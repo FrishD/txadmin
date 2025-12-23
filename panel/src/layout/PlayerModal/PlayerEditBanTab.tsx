@@ -2,28 +2,36 @@ import { Button } from "@/components/ui/button";
 import { useAdminPerms } from "@/hooks/auth";
 import { PlayerModalRefType, useClosePlayerModal } from "@/hooks/playerModal";
 import { Loader2Icon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useBackendApi } from "@/hooks/fetch";
 import { GenericApiOkResp } from "@shared/genericApiTypes";
 import ModalCentralMessage from "@/components/ModalCentralMessage";
-import type { BanTemplatesDataType, GetApproversSuccessResp } from "@shared/otherTypes";
 import BanForm, { BanFormType } from "@/components/BanForm";
 import { txToast } from "@/components/TxToaster";
+import { DatabaseActionBanType } from "@core/modules/Database/databaseTypes";
+import { useEffect } from "react";
 
 
-type PlayerBanTabProps = {
-    banTemplates: BanTemplatesDataType[];
+type PlayerEditBanTabProps = {
+    action: DatabaseActionBanType;
     playerRef: PlayerModalRefType;
+    onGoBack: () => void;
 };
 
-export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabProps) {
+export default function PlayerEditBanTab({ action, playerRef, onGoBack }: PlayerEditBanTabProps) {
     const banFormRef = useRef<BanFormType>(null);
     const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (banFormRef.current) {
+            banFormRef.current.setData({ reason: action.reason });
+        }
+    }, [action]);
     const { hasPerm } = useAdminPerms();
     const closeModal = useClosePlayerModal();
-    const playerBanApi = useBackendApi<GenericApiOkResp>({
+    const playerEditBanApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
-        path: `/player/ban`,
+        path: `/player/edit_ban`,
         throwGenericErrors: true,
     });
     const playerUploadApi = useBackendApi<{ success: boolean, filename: string }>({
@@ -31,41 +39,20 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
         path: `/player/upload`,
         throwGenericErrors: true,
     });
-    const [approversData, setApproversData] = useState<GetApproversSuccessResp | undefined>(undefined);
-    const getApproversApi = useBackendApi<GetApproversSuccessResp>({
-        method: 'GET',
-        path: '/adminManager/getApprovers',
-    });
-
-    useEffect(() => {
-        getApproversApi({
-            success: (data) => {
-                if (!('error' in data)) {
-                    setApproversData(data);
-                }
-            }
-        });
-    }, []);
 
     if (!hasPerm('players.ban')) {
         return <ModalCentralMessage>
-            You don't have permission to ban players.
+            You don't have permission to edit bans.
         </ModalCentralMessage>;
     }
 
     const handleSave = async () => {
         if (!banFormRef.current) return;
-        const { reason, duration, approver, proofs, proofFile } = banFormRef.current.getData();
-        const isLongBan = banFormRef.current.isLongBan;
+        const { reason, proofs, proofFile } = banFormRef.current.getData();
 
         if (!reason || reason.length < 3) {
             txToast.warning(`The reason must be at least 3 characters long.`);
             banFormRef.current.focusReason();
-            return;
-        }
-
-        if (isLongBan && !hasPerm('players.approve_bans') && !approver) {
-            txToast.warning(`You must select an approver for bans longer than 1 week.`);
             return;
         }
 
@@ -83,12 +70,12 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
             }
         }
 
-        playerBanApi({
+        playerEditBanApi({
             queryParams: playerRef,
-            data: { reason, duration, approver, proofs: finalProofs },
-            toastLoadingMessage: 'Banning player...',
+            data: { actionId: action.id, reason, proofs: finalProofs },
+            toastLoadingMessage: 'Editing ban...',
             genericHandler: {
-                successMsg: 'Player banned.',
+                successMsg: 'Ban edited.',
             },
             success: (data) => {
                 setIsSaving(false);
@@ -102,14 +89,32 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
 
     return (
         <div className="grid gap-4 p-1">
+            {action.reasonHistory && action.reasonHistory.length > 0 && (
+                <div className="flex flex-col gap-2 text-sm">
+                    <h2 className="text-lg font-bold">Previous Reasons:</h2>
+                    <ul className="list-disc list-inside">
+                        {action.reasonHistory.map((entry, index) => (
+                            <li key={index}>
+                                <strong>{entry.author}</strong> on {new Date(entry.timestamp * 1000).toLocaleString()}: {entry.reason}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
             <BanForm
                 ref={banFormRef}
-                banTemplates={banTemplates}
-                approvers={approversData}
                 disabled={isSaving}
                 onNavigateAway={() => { closeModal(); }}
+                editMode
             />
-            <div className="flex place-content-end">
+            <div className="flex place-content-between">
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={onGoBack}
+                >
+                    Go Back
+                </Button>
                 <Button
                     size="sm"
                     variant="destructive"
@@ -118,9 +123,9 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
                 >
                     {isSaving ? (
                         <span className="flex items-center leading-relaxed">
-                            <Loader2Icon className="inline animate-spin h-4" /> Banning...
+                            <Loader2Icon className="inline animate-spin h-4" /> Saving...
                         </span>
-                    ) : 'Apply Ban'}
+                    ) : 'Save Changes'}
                 </Button>
             </div>
         </div>

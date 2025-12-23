@@ -133,7 +133,7 @@ export default class StatsDao {
         return this.chain.get('actions')
             .reduce((acc, action) => {
                 //Bans and warns
-                if (action.author.toLowerCase() === lowerAdminName) {
+                if (action.author && action.author.toLowerCase() === lowerAdminName) {
                     if (action.type === 'ban') {
                         acc.bansGiven++;
                     } else if (action.type === 'warn') {

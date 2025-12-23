@@ -19,7 +19,11 @@ export default async function Statistics(ctx: AuthedCtx) {
 
     //Calculate leaderboard stats
     const leaderboardData = allAdmins.map(admin => {
-        const player = allPlayers.find(p => p.ids.some(id => admin.providers.discord?.identifier === id || admin.providers.citizenfx?.identifier === id));
+        const player = allPlayers.find(p => {
+            return Array.isArray(p.ids) && admin.providers && Object.values(admin.providers).some(provider => {
+                return provider.identifier && p.ids.includes(provider.identifier);
+            });
+        });
         const actionStats = txCore.database.stats.getAdminActionStats(admin.name);
         return {
             name: admin.name,

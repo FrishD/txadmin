@@ -9,6 +9,7 @@ import { banDurationToShortString, banDurationToString, cn } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
 import type { BanTemplatesDataType, GetApproversSuccessResp } from "@shared/otherTypes";
 import { useAdminPerms } from "@/hooks/auth";
+import Dropzone from "./Dropzone";
 
 // Consts
 const reasonTruncateLength = 150;
@@ -20,11 +21,14 @@ type BanFormRespType = {
     reason: string;
     duration: string;
     approver?: string;
+    proofs?: string[];
+    proofFile?: File | null;
 }
 export type BanFormType = HTMLDivElement & {
     focusReason: () => void;
     clearData: () => void;
     getData: () => BanFormRespType;
+    setData: (data: Partial<BanFormRespType>) => void;
     isLongBan: boolean;
 }
 type BanFormProps = {
@@ -32,18 +36,21 @@ type BanFormProps = {
     approvers?: GetApproversSuccessResp; //undefined = loading
     disabled?: boolean;
     onNavigateAway?: () => void;
+    editMode?: boolean;
 };
 
 /**
  * A form to set ban reason and duration.
  */
-export default forwardRef(function BanForm({ banTemplates, approvers, disabled, onNavigateAway }: BanFormProps, ref) {
+export default forwardRef(function BanForm({ banTemplates, approvers, disabled, onNavigateAway, editMode }: BanFormProps, ref) {
     const reasonRef = useRef<HTMLInputElement>(null);
     const customMultiplierRef = useRef<HTMLInputElement>(null);
     const setLocation = useLocation()[1];
     const [currentDuration, setCurrentDuration] = useState('2 days');
     const [customUnits, setCustomUnits] = useState('days');
     const [selectedApprover, setSelectedApprover] = useState('');
+    const [proofFile, setProofFile] = useState<File | null>(null);
+    const [proofLink, setProofLink] = useState('');
     const closeModal = useClosePlayerModal();
 
 
@@ -71,13 +78,27 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
     useImperativeHandle(ref, () => {
         return {
             getData: () => {
+                const proofs = [];
+                if (proofFile) {
+                    proofs.push(proofFile.name);
+                }
+                if (proofLink) {
+                    proofs.push(proofLink);
+                }
                 return {
                     reason: reasonRef.current?.value.trim(),
                     duration: currentDuration === 'custom'
                         ? `${customMultiplierRef.current?.value} ${customUnits}`
                         : currentDuration,
                     approver: selectedApprover,
+                    proofs,
+                    proofFile,
                 };
+            },
+            setData: (data) => {
+                if (data.reason && reasonRef.current) {
+                    reasonRef.current.value = data.reason;
+                }
             },
             clearData: () => {
                 if (!reasonRef.current || !customMultiplierRef.current) return;
@@ -86,13 +107,15 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                 setCurrentDuration('2 days');
                 setCustomUnits('days');
                 setSelectedApprover('');
+                setProofFile(null);
+                setProofLink('');
             },
             focusReason: () => {
                 reasonRef.current?.focus();
             },
             isLongBan,
         };
-    }, [reasonRef, customMultiplierRef, currentDuration, customUnits, selectedApprover, isLongBan]);
+    }, [reasonRef, customMultiplierRef, currentDuration, customUnits, selectedApprover, isLongBan, proofFile, proofLink]);
 
     const handleTemplateSelectChange = (value: string) => {
         if (value === ADD_NEW_SELECT_OPTION) {
@@ -213,92 +236,117 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                     </DropDownSelect>
                 </div>
             </div>
-            <div className="flex flex-col gap-3">
-                <Label htmlFor="durationSelect">
-                    Duration
-                </Label>
-                <div className="space-y-1">
-                    <Select
-                        onValueChange={setCurrentDuration}
-                        value={currentDuration}
-                        disabled={disabled}
-                    >
-                        <SelectTrigger id="durationSelect" className="tracking-wide">
-                            <SelectValue placeholder="Select Duration" />
-                        </SelectTrigger>
-                        <SelectContent className="tracking-wide">
-                            <SelectItem value="custom" className="font-bold">Custom (set below)</SelectItem>
-                            <SelectItem value="2 hours">2 HOURS</SelectItem>
-                            <SelectItem value="8 hours">8 HOURS</SelectItem>
-                            <SelectItem value="1 day">1 DAY</SelectItem>
-                            <SelectItem value="2 days">2 DAYS</SelectItem>
-                            <SelectItem value="1 week">1 WEEK</SelectItem>
-                            <SelectItem value="2 weeks">2 WEEKS</SelectItem>
-                            <SelectItem value="permanent" className="font-bold">Permanent</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <div className="flex flex-row gap-2">
-                        <Input
-                            id="durationMultiplier"
-                            type="number"
-                            placeholder="123"
-                            required
-                            disabled={currentDuration !== 'custom' || disabled}
-                            ref={customMultiplierRef}
-                        />
-                        <Select
-                            onValueChange={setCustomUnits}
-                            value={customUnits}
-                        >
-                            <SelectTrigger
-                                className="tracking-wide"
-                                id="durationUnits"
-                                disabled={currentDuration !== 'custom' || disabled}
+            {!editMode && (
+                <>
+                    <div className="flex flex-col gap-3">
+                        <Label htmlFor="durationSelect">
+                            Duration
+                        </Label>
+                        <div className="space-y-1">
+                            <Select
+                                onValueChange={setCurrentDuration}
+                                value={currentDuration}
+                                disabled={disabled}
                             >
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="tracking-wide">
-                                <SelectItem value="hours">HOURS</SelectItem>
-                                <SelectItem value="days">DAYS</SelectItem>
-                                <SelectItem value="weeks">WEEKS</SelectItem>
-                                <SelectItem value="months">MONTHS</SelectItem>
-                            </SelectContent>
-                        </Select>
+                                <SelectTrigger id="durationSelect" className="tracking-wide">
+                                    <SelectValue placeholder="Select Duration" />
+                                </SelectTrigger>
+                                <SelectContent className="tracking-wide">
+                                    <SelectItem value="custom" className="font-bold">Custom (set below)</SelectItem>
+                                    <SelectItem value="2 hours">2 HOURS</SelectItem>
+                                    <SelectItem value="8 hours">8 HOURS</SelectItem>
+                                    <SelectItem value="1 day">1 DAY</SelectItem>
+                                    <SelectItem value="2 days">2 DAYS</SelectItem>
+                                    <SelectItem value="1 week">1 WEEK</SelectItem>
+                                    <SelectItem value="2 weeks">2 WEEKS</SelectItem>
+                                    <SelectItem value="permanent" className="font-bold">Permanent</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <div className="flex flex-row gap-2">
+                                <Input
+                                    id="durationMultiplier"
+                                    type="number"
+                                    placeholder="123"
+                                    required
+                                    disabled={currentDuration !== 'custom' || disabled}
+                                    ref={customMultiplierRef}
+                                />
+                                <Select
+                                    onValueChange={setCustomUnits}
+                                    value={customUnits}
+                                >
+                                    <SelectTrigger
+                                        className="tracking-wide"
+                                        id="durationUnits"
+                                        disabled={currentDuration !== 'custom' || disabled}
+                                    >
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="tracking-wide">
+                                        <SelectItem value="hours">HOURS</SelectItem>
+                                        <SelectItem value="days">DAYS</SelectItem>
+                                        <SelectItem value="weeks">WEEKS</SelectItem>
+                                        <SelectItem value="months">MONTHS</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            {showApproverDropdown && (
-                <div className="flex flex-col gap-3">
-                    <Label htmlFor="approverSelect">
-                        Approver
-                    </Label>
-                    <Select
-                        onValueChange={setSelectedApprover}
-                        value={selectedApprover}
-                        disabled={disabled}
-                    >
-                        <SelectTrigger id="approverSelect" className="tracking-wide">
-                            <SelectValue placeholder="Select an admin with ban approval perms" />
-                        </SelectTrigger>
-                        <SelectContent className="tracking-wide">
-                            {!approvers ? (
-                                <SelectItem value="loading" disabled>Loading...</SelectItem>
-                            ) : approvers.length ? (
-                                approvers.map((approver) => (
-                                    <SelectItem key={approver.name} value={approver.name}>
-                                        {approver.name}
-                                    </SelectItem>
-                                ))
-                            ) : (
-                                <SelectItem value="none" disabled>
-                                    No admins with ban approval perms found.
-                                </SelectItem>
-                            )}
-                        </SelectContent>
-                    </Select>
-                </div>
+                    {showApproverDropdown && (
+                        <div className="flex flex-col gap-3">
+                            <Label htmlFor="approverSelect">
+                                Approver
+                            </Label>
+                            <Select
+                                onValueChange={setSelectedApprover}
+                                value={selectedApprover}
+                                disabled={disabled}
+                            >
+                                <SelectTrigger id="approverSelect" className="tracking-wide">
+                                    <SelectValue placeholder="Select an admin with ban approval perms" />
+                                </SelectTrigger>
+                                <SelectContent className="tracking-wide">
+                                    {!approvers ? (
+                                        <SelectItem value="loading" disabled>Loading...</SelectItem>
+                                    ) : approvers.length ? (
+                                        approvers.map((approver) => (
+                                            <SelectItem key={approver.name} value={approver.name}>
+                                                {approver.name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <SelectItem value="none" disabled>
+                                            No admins with ban approval perms found.
+                                        </SelectItem>
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                </>
             )}
+            <div className="flex flex-col gap-3">
+                <Label>
+                    Proof File (optional, max 15MB)
+                </Label>
+                <Dropzone
+                    onFileChange={setProofFile}
+                    disabled={disabled}
+                />
+            </div>
+            <div className="flex flex-col gap-3">
+                <Label htmlFor="proofLink">
+                    Proof Video Link (optional)
+                </Label>
+                <Input
+                    id="proofLink"
+                    placeholder="https://youtube.com/watch?v=..."
+                    value={proofLink}
+                    onChange={(e) => setProofLink(e.target.value)}
+                    disabled={disabled}
+                />
+            </div>
         </div>
     );
 });

@@ -15,7 +15,7 @@ export default async function Proofs(ctx: AuthedCtx) {
     }
     const { filename } = params.data;
 
-    if (!ctx.admin.testPermission('wager.staff', 'Proofs')) {
+    if (!ctx.admin.testPermission('players.ban', 'Proofs')) {
         return ctx.utils.error(403, 'You don\'t have permission to view this page.');
     }
 
