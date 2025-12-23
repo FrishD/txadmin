@@ -42,7 +42,10 @@ export default async function PlayerPcCheck(ctx: AuthedCtx) {
         return ctx.send({ error: 'Invalid request.' });
     }
 
-    const { caught, supervisor, approver, reason } = fields;
+    const caught = fields.caught[0];
+    const supervisor = fields.supervisor[0];
+    const approver = fields.approver[0];
+    const reason = fields.reason?.[0];
     const proofs = files.proofs ? files.proofs.map(f => f.newFilename) : [];
 
     //Finding the player
