@@ -639,7 +639,7 @@ export default class ActionsDao {
         if (typeof caught !== 'boolean') throw new Error('Invalid caught value.');
         if (typeof supervisor !== 'string' || !supervisor.length) throw new Error('Invalid supervisor.');
         if (typeof approver !== 'string' || !approver.length) throw new Error('Invalid approver.');
-        if (!Array.isArray(proofs) || !proofs.length) throw new Error('Invalid proofs array.');
+        if (!Array.isArray(proofs)) throw new Error('Invalid proofs array.');
         if (playerName !== false && (typeof playerName !== 'string' || !playerName.length)) throw new Error('Invalid playerName.');
 
         //Saves it to the database
