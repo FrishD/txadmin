@@ -94,7 +94,7 @@ export default function PlayerPcCheckTab() {
                         </Label>
                         <input
                             type="file"
-                            name="proof"
+                            name="proofs"
                             multiple
                             accept="image/png, image/jpeg"
                             className="col-span-3"

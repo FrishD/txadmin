@@ -20,7 +20,7 @@ export default async function PlayerPcCheck(ctx: AuthedCtx) {
     if (txEnv.dataPath) {
         formOptions.uploadDir = path.join(txEnv.dataPath, 'proofs');
         formOptions.keepExtensions = true;
-        formOptions.maxFileSize = 1 * 1024 * 1024;
+        formOptions.maxFileSize = 3 * 1024 * 1024;
         formOptions.maxFiles = 3;
         formOptions.filter = ({ mimetype }) => mimetype && mimetype.includes('image');
     }
