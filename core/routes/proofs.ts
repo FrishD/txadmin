@@ -22,6 +22,9 @@ export default async function GetProofs(ctx: AuthedCtx) {
         });
     }
 
+    if (!txEnv.dataPath) {
+        return ctx.utils.error(500, 'Server data path not configured');
+    }
     const proofsPath = path.join(txEnv.dataPath, 'proofs');
     const filePath = path.join(proofsPath, ctx.params.fileName);
 
