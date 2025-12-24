@@ -17,8 +17,8 @@ import { GetApproversSuccessResp } from '@shared/otherTypes';
 
 export default function PlayerPcCheckTab() {
     const [caught, setCaught] = useState('');
-    const [supervisor, setSupervisor] = useState('');
-    const [approver, setApprover] = useState('');
+    const [supervisor, setSupervisor] = useState<string | undefined>(undefined);
+    const [approver, setApprover] = useState<string | undefined>(undefined);
     const [reason, setReason] = useState('');
     const [proofs, setProofs] = useState<FileList | null>(null);
     const [approvers, setApprovers] = useState<GetApproversSuccessResp>();
@@ -84,7 +84,7 @@ export default function PlayerPcCheckTab() {
                     <Label htmlFor="supervisor" className="text-right">
                         Supervisor
                     </Label>
-                    <Select onValueChange={setSupervisor} value={supervisor}>
+                    <Select onValueChange={setSupervisor} value={supervisor ?? ''}>
                         <SelectTrigger className="col-span-3">
                             <SelectValue placeholder="Select an admin" />
                         </SelectTrigger>
@@ -109,7 +109,7 @@ export default function PlayerPcCheckTab() {
                     <Label htmlFor="approver" className="text-right">
                         Approver
                     </Label>
-                    <Select onValueChange={setApprover} value={approver}>
+                    <Select onValueChange={setApprover} value={approver ?? ''}>
                         <SelectTrigger className="col-span-3">
                             <SelectValue placeholder="Select an admin" />
                         </SelectTrigger>
