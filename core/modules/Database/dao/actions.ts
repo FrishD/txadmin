@@ -195,6 +195,15 @@ export default class ActionsDao {
                     status: null,
                 },
             };
+
+            //Auto link PC Check
+            const pcChecks = this.findMany(ids, undefined, { type: 'pc_check' }) as DatabaseActionPcCheckType[];
+            const recentChecks = pcChecks.filter(check => check.timestamp > timestamp - 3600 && check.caught && !check.banId);
+            if (recentChecks.length) {
+                const sortedChecks = recentChecks.sort((a, b) => b.timestamp - a.timestamp);
+                sortedChecks[0].banId = actionID;
+            }
+
             this.chain.get('actions')
                 .push(toDB)
                 .value();
@@ -639,7 +648,7 @@ export default class ActionsDao {
         if (typeof caught !== 'boolean') throw new Error('Invalid caught value.');
         if (typeof supervisor !== 'string' || !supervisor.length) throw new Error('Invalid supervisor.');
         if (typeof approver !== 'string' || !approver.length) throw new Error('Invalid approver.');
-        if (!Array.isArray(proofs) || !proofs.length) throw new Error('Invalid proofs array.');
+        if (!Array.isArray(proofs)) throw new Error('Invalid proofs array.');
         if (playerName !== false && (typeof playerName !== 'string' || !playerName.length)) throw new Error('Invalid playerName.');
 
         //Saves it to the database

@@ -26,6 +26,9 @@ function HistoryItem({ action, serverTime, modalOpener }: HistoryItemProps) {
     } else if (action.type === 'mute') {
         borderColorClass = 'border-info';
         actionMessage = `MUTED by ${action.author}`;
+    } else if (action.type === 'pc_check') {
+        borderColorClass = 'border-primary';
+        actionMessage = `PC CHECK by ${action.author}`;
     }
     if (action.revokedBy) {
         borderColorClass = '';
@@ -74,7 +77,7 @@ export default function PlayerHistoryTab({ actionHistory, serverTime, refreshMod
 
     if (!actionHistory.length) {
         return <ModalCentralMessage>
-            No bans/warns found.
+            No sanctions found.
         </ModalCentralMessage>;
     }
 

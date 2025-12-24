@@ -125,6 +125,7 @@ export default async function getReactIndex(ctx: CtxWithVars | AuthedCtx) {
         providerLogo: txHostConfig.providerLogo,
         providerName: txHostConfig.providerName,
         hostConfigSource: txHostConfig.sourceName,
+        isProofsEnabled: txConfig.playerDatabase.isProofsEnabled,
 
         //Login page info
         server: {

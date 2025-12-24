@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 
 type ActionPcCheckTabProps = {
     action: HistoryActionModalSuccess['action'];
+    setModalData: (data: HistoryActionModalSuccess) => void;
 };
 
-export default function ActionPcCheckTab({ action }: ActionPcCheckTabProps) {
+export default function ActionPcCheckTab({ action, setModalData }: ActionPcCheckTabProps) {
     const [banId, setBanId] = useState('');
     const linkBanApi = useBackendApi({
         method: 'POST',
@@ -24,6 +25,9 @@ export default function ActionPcCheckTab({ action }: ActionPcCheckTabProps) {
         linkBanApi({
             data: { pcCheckId: action.id, banId },
             genericHandler: { successMsg: 'Ban linked successfully.' },
+            setData: (data) => {
+                setModalData({ action: data.updatedPcCheck });
+            }
         });
     };
 

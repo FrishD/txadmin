@@ -20,7 +20,7 @@ export default async function PlayerPcCheck(ctx: AuthedCtx) {
     if (txEnv.dataPath) {
         formOptions.uploadDir = path.join(txEnv.dataPath, 'proofs');
         formOptions.keepExtensions = true;
-        formOptions.maxFileSize = 1 * 1024 * 1024;
+        formOptions.maxFileSize = 3 * 1024 * 1024;
         formOptions.maxFiles = 3;
         formOptions.filter = ({ mimetype }) => mimetype && mimetype.includes('image');
     }
@@ -42,8 +42,13 @@ export default async function PlayerPcCheck(ctx: AuthedCtx) {
         return ctx.send({ error: 'Invalid request.' });
     }
 
-    const { caught, supervisor, approver, reason } = fields;
-    const proofs = files.proofs ? files.proofs.map(f => f.newFilename) : [];
+    const caught = fields.caught[0];
+    const supervisor = fields.supervisor[0];
+    const approver = fields.approver[0];
+    const reason = fields.reason?.[0];
+    const proofs = (files.proofs && Array.isArray(files.proofs))
+        ? files.proofs.map(f => f.newFilename)
+        : (files.proofs ? [files.proofs.newFilename] : []);
 
     //Finding the player
     let player;

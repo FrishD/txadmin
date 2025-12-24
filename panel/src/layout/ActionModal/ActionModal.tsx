@@ -249,6 +249,7 @@ export default function ActionModal() {
                                 />}
                                 {selectedTab === 'PC Report' && <ActionPcCheckTab
                                     action={modalData.action}
+                                    setModalData={setModalData}
                                 />}
                             </>
                         )}

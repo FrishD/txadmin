@@ -55,14 +55,23 @@ export const useAuthedFetcher = () => {
         }
 
         fetchOpts.method ??= 'GET';
+
+        const reqHeaders: Record<string, string> = {
+            ...defaultHeaders,
+            'User-Agent': headeruserAgent,
+            'X-TxAdmin-CsrfToken': csrfToken,
+        };
+        let reqBody: BodyInit | undefined = fetchOpts.body ? JSON.stringify(fetchOpts.body) : undefined;
+
+        if (fetchOpts.body instanceof FormData) {
+            delete reqHeaders['Content-Type'];
+            reqBody = fetchOpts.body;
+        }
+
         const resp = await fetch(fetchUrl, {
             method: fetchOpts.method,
-            headers: {
-                ...defaultHeaders,
-                'User-Agent': headeruserAgent,
-                'X-TxAdmin-CsrfToken': csrfToken,
-            },
-            body: fetchOpts.body ? JSON.stringify(fetchOpts.body) : undefined,
+            headers: reqHeaders,
+            body: reqBody,
             signal: abortController?.signal,
         });
         const data = await resp.json();
@@ -129,6 +138,7 @@ type ApiCallOpts<RespType, ReqType> = {
     success?: (data: RespType, toastId?: string) => void;
     error?: (message: string, toastId?: string) => void;
     finally?: () => void;
+    setData?: (data: RespType) => void;
 }
 
 export const useBackendApi = <
@@ -256,6 +266,13 @@ export const useBackendApi = <
                     opts.success(data, currentToastId.current);
                 } catch (error) {
                     console.log('[SUCCESS CB ERROR]', apiCallDesc, error);
+                }
+            }
+            if (opts.setData) {
+                try {
+                    opts.setData(data);
+                } catch (error) {
+                    console.log('[SETDATA CB ERROR]', apiCallDesc, error);
                 }
             }
             return data as RespType;

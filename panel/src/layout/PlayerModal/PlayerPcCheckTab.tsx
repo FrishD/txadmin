@@ -8,24 +8,39 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useBackendApi } from '@/hooks/fetch';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { usePlayerModalStateValue } from '@/hooks/playerModal';
 import { GenericApiOkResp } from '@shared/genericApiTypes';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { GetApproversSuccessResp } from '@shared/otherTypes';
 
 export default function PlayerPcCheckTab() {
     const [caught, setCaught] = useState('');
-    const [supervisor, setSupervisor] = useState('');
-    const [approver, setApprover] = useState('');
+    const [supervisor, setSupervisor] = useState<string | undefined>(undefined);
+    const [approver, setApprover] = useState<string | undefined>(undefined);
     const [reason, setReason] = useState('');
     const [proofs, setProofs] = useState<FileList | null>(null);
+    const [approvers, setApprovers] = useState<GetApproversSuccessResp>();
     const { playerRef } = usePlayerModalStateValue();
 
     const pcCheckApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
         path: '/player/pc_check',
     });
+
+    const getApproversApi = useBackendApi<GetApproversSuccessResp>({
+        method: 'GET',
+        path: '/adminManager/getApprovers',
+    });
+
+    useEffect(() => {
+        getApproversApi({}).then((data) => {
+            if (data) {
+                setApprovers(data);
+            }
+        });
+    }, []);
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -69,23 +84,51 @@ export default function PlayerPcCheckTab() {
                     <Label htmlFor="supervisor" className="text-right">
                         Supervisor
                     </Label>
-                    <Input
-                        id="supervisor"
-                        value={supervisor}
-                        onChange={(e) => setSupervisor(e.target.value)}
-                        className="col-span-3"
-                    />
+                    <Select onValueChange={setSupervisor} value={supervisor ?? ''}>
+                        <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select an admin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {!approvers ? (
+                                <SelectItem value="loading" disabled>Loading...</SelectItem>
+                            ) : approvers.length ? (
+                                approvers.map((approver) => (
+                                    <SelectItem key={approver} value={approver}>
+                                        {approver}
+                                    </SelectItem>
+                                ))
+                            ) : (
+                                <SelectItem value="none" disabled>
+                                    No admins found.
+                                </SelectItem>
+                            )}
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="approver" className="text-right">
                         Approver
                     </Label>
-                    <Input
-                        id="approver"
-                        value={approver}
-                        onChange={(e) => setApprover(e.target.value)}
-                        className="col-span-3"
-                    />
+                    <Select onValueChange={setApprover} value={approver ?? ''}>
+                        <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select an admin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {!approvers ? (
+                                <SelectItem value="loading" disabled>Loading...</SelectItem>
+                            ) : approvers.length ? (
+                                approvers.map((approver) => (
+                                    <SelectItem key={approver} value={approver}>
+                                        {approver}
+                                    </SelectItem>
+                                ))
+                            ) : (
+                                <SelectItem value="none" disabled>
+                                    No admins found.
+                                </SelectItem>
+                            )}
+                        </SelectContent>
+                    </Select>
                 </div>
                 {window.txConsts.isProofsEnabled && (
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -94,7 +137,7 @@ export default function PlayerPcCheckTab() {
                         </Label>
                         <input
                             type="file"
-                            name="proof"
+                            name="proofs"
                             multiple
                             accept="image/png, image/jpeg"
                             className="col-span-3"
