@@ -91,6 +91,47 @@ RegisterNetEvent('txcl:showWarning', function(author, reason, actionId, isWarnin
     end)
 end)
 
+
+RegisterNetEvent('txcl:showSummon', function(actionId)
+    toggleMenuVisibility(false)
+    sendMenuMessage('setSummonOpen', {})
+    CreateThread(function()
+        local countLimit = 900 --90 seconds
+        local count = 0
+        while count < countLimit do
+            Wait(100)
+            count = count + 1
+            if math.fmod(count, 10) == 0 then
+                local secsRemaining = (countLimit - count) / 10
+                sendMenuMessage('pulseSummon', secsRemaining)
+            end
+        end
+
+        sendMenuMessage('setSummonClosable')
+        while true do
+            Wait(100)
+            if IsControlPressed(dismissKeyGroup, dismissKey) then
+                count = count + 1
+                if count >= countLimit + 100 then --10 more seconds
+                    sendMenuMessage('closeSummon')
+                    -- NOTE: no ack for summons
+                    -- TriggerServerEvent('txsv:ackSummon', actionId)
+                    return
+                elseif math.fmod(count, 10) == 0 then
+                    local secsRemaining = ((countLimit + 100) - count) / 10
+                    sendMenuMessage('pulseSummon', secsRemaining)
+                end
+            else
+                if count > countLimit + 10 then
+                    sendMenuMessage('resetSummon')
+                end
+                count = countLimit
+            end
+        end
+    end)
+end)
+
+
 --- Awaits the player to start walking before issuing the warning
 --- to prevent players from being warned during character selection.
 --- Unlike the warn dismissal, stopping does not reset the counter.

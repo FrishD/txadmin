@@ -1,7 +1,7 @@
 const modulename = 'WebServer:Proofs';
 import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import consoleFactory from '@lib/console';
-import { txEnv } from '@core/globalData';
+import { txEnv, txHostConfig } from '@core/globalData';
 import path from 'path';
 import fs from 'fs-extra';
 const console = consoleFactory(modulename);
@@ -22,10 +22,10 @@ export default async function GetProofs(ctx: AuthedCtx) {
         });
     }
 
-    if (!txEnv.dataPath) {
+    if (!txHostConfig.dataPath) {
         return ctx.utils.error(500, 'Server data path not configured');
     }
-    const proofsPath = path.join(txEnv.dataPath, 'proofs');
+    const proofsPath = path.join(txHostConfig.dataPath, 'proofs');
     const filePath = path.join(proofsPath, ctx.params.fileName);
 
     try {

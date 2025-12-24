@@ -10,6 +10,7 @@ import { debugData } from "./utils/debugData";
 import { I18n } from "react-polyglot";
 import { useServerCtxValue } from "./state/server.state";
 import { WarnPage } from "./components/WarnPage/WarnPage";
+import { SummonPage } from "./components/SummonPage/SummonPage";
 import { IFrameProvider } from "./provider/IFrameProvider";
 import { PlayerModalProvider } from "./provider/PlayerModalProvider";
 import { txAdminMenuPage, useSetPage } from "./state/page.state";
@@ -107,6 +108,7 @@ const MenuWrapper: React.FC = () => {
             </DialogProvider>
           </IFrameProvider>
           <WarnPage />
+          <SummonPage />
         </>
       </I18n>
     </TopLevelErrorBoundary>

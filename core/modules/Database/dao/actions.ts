@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash-es';
 import { DbInstance, SavePriority } from "../instance";
-import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType, DatabaseActionPcCheckType } from "../databaseTypes";
+import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType, DatabaseActionPcCheckType, DatabaseActionSummonType } from "../databaseTypes";
 import { genActionID } from "../dbUtils";
 import { now } from '@lib/misc';
 import { sendRevocationLog } from '@modules/DiscordBot/discordHelpers';
@@ -78,6 +78,52 @@ export default class ActionsDao {
             return actionID;
         } catch (error) {
             let msg = `Failed to register mute to database with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
+     * Registers a summon action and returns its id
+     */
+    registerSummon(
+        ids: string[],
+        author: string,
+        playerName: string | false = false,
+    ): string {
+        //Sanity check
+        if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
+        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
+        if (playerName !== false && (typeof playerName !== 'string' || !playerName.length)) throw new Error('Invalid playerName.');
+
+        //Saves it to the database
+        const timestamp = now();
+        try {
+            const actionID = genActionID(this.dbo, 'summon');
+            const toDB: DatabaseActionSummonType = {
+                id: actionID,
+                type: 'summon',
+                ids,
+                playerName,
+                author,
+                timestamp,
+                expiration: false,
+                revocation: {
+                    timestamp: null,
+                    approver: null,
+                    requestor: null,
+                    status: null,
+                },
+            };
+            this.chain.get('actions')
+                .push(toDB)
+                .value();
+            this.db.writeFlag(SavePriority.HIGH);
+            return actionID;
+        } catch (error) {
+            let msg = `Failed to register summon to database with message: ${(error as Error).message}`;
             console.error(msg);
             console.verbose.dir(error);
             throw error;

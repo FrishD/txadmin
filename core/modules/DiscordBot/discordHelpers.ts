@@ -67,6 +67,39 @@ const genericEmbed = (
     }
 }
 
+
+/**
+ * Helper function to send PC check logs to a channel
+ */
+export const sendPcCheckLog = async (
+    channelId: string,
+    adminName: string,
+    member: any,
+) => {
+    const channel = getDiscordBot().channels.cache.get(channelId);
+    if (!channel || !channel.isTextBased()) {
+        console.error(`Channel ${channelId} not found or is not a text channel.`);
+        return;
+    }
+    const admin = txCore.adminStore.getAdminByName(adminName);
+    const adminMention = admin?.providers.discord
+        ? `<@${admin.providers.discord.id}>`
+        : adminName;
+
+    const embed = new EmbedBuilder({
+        title: `PC Check Summon`,
+        description: `${adminMention} summoned <@${member.id}> for a PC check.`,
+        color: 0x0000FF,
+        timestamp: new Date(),
+    });
+
+    try {
+        await channel.send({ embeds: [embed] });
+    } catch (error) {
+        console.error(`Failed to send PC check log to channel ${channelId}: ${(error as Error).message}`);
+    }
+}
+
 /**
  * Returns a ready-to-use discord client instance, or throws an error if not available.
  */
