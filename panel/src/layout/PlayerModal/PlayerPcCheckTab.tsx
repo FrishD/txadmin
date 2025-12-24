@@ -93,8 +93,8 @@ export default function PlayerPcCheckTab() {
                                 <SelectItem value="loading" disabled>Loading...</SelectItem>
                             ) : approvers.length ? (
                                 approvers.map((approver) => (
-                                    <SelectItem key={approver.name} value={approver.name}>
-                                        {approver.name}
+                                    <SelectItem key={approver} value={approver}>
+                                        {approver}
                                     </SelectItem>
                                 ))
                             ) : (
@@ -118,8 +118,8 @@ export default function PlayerPcCheckTab() {
                                 <SelectItem value="loading" disabled>Loading...</SelectItem>
                             ) : approvers.length ? (
                                 approvers.map((approver) => (
-                                    <SelectItem key={approver.name} value={approver.name}>
-                                        {approver.name}
+                                    <SelectItem key={approver} value={approver}>
+                                        {approver}
                                     </SelectItem>
                                 ))
                             ) : (
