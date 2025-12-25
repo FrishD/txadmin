@@ -100,6 +100,57 @@ export const sendPcCheckLog = async (
     }
 }
 
+
+/**
+ * Helper function to send PC report logs to a channel
+ */
+export const sendPcReportLog = async (
+    channelId: string,
+    adminName: string,
+    member: any,
+    supervisor: string,
+    approver: string,
+    caught: boolean,
+    proofs: string[],
+) => {
+    const channel = getDiscordBot().channels.cache.get(channelId);
+    if (!channel || !channel.isTextBased()) {
+        console.error(`Channel ${channelId} not found or is not a text channel.`);
+        return;
+    }
+
+    const admin = txCore.adminStore.getAdminByName(adminName);
+    const adminMention = admin?.providers.discord
+        ? `<@${admin.providers.discord.id}>`
+        : adminName;
+
+    const embed = new EmbedBuilder({
+        title: `PC Check Report`,
+        description: `Report submitted by ${adminMention} for <@${member.id}>.`,
+        color: caught ? 0xFF0000 : 0x00FF00,
+        timestamp: new Date(),
+        fields: [
+            { name: 'Supervisor', value: supervisor, inline: true },
+            { name: 'Approver', value: approver, inline: true },
+            { name: 'Caught', value: caught ? 'Yes' : 'No', inline: true },
+            { name: 'Proofs', value: formatProofs(proofs), inline: false },
+        ]
+    });
+
+    try {
+        await channel.send({ embeds: [embed] });
+    } catch (error) {
+        console.error(`Failed to send PC report log to channel ${channelId}: ${(error as Error).message}`);
+    }
+}
+
+const formatProofs = (proofs: string[]) => {
+    if (!proofs.length) {
+        return 'No proofs provided.';
+    }
+    return proofs.map((proof, index) => `[Proof ${index + 1}](${proof})`).join('\n');
+};
+
 /**
  * Returns a ready-to-use discord client instance, or throws an error if not available.
  */

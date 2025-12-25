@@ -143,6 +143,20 @@ const historySearchLogChannel = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
+const pcCheckLogChannel = typeNullableConfig({
+    name: 'PC Check Log Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
+const pcReportLogChannel = typeNullableConfig({
+    name: 'PC Report Log Channel ID',
+    default: null,
+    validator: discordSnowflakeSchema.nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
 
 export default {
     enabled,
@@ -161,6 +175,8 @@ export default {
     rateLimitLogChannel,
     playerSearchLogChannel,
     historySearchLogChannel,
+    pcCheckLogChannel,
+    pcReportLogChannel,
     embedJson,
     embedConfigJson,
 } as const;

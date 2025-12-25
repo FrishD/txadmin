@@ -19,7 +19,25 @@ export default async function Statistics(ctx: AuthedCtx) {
 
     //Calculate leaderboard stats
     const leaderboardData = allAdmins.map(admin => {
-        const player = allPlayers.find(p => p.ids.some(id => admin.providers.discord?.identifier === id || admin.providers.citizenfx?.identifier === id));
+        const player = allPlayers.find(p => {
+            if (!Array.isArray(p.ids)) {
+                return false;
+            }
+            return p.ids.some(id => {
+                if (typeof id !== 'string') {
+                    return false;
+                }
+                const discordId = admin.providers.discord?.identifier;
+                const citizenfxId = admin.providers.citizenfx?.identifier;
+                if (discordId && discordId.toLowerCase() === id.toLowerCase()) {
+                    return true;
+                }
+                if (citizenfxId && citizenfxId.toLowerCase() === id.toLowerCase()) {
+                    return true;
+                }
+                return false;
+            });
+        });
         const actionStats = txCore.database.stats.getAdminActionStats(admin.name);
         return {
             name: admin.name,

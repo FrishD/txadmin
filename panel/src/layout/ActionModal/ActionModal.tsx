@@ -168,6 +168,11 @@ export default function ActionModal() {
                 <span className="text-success-inline font-mono mr-2">[{modalData.action.id}]</span>
                 PC Check on {displayName}
             </>;
+        } else if (modalData.action.type === 'summon') {
+            pageTitle = <>
+                <span className="text-info-inline font-mono mr-2">[{modalData.action.id}]</span>
+                Summoned {displayName}
+            </>;
         } else {
             throw new Error(`Unknown action type: ${modalData.action.type}`);
         }

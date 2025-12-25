@@ -21,6 +21,7 @@ const SummonInnerStyles = styled('div')({
   color: "whitesmoke",
   transition: "transform 300ms ease-in-out",
   maxWidth: "900px",
+  fontFamily: "Assistant, sans-serif",
 
   [`& .${boxClasses.inner}`]: {
     padding: 32,
@@ -105,22 +106,9 @@ const SummonInnerComp: React.FC<SummonInnerComp> = ({
             textAlign: "center",
           }}
         >
-          You have been selected for a PC check. Please enter the "Waiting for PC Check" state immediately.<br />
-          Do not delete any files or exit the game during the check.<br />
-          Please keep a recording starting from the moment you see this message until the check is complete.<br />
-          Thank you for your cooperation.
-        </Typography>
-        <hr />
-        <Typography
-          letterSpacing={1}
-          variant="h5"
-          style={{
-            textAlign: "center",
-          }}
-        >
-          אתה זומן לבדיקה במחשב. אנא היכנס למצב "Waiting for PC Check" מיד.<br />
-          אסור למחוק קבצים או לצאת מהמשחק בזמן הבדיקה.<br />
-          אנא שמור רישום (רקורד) מהשנייה שבה אתה רואה הודעה זו ועד סיום הבדיקה.<br />
+          זומנת לבדיקת מחשב. עליך להיכנס למצב "מחכה לבדיקה" באופן מיידי.<br />
+          חל איסור למחוק קבצים או לצאת מהמשחק במהלך הבדיקה.<br />
+          נא לשמור על הקלטה מהרגע שבו הודעה זו מופיעה ועד לסיום הבדיקה.<br />
           תודה על שיתוף הפעולה.
         </Typography>
       </Box>

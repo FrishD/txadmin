@@ -44,6 +44,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
     const setLocation = useLocation()[1];
     const [currentDuration, setCurrentDuration] = useState('2 days');
     const [customUnits, setCustomUnits] = useState('days');
+    const [customDuration, setCustomDuration] = useState('');
     const [selectedApprover, setSelectedApprover] = useState('');
     const [blacklistStatus, setBlacklistStatus] = useState<'no' | 'yes'>('no');
     const closeModal = useClosePlayerModal();
@@ -51,21 +52,21 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
 
     const { hasPerm } = useAdminPerms();
     const isLongBan = useMemo(() => {
-        if (currentDuration === 'permanent' || currentDuration === '1 week' || currentDuration === '2 weeks') {
+        if (currentDuration === 'permanent' || currentDuration === '2 weeks') {
             return true;
         }
         if (currentDuration === 'custom') {
-            const val = customMultiplierRef.current?.value ? parseInt(customMultiplierRef.current.value, 10) : 0;
+            const val = customDuration ? parseInt(customDuration, 10) : 0;
             if (!val) return false;
             if (customUnits === 'months') return true;
-            if (customUnits === 'weeks') return val >= 1;
-            if (customUnits === 'days') return val >= 7;
-            if (customUnits === 'hours') return val >= 168; // 7 * 24
+            if (customUnits === 'weeks') return val >= 2;
+            if (customUnits === 'days') return val >= 14;
+            if (customUnits === 'hours') return val >= 336; // 14 * 24
             return false;
         }
-        // For other presets like '2 days', etc.
+        // For other presets like '1 week', etc.
         return false;
-    }, [currentDuration, customUnits, customMultiplierRef.current?.value]);
+    }, [currentDuration, customUnits, customDuration]);
     const showApproverDropdown = isLongBan && !hasPerm('players.approve_bans');
 
 
@@ -76,7 +77,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                 return {
                     reason: reasonRef.current?.value.trim(),
                     duration: currentDuration === 'custom'
-                        ? `${customMultiplierRef.current?.value} ${customUnits}`
+                        ? `${customDuration} ${customUnits}`
                         : currentDuration,
                     approver: selectedApprover,
                     blacklist: blacklistStatus === 'yes',
@@ -88,6 +89,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                 customMultiplierRef.current.value = '';
                 setCurrentDuration('2 days');
                 setCustomUnits('days');
+                setCustomDuration('');
                 setSelectedApprover('');
                 setBlacklistStatus('no');
             },
@@ -96,7 +98,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
             },
             isLongBan,
         };
-    }, [reasonRef, customMultiplierRef, currentDuration, customUnits, selectedApprover, isLongBan, blacklistStatus]);
+    }, [reasonRef, customMultiplierRef, currentDuration, customUnits, customDuration, selectedApprover, isLongBan, blacklistStatus]);
 
     const handleTemplateSelectChange = (value: string) => {
         if (value === ADD_NEW_SELECT_OPTION) {
@@ -112,7 +114,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                 setCurrentDuration(processedDuration);
             } else if (typeof template.duration === 'object') {
                 setCurrentDuration('custom');
-                customMultiplierRef.current!.value = template.duration.value.toString();
+                setCustomDuration(template.duration.value.toString());
                 setCustomUnits(template.duration.unit);
             }
 
@@ -275,6 +277,8 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                             required
                             disabled={currentDuration !== 'custom' || disabled}
                             ref={customMultiplierRef}
+                            value={customDuration}
+                            onChange={(e) => setCustomDuration(e.target.value)}
                         />
                         <Select
                             onValueChange={setCustomUnits}
