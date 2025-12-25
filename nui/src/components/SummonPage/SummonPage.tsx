@@ -217,11 +217,11 @@ export const SummonPage: React.FC = ({ }) => {
 
   useNuiEvent("setSummonClosable", () => {
     setIsClosable(true);
-    setSecsRemaining(10);
+    setSecsRemaining(2);
   });
 
   useNuiEvent("resetSummon", () => {
-    setSecsRemaining(10);
+    setSecsRemaining(2);
     setResetCounter((prev) => prev + 1);
     pulseSound.pause();
     pulseSound.currentTime = 0;

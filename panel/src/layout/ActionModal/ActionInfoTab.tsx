@@ -244,6 +244,6 @@ export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInf
             </div>
         </dl>
 
-        {action.reason && <ActionReasonBox actionReason={action.reason} />}
+        <ActionReasonBox actionReason={action.reason} />
     </div>;
 }

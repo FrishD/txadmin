@@ -1,5 +1,5 @@
 const modulename = 'WebServer:PlayerPcCheck';
-import { txEnv } from '@core/globalData';
+import { txHostConfig } from '@core/globalData';
 import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import { GenericApiResp } from '@shared/genericApiTypes';
 import consoleFactory from '@lib/console';
@@ -17,8 +17,9 @@ const console = consoleFactory(modulename);
  */
 export default async function PlayerPcCheck(ctx: AuthedCtx) {
     const formOptions: formidable.Options = {};
-    if (txEnv.dataPath) {
-        formOptions.uploadDir = path.join(txEnv.dataPath, 'proofs');
+    if (txHostConfig.dataPath) {
+        formOptions.uploadDir = path.join(txHostConfig.dataPath, 'proofs');
+        console.verbose.dir({ uploadDir: formOptions.uploadDir });
         formOptions.keepExtensions = true;
         formOptions.maxFileSize = 3 * 1024 * 1024;
         formOptions.maxFiles = 3;
@@ -49,6 +50,7 @@ export default async function PlayerPcCheck(ctx: AuthedCtx) {
     const proofs = (files.proofs && Array.isArray(files.proofs))
         ? files.proofs.map(f => f.newFilename)
         : (files.proofs ? [files.proofs.newFilename] : []);
+    console.verbose.dir({ proofs });
 
     //Finding the player
     let player;

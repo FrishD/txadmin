@@ -14,19 +14,16 @@ const console = consoleFactory(modulename);
 const processHistoryLog = (hist: DatabaseActionType[]) => {
     try {
         return hist.map((log): PlayerHistoryItem => {
-            const out: PlayerHistoryItem = {
+            return {
                 id: log.id,
                 type: log.type,
+                reason: log.reason,
                 author: log.author,
                 ts: log.timestamp,
                 exp: log.expiration ? log.expiration : undefined,
-                revokedBy: log.revocation.approver ? log.revocation.approver : undefined,
+                revokedBy: log.revocation.author ? log.revocation.author : undefined,
                 revokedAt: log.revocation.timestamp ? log.revocation.timestamp : undefined,
             };
-            if('reason' in log && typeof log.reason === 'string'){
-                out.reason = log.reason;
-            }
-            return out;
         });
     } catch (error) {
         console.error(`Error processing player history: ${(error as Error).message}`);

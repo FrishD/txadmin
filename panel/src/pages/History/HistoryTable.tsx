@@ -48,6 +48,11 @@ function HistoryRow({ action, modalOpener }: HistoryRowProps) {
             <ShieldCheckIcon className='size-5' />
         </div>
         rowId = <span className='tracking-wider text-success'>{action.id}</span>
+    } else if (action.type === 'summon') {
+        rowPrefix = <div className='flex items-center px-1 bg-info-hint text-info'>
+            <ShieldCheckIcon className='size-5' />
+        </div>
+        rowId = <span className='tracking-wider text-info'>{action.id}</span>
     } else {
         throw new Error(`Invalid action type: ${(action as any).type}`);
     }
@@ -101,7 +106,9 @@ function HistoryRow({ action, modalOpener }: HistoryRowProps) {
             </TableCell>
             <TableCell className='px-4 py-2 border-r'>
                 <span className='text-ellipsis overflow-hidden line-clamp-1 break-all'>
-                    {action.reason}
+                    {action.reason ? action.reason : (
+                        <span className='text-muted-foreground italic'>N/A</span>
+                    )}
                 </span>
             </TableCell>
             <TableCell className='px-4 py-2 border-r'>

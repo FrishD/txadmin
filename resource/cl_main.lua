@@ -95,6 +95,16 @@ end)
 RegisterNetEvent('txcl:showSummon', function(actionId)
     toggleMenuVisibility(false)
     sendMenuMessage('setSummonOpen', {})
+    local ped = PlayerPedId()
+    FreezeEntityPosition(ped, true)
+
+    CreateThread(function()
+        local sound = PlaySoundFrontend(-1, "FLIGHT_SCHOOL_LESSON_PASSED", "HUD_AWARDS")
+        Wait(5000)
+        StopSound(sound)
+        ReleaseSoundId(sound)
+    end)
+
     CreateThread(function()
         local countLimit = 900 --90 seconds
         local count = 0
@@ -108,24 +118,24 @@ RegisterNetEvent('txcl:showSummon', function(actionId)
         end
 
         sendMenuMessage('setSummonClosable')
+        local spaceCounter = 0
         while true do
             Wait(100)
             if IsControlPressed(dismissKeyGroup, dismissKey) then
-                count = count + 1
-                if count >= countLimit + 100 then --10 more seconds
+                spaceCounter = spaceCounter + 1
+                if spaceCounter >= 20 then --2 seconds
                     sendMenuMessage('closeSummon')
-                    -- NOTE: no ack for summons
-                    -- TriggerServerEvent('txsv:ackSummon', actionId)
+                    FreezeEntityPosition(ped, false)
                     return
-                elseif math.fmod(count, 10) == 0 then
-                    local secsRemaining = ((countLimit + 100) - count) / 10
+                elseif math.fmod(spaceCounter, 5) == 0 then
+                    local secsRemaining = (20 - spaceCounter) / 10
                     sendMenuMessage('pulseSummon', secsRemaining)
                 end
             else
-                if count > countLimit + 10 then
+                if spaceCounter > 5 then
                     sendMenuMessage('resetSummon')
                 end
-                count = countLimit
+                spaceCounter = 0
             end
         end
     end)

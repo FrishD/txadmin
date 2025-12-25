@@ -29,9 +29,6 @@ function HistoryItem({ action, serverTime, modalOpener }: HistoryItemProps) {
     } else if (action.type === 'pc_check') {
         borderColorClass = 'border-primary';
         actionMessage = `PC CHECK by ${action.author}`;
-    } else if (action.type === 'summon') {
-        borderColorClass = 'border-info';
-        actionMessage = `SUMMONED by ${action.author}`;
     }
     if (action.revokedBy) {
         borderColorClass = '';
@@ -62,7 +59,7 @@ function HistoryItem({ action, serverTime, modalOpener }: HistoryItemProps) {
                     </span>
                 </small>
             </div>
-            {action.reason && <span className="text-sm">{action.reason}</span>}
+            <span className="text-sm">{action.reason}</span>
             {footerNote && <small className="block text-xs opacity-75">{footerNote}</small>}
         </div>
     );

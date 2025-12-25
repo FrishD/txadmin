@@ -27,13 +27,16 @@ export default async function GetProofs(ctx: AuthedCtx) {
     }
     const proofsPath = path.join(txHostConfig.dataPath, 'proofs');
     const filePath = path.join(proofsPath, ctx.params.fileName);
+    console.verbose.dir({ dataPath: txHostConfig.dataPath, proofsPath, filePath });
 
     try {
         if (!await fs.pathExists(filePath)) {
+            console.verbose.error(`File not found: ${filePath}`);
             return ctx.utils.error(404, 'File not found');
         }
         ctx.body = await fs.createReadStream(filePath);
     } catch (error) {
+        console.verbose.error(`Failed to serve proof: ${(error as Error).message}`);
         return ctx.utils.error(500, `Failed to serve proof: ${(error as Error).message}`);
     }
 }
