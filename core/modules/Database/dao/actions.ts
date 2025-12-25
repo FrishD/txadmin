@@ -208,6 +208,7 @@ export default class ActionsDao {
         hwids?: string[],
         banApprover?: string,
         blacklist?: boolean,
+        pcCheckId?: string,
     ): string {
         //Sanity check
         if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
@@ -234,6 +235,7 @@ export default class ActionsDao {
                 expiration,
                 banApprover,
                 blacklist,
+                pcCheckId,
                 revocation: {
                     timestamp: null,
                     approver: null,
@@ -245,7 +247,7 @@ export default class ActionsDao {
             //Auto link PC Check
             const pcChecks = this.findMany(ids, undefined, { type: 'pc_check' }) as DatabaseActionPcCheckType[];
             const recentChecks = pcChecks.filter(check => check.timestamp > timestamp - 3600 && check.caught && !check.banId);
-            if (recentChecks.length) {
+            if (recentChecks.length && !pcCheckId) {
                 const sortedChecks = recentChecks.sort((a, b) => b.timestamp - a.timestamp);
                 sortedChecks[0].banId = actionID;
             }
