@@ -52,19 +52,19 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
 
     const { hasPerm } = useAdminPerms();
     const isLongBan = useMemo(() => {
-        if (currentDuration === 'permanent' || currentDuration === '1 week' || currentDuration === '2 weeks') {
+        if (currentDuration === 'permanent' || currentDuration === '2 weeks') {
             return true;
         }
         if (currentDuration === 'custom') {
             const val = customDuration ? parseInt(customDuration, 10) : 0;
             if (!val) return false;
             if (customUnits === 'months') return true;
-            if (customUnits === 'weeks') return val >= 1;
-            if (customUnits === 'days') return val >= 7;
-            if (customUnits === 'hours') return val >= 168; // 7 * 24
+            if (customUnits === 'weeks') return val >= 2;
+            if (customUnits === 'days') return val >= 14;
+            if (customUnits === 'hours') return val >= 336; // 14 * 24
             return false;
         }
-        // For other presets like '2 days', etc.
+        // For other presets like '1 week', etc.
         return false;
     }, [currentDuration, customUnits, customDuration]);
     const showApproverDropdown = isLongBan && !hasPerm('players.approve_bans');

@@ -33,6 +33,8 @@ export const pageConfigs = {
     blacklistRole: getPageConfig('discordBot', 'blacklistRole'),
     complementaryRole: getPageConfig('discordBot', 'complementaryRole'),
     rateLimitLogChannel: getPageConfig('discordBot', 'rateLimitLogChannel'),
+    pcCheckLogChannel: getPageConfig('discordBot', 'pcCheckLogChannel'),
+    pcReportLogChannel: getPageConfig('discordBot', 'pcReportLogChannel'),
     embedJson: getPageConfig('discordBot', 'embedJson'),
     embedConfigJson: getPageConfig('discordBot', 'embedConfigJson'),
 } as const;
@@ -62,6 +64,8 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
     const blacklistRoleRef = useRef<HTMLInputElement | null>(null);
     const complementaryRoleRef = useRef<HTMLInputElement | null>(null);
     const rateLimitLogChannelRef = useRef<HTMLInputElement | null>(null);
+    const pcCheckLogChannelRef = useRef<HTMLInputElement | null>(null);
+    const pcReportLogChannelRef = useRef<HTMLInputElement | null>(null);
 
     //Marshalling Utils
     const emptyToNull = (str?: string) => {
@@ -82,6 +86,8 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
             blacklistRole: emptyToNull(blacklistRoleRef.current?.value),
             complementaryRole: emptyToNull(complementaryRoleRef.current?.value),
             rateLimitLogChannel: emptyToNull(rateLimitLogChannelRef.current?.value),
+            pcCheckLogChannel: emptyToNull(pcCheckLogChannelRef.current?.value),
+            pcReportLogChannel: emptyToNull(pcReportLogChannelRef.current?.value),
         };
 
         const res = getConfigDiff(cfg, states, overwrites, false);
@@ -260,6 +266,32 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                 />
                 <SettingItemDesc>
                     The ID of the channel to send ban rate limit logs to.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem label="PC Check Log Channel ID" htmlFor={cfg.pcCheckLogChannel.eid} showOptional>
+                <Input
+                    id={cfg.pcCheckLogChannel.eid}
+                    ref={pcCheckLogChannelRef}
+                    defaultValue={cfg.pcCheckLogChannel.initialValue}
+                    onInput={updatePageState}
+                    disabled={pageCtx.isReadOnly}
+                    placeholder='000000000000000000'
+                />
+                <SettingItemDesc>
+                    The ID of the channel to send PC check logs to.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem label="PC Report Log Channel ID" htmlFor={cfg.pcReportLogChannel.eid} showOptional>
+                <Input
+                    id={cfg.pcReportLogChannel.eid}
+                    ref={pcReportLogChannelRef}
+                    defaultValue={cfg.pcReportLogChannel.initialValue}
+                    onInput={updatePageState}
+                    disabled={pageCtx.isReadOnly}
+                    placeholder='000000000000000000'
+                />
+                <SettingItemDesc>
+                    The ID of the channel to send PC report logs to.
                 </SettingItemDesc>
             </SettingItem>
             <SettingItem label="Status Embed JSON" htmlFor={cfg.embedJson.eid} required={states.botEnabled}>

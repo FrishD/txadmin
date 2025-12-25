@@ -21,6 +21,7 @@ const SummonInnerStyles = styled('div')({
   color: "whitesmoke",
   transition: "transform 300ms ease-in-out",
   maxWidth: "900px",
+  fontFamily: "Assistant, sans-serif",
 
   [`& .${boxClasses.inner}`]: {
     padding: 32,
@@ -94,7 +95,7 @@ const SummonInnerComp: React.FC<SummonInnerComp> = ({
         <Box className={boxClasses.title}>
           <SummonIcon />
           <Typography variant="h3" style={{ fontWeight: 700 }}>
-            בדיקת מחשב
+            PC Check
           </Typography>
           <SummonIcon />
         </Box>
@@ -150,23 +151,23 @@ const MainPageStyles = styled('div')(({
     gap: "1em",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(133, 3, 3, 0.95)",
+    backgroundColor: "rgba(3, 3, 133, 0.95)",
   },
   "@keyframes miniBounce": {
     "0%": {
-      backgroundColor: "rgba(133, 3, 3, 0.95)",
+      backgroundColor: "rgba(3, 3, 133, 0.95)",
     },
     "30%": {
-      backgroundColor: "rgba(133, 3, 3, 0.60)",
+      backgroundColor: "rgba(3, 3, 133, 0.60)",
     },
     "60%": {
-      backgroundColor: "rgba(133, 3, 3, 0.30)",
+      backgroundColor: "rgba(3, 3, 133, 0.30)",
     },
     "70%": {
-      backgroundColor: "rgba(133, 3, 3, 0.60)",
+      backgroundColor: "rgba(3, 3, 133, 0.60)",
     },
     "100%": {
-      backgroundColor: "rgba(133, 3, 3, 0.95)",
+      backgroundColor: "rgba(3, 3, 133, 0.95)",
     },
   },
   [`& .${mainClasses.miniBounce}`]: {
