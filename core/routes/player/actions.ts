@@ -7,7 +7,7 @@ import { anyUndefined, calcExpirationFromDuration } from '@lib/misc';
 import consoleFactory from '@lib/console';
 import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import { SYM_CURRENT_MUTEX } from '@lib/symbols';
-import { sendWagerBlacklistLog } from '@modules/DiscordBot/discordHelpers';
+import { sendWagerBlacklistLog, sendPcCheckLog } from '@modules/DiscordBot/discordHelpers';
 import { handleMute, handleUnmute } from './mute';
 import { checkBanRateLimit } from '@lib/rateLimiter';
 import { sendRateLimitLog } from '@modules/DiscordBot/discordHelpers';
@@ -40,6 +40,8 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleSaveNote(ctx, player));
     } else if (action === 'warn') {
         return sendTypedResp(await handleWarning(ctx, player));
+    } else if (action === 'summon') {
+        return sendTypedResp(await handleSummon(ctx, player));
     } else if (action === 'ban') {
         return sendTypedResp(await handleBan(ctx, player));
     } else if (action === 'whitelist') {
@@ -137,6 +139,66 @@ async function handleWarning(ctx: AuthedCtx, player: PlayerClass): Promise<Gener
         return { success: true };
     } else {
         return { error: `Warn saved, but likely failed to send the warn in game (stdin error).` };
+    }
+}
+
+
+/**
+ * Handle Summon Player
+ */
+async function handleSummon(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Check permissions
+    if (!ctx.admin.testPermission('web.pc_checker', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    //Validating server & player
+    const allIds = player.getAllIdentifiers();
+    if (!allIds.length) {
+        return { error: 'Cannot summon a player with no identifiers.' };
+    }
+
+    //Register action
+    let actionId;
+    try {
+        actionId = txCore.database.actions.registerSummon(
+            allIds,
+            ctx.admin.name,
+            player.displayName,
+        );
+    } catch (error) {
+        return { error: `Failed to summon player: ${(error as Error).message}` };
+    }
+    ctx.admin.logAction(`Summoned player "${player.displayName}" for PC check.`);
+
+    //Send discord log
+    if (txConfig.discordBot.pcCheckLogChannel) {
+        try {
+            const discordId = allIds.find(id => typeof id === 'string' && id.startsWith('discord:'));
+            if (discordId) {
+                const uid = discordId.substring(8);
+                const member = await txCore.discordBot.guild?.members.fetch(uid);
+                if(member) sendPcCheckLog(txConfig.discordBot.pcCheckLogChannel, ctx.admin.name, member);
+            }
+        } catch (error) {
+            //Don't fail the whole command if the role removal fails
+            console.error(`Failed to send summon log: ${(error as Error).message}`);
+        }
+    }
+
+    // Dispatch `txAdmin:events:playerSummoned`
+    const eventSent = txCore.fxRunner.sendEvent('playerSummoned', {
+        author: ctx.admin.name,
+        actionId,
+        targetNetId: (player instanceof ServerPlayer && player.isConnected) ? player.netid : null,
+        targetIds: allIds,
+        targetName: player.displayName,
+    });
+
+    if (eventSent) {
+        return { success: true };
+    } else {
+        return { error: `Summon saved, but likely failed to send the summon in game (stdin error).` };
     }
 }
 

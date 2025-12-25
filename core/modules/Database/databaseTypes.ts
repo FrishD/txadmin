@@ -39,6 +39,7 @@ export type DatabaseActionBanType = {
     banApprover?: string;
     oldReason?: string;
     blacklist?: boolean;
+    pcCheckId?: string;
 } & DatabaseActionBaseType;
 export type DatabaseActionWarnType = {
     type: 'warn';
@@ -66,7 +67,12 @@ export type DatabaseActionPcCheckType = {
     banId?: string;
 } & DatabaseActionBaseType;
 
-export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType | DatabaseActionMuteType | DatabaseActionPcCheckType;
+export type DatabaseActionSummonType = Omit<DatabaseActionBaseType, 'reason'> & {
+    type: 'summon';
+    expiration: false;
+};
+
+export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType | DatabaseActionMuteType | DatabaseActionPcCheckType | DatabaseActionSummonType;
 
 export type DatabaseWhitelistApprovalsType = {
     identifier: string;

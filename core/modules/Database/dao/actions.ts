@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash-es';
 import { DbInstance, SavePriority } from "../instance";
-import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType, DatabaseActionPcCheckType } from "../databaseTypes";
+import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType, DatabaseActionPcCheckType, DatabaseActionSummonType } from "../databaseTypes";
 import { genActionID } from "../dbUtils";
 import { now } from '@lib/misc';
 import { sendRevocationLog } from '@modules/DiscordBot/discordHelpers';
@@ -86,6 +86,52 @@ export default class ActionsDao {
 
 
     /**
+     * Registers a summon action and returns its id
+     */
+    registerSummon(
+        ids: string[],
+        author: string,
+        playerName: string | false = false,
+    ): string {
+        //Sanity check
+        if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
+        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
+        if (playerName !== false && (typeof playerName !== 'string' || !playerName.length)) throw new Error('Invalid playerName.');
+
+        //Saves it to the database
+        const timestamp = now();
+        try {
+            const actionID = genActionID(this.dbo, 'summon');
+            const toDB: DatabaseActionSummonType = {
+                id: actionID,
+                type: 'summon',
+                ids,
+                playerName,
+                author,
+                timestamp,
+                expiration: false,
+                revocation: {
+                    timestamp: null,
+                    approver: null,
+                    requestor: null,
+                    status: null,
+                },
+            };
+            this.chain.get('actions')
+                .push(toDB)
+                .value();
+            this.db.writeFlag(SavePriority.HIGH);
+            return actionID;
+        } catch (error) {
+            let msg = `Failed to register summon to database with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
      * Searches for an action in the database by the id, returns action or null if not found
      */
     findOne(actionId: string): DatabaseActionType | null {
@@ -162,6 +208,7 @@ export default class ActionsDao {
         hwids?: string[],
         banApprover?: string,
         blacklist?: boolean,
+        pcCheckId?: string,
     ): string {
         //Sanity check
         if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
@@ -188,6 +235,7 @@ export default class ActionsDao {
                 expiration,
                 banApprover,
                 blacklist,
+                pcCheckId,
                 revocation: {
                     timestamp: null,
                     approver: null,
@@ -199,7 +247,7 @@ export default class ActionsDao {
             //Auto link PC Check
             const pcChecks = this.findMany(ids, undefined, { type: 'pc_check' }) as DatabaseActionPcCheckType[];
             const recentChecks = pcChecks.filter(check => check.timestamp > timestamp - 3600 && check.caught && !check.banId);
-            if (recentChecks.length) {
+            if (recentChecks.length && !pcCheckId) {
                 const sortedChecks = recentChecks.sort((a, b) => b.timestamp - a.timestamp);
                 sortedChecks[0].banId = actionID;
             }

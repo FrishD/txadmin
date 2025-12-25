@@ -1,7 +1,7 @@
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PlayerModalRefType, useClosePlayerModal } from "@/hooks/playerModal";
-import { AlertTriangleIcon, MailIcon, ShieldCheckIcon } from "lucide-react";
+import { AlertTriangleIcon, MailIcon, ShieldCheckIcon, SearchCheckIcon } from "lucide-react";
 import { KickOneIcon } from '@/components/KickIcons';
 import { useBackendApi } from "@/hooks/fetch";
 import { useAdminPerms } from "@/hooks/auth";
@@ -37,6 +37,10 @@ export default function PlayerModalFooter({ playerRef, player }: PlayerModalFoot
     const playerWarnApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
         path: `/player/warn`,
+    });
+    const playerSummonApi = useBackendApi<GenericApiOkResp>({
+        method: 'POST',
+        path: `/player/summon`,
     });
 
     const closeOnSuccess = (data: GenericApiOkResp) => {
@@ -81,6 +85,26 @@ export default function PlayerModalFooter({ playerRef, player }: PlayerModalFoot
                     data: { message: input },
                     genericHandler: { successMsg: 'Direct message sent.' },
                     toastLoadingMessage: 'Sending direct message...',
+                    success: closeOnSuccess,
+                });
+            }
+        });
+    }
+
+    const handleSummon = () => {
+        if (!player) return;
+        openPromptDialog({
+            title: `Summon ${player.displayName} for PC Check`,
+            message: <p>
+                The player will get a fullscreen message that cannot be closed for 90 seconds.
+            </p>,
+            isDangerous: true,
+            submitLabel: 'Summon',
+            onSubmit: () => {
+                playerSummonApi({
+                    queryParams: playerRef,
+                    genericHandler: { successMsg: 'Summon sent.' },
+                    toastLoadingMessage: 'Sending summon...',
                     success: closeOnSuccess,
                 });
             }
@@ -171,6 +195,15 @@ export default function PlayerModalFooter({ playerRef, player }: PlayerModalFoot
                 className="pl-2"
             >
                 <AlertTriangleIcon className="h-5 mr-1" /> Warn
+            </Button>
+            <Button
+                variant='outline'
+                size='sm'
+                disabled={!hasPerm('web.pc_checker') || !player || !player.isConnected}
+                onClick={handleSummon}
+                className="pl-2"
+            >
+                <SearchCheckIcon className="h-5 mr-1" /> Summon
             </Button>
         </DialogFooter>
     )

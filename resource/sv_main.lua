@@ -218,6 +218,33 @@ TX_EVENT_HANDLERS.playerDirectMessage = function(eventData)
 end
 
 
+--- Handler for player summoned event
+--- Summon specific player via server ID
+TX_EVENT_HANDLERS.playerSummoned = function(eventData)
+    if eventData.targetNetId == nil then return end
+
+    if not DoesPlayerExist(eventData.targetNetId) then
+        txPrint(string.format(
+            '[handleSummonEvent] ignoring summon for disconnected player (#%s) %s',
+            eventData.targetNetId,
+            eventData.targetName
+        ))
+        return
+    end
+
+    TriggerClientEvent(
+        'txcl:showSummon',
+        eventData.targetNetId,
+        eventData.actionId
+    )
+    txPrint(string.format(
+        'Summoning player (#%s) %s for a PC check',
+        eventData.targetNetId,
+        eventData.targetName
+    ))
+end
+
+
 --- Handler for player kicked event
 TX_EVENT_HANDLERS.playerKicked = function(eventData)
     Wait(0) -- give other resources a chance to read player data

@@ -1,7 +1,7 @@
 const modulename = 'WebServer:Proofs';
 import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 import consoleFactory from '@lib/console';
-import { txEnv } from '@core/globalData';
+import { txEnv, txHostConfig } from '@core/globalData';
 import path from 'path';
 import fs from 'fs-extra';
 const console = consoleFactory(modulename);
@@ -22,18 +22,21 @@ export default async function GetProofs(ctx: AuthedCtx) {
         });
     }
 
-    if (!txEnv.dataPath) {
+    if (!txHostConfig.dataPath) {
         return ctx.utils.error(500, 'Server data path not configured');
     }
-    const proofsPath = path.join(txEnv.dataPath, 'proofs');
+    const proofsPath = path.join(txHostConfig.dataPath, 'proofs');
     const filePath = path.join(proofsPath, ctx.params.fileName);
+    console.verbose.dir({ dataPath: txHostConfig.dataPath, proofsPath, filePath });
 
     try {
         if (!await fs.pathExists(filePath)) {
+            console.verbose.error(`File not found: ${filePath}`);
             return ctx.utils.error(404, 'File not found');
         }
         ctx.body = await fs.createReadStream(filePath);
     } catch (error) {
+        console.verbose.error(`Failed to serve proof: ${(error as Error).message}`);
         return ctx.utils.error(500, `Failed to serve proof: ${(error as Error).message}`);
     }
 }

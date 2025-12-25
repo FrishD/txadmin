@@ -5,8 +5,9 @@ import { msToDuration } from "@/lib/dateTime";
 import { useRef, useState } from "react";
 import type { DatabaseActionType } from "../../../../core/modules/Database/databaseTypes";
 import { useOpenPlayerModal } from "@/hooks/playerModal";
+import { useOpenActionModal } from "@/hooks/actionModal";
 import DateTimeCorrected from "@/components/DateTimeCorrected";
-import { Link } from "lucide-react";
+import { Link, SearchCheckIcon } from "lucide-react";
 import TxAnchor from "@/components/TxAnchor";
 
 
@@ -46,6 +47,7 @@ type ActionInfoTabProps = {
 
 export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInfoTabProps) {
     const openPlayerModal = useOpenPlayerModal();
+    const openActionModal = useOpenActionModal();
 
     let banExpirationText: React.ReactNode;
     if (action.type === 'ban') {
@@ -153,6 +155,10 @@ export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInf
         if (!linkedPlayer) return;
         openPlayerModal({ license: linkedPlayer });
     }
+    const handleViewPcCheckClick = () => {
+        if (action.type !== 'ban' || !action.pcCheckId) return;
+        openActionModal(action.pcCheckId);
+    }
 
     return <div className="px-1 mb-1 md:mb-4">
         <dl className="pb-2">
@@ -221,6 +227,17 @@ export default function ActionInfoTab({ action, serverTime, tsFetch }: ActionInf
                                 <Link className="mr-1 h-4 w-4" />
                                 Wager Page
                             </TxAnchor>
+                        )}
+                        {action.type === 'ban' && action.pcCheckId && (
+                            <Button
+                                variant="outline"
+                                size='inline'
+                                style={{ minWidth: '8.25ch' }}
+                                onClick={handleViewPcCheckClick}
+                            >
+                                <SearchCheckIcon className="mr-1 h-4 w-4" />
+                                PC Report
+                            </Button>
                         )}
                     </div>
                 </dd>
