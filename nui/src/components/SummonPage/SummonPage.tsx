@@ -94,7 +94,7 @@ const SummonInnerComp: React.FC<SummonInnerComp> = ({
         <Box className={boxClasses.title}>
           <SummonIcon />
           <Typography variant="h3" style={{ fontWeight: 700 }}>
-            PC Check
+            בדיקת מחשב
           </Typography>
           <SummonIcon />
         </Box>
@@ -105,22 +105,9 @@ const SummonInnerComp: React.FC<SummonInnerComp> = ({
             textAlign: "center",
           }}
         >
-          You have been selected for a PC check. Please enter the "Waiting for PC Check" state immediately.<br />
-          Do not delete any files or exit the game during the check.<br />
-          Please keep a recording starting from the moment you see this message until the check is complete.<br />
-          Thank you for your cooperation.
-        </Typography>
-        <hr />
-        <Typography
-          letterSpacing={1}
-          variant="h5"
-          style={{
-            textAlign: "center",
-          }}
-        >
-          אתה זומן לבדיקה במחשב. אנא היכנס למצב "Waiting for PC Check" מיד.<br />
-          אסור למחוק קבצים או לצאת מהמשחק בזמן הבדיקה.<br />
-          אנא שמור רישום (רקורד) מהשנייה שבה אתה רואה הודעה זו ועד סיום הבדיקה.<br />
+          זומנת לבדיקת מחשב. עליך להיכנס למצב "מחכה לבדיקה" באופן מיידי.<br />
+          חל איסור למחוק קבצים או לצאת מהמשחק במהלך הבדיקה.<br />
+          נא לשמור על הקלטה מהרגע שבו הודעה זו מופיעה ועד לסיום הבדיקה.<br />
           תודה על שיתוף הפעולה.
         </Typography>
       </Box>
@@ -163,23 +150,23 @@ const MainPageStyles = styled('div')(({
     gap: "1em",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(3, 3, 133, 0.95)",
+    backgroundColor: "rgba(133, 3, 3, 0.95)",
   },
   "@keyframes miniBounce": {
     "0%": {
-      backgroundColor: "rgba(3, 3, 133, 0.95)",
+      backgroundColor: "rgba(133, 3, 3, 0.95)",
     },
     "30%": {
-      backgroundColor: "rgba(3, 3, 133, 0.60)",
+      backgroundColor: "rgba(133, 3, 3, 0.60)",
     },
     "60%": {
-      backgroundColor: "rgba(3, 3, 133, 0.30)",
+      backgroundColor: "rgba(133, 3, 3, 0.30)",
     },
     "70%": {
-      backgroundColor: "rgba(3, 3, 133, 0.60)",
+      backgroundColor: "rgba(133, 3, 3, 0.60)",
     },
     "100%": {
-      backgroundColor: "rgba(3, 3, 133, 0.95)",
+      backgroundColor: "rgba(133, 3, 3, 0.95)",
     },
   },
   [`& .${mainClasses.miniBounce}`]: {

@@ -8,6 +8,7 @@ import playerResolver from '@lib/player/playerResolver';
 import { PlayerClass } from '@lib/player/playerClasses';
 import { formidable } from 'formidable';
 import path from 'path';
+import { sendPcReportLog } from '@modules/DiscordBot/discordHelpers';
 import fs from 'fs-extra';
 
 const console = consoleFactory(modulename);
@@ -85,6 +86,32 @@ export default async function PlayerPcCheck(ctx: AuthedCtx) {
             player.displayName
         );
         ctx.admin.logAction(`Created PC Check for player "${player.displayName}".`);
+
+        //Send discord log
+        if (txConfig.discordBot.pcReportLogChannel) {
+            try {
+                const discordId = allIds.find(id => typeof id === 'string' && id.startsWith('discord:'));
+                if (discordId) {
+                    const uid = discordId.substring(8);
+                    const member = await txCore.discordBot.guild?.members.fetch(uid);
+                    if (member) {
+                        sendPcReportLog(
+                            txConfig.discordBot.pcReportLogChannel,
+                            ctx.admin.name,
+                            member,
+                            supervisor,
+                            approver,
+                            caught === 'true',
+                            proofs,
+                        );
+                    }
+                }
+            } catch (error) {
+                //Don't fail the whole command if the role removal fails
+                console.error(`Failed to send PC report log: ${(error as Error).message}`);
+            }
+        }
+
         return ctx.send({ success: true, actionId });
     } catch (error) {
         return ctx.send({ error: `Failed to create PC Check: ${(error as Error).message}` });

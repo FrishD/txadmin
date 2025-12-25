@@ -5,7 +5,7 @@ import TxAnchor from '@/components/TxAnchor';
 import { cn } from '@/lib/utils';
 import { convertRowDateTime } from '@/lib/dateTime';
 import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2Icon, GavelIcon, AlertTriangleIcon, Undo2Icon, TimerOffIcon, TimerIcon, HourglassIcon, MicOffIcon, ShieldCheckIcon } from 'lucide-react';
+import { Loader2Icon, GavelIcon, AlertTriangleIcon, Undo2Icon, TimerOffIcon, TimerIcon, HourglassIcon, MicOffIcon, ShieldCheckIcon, Send } from 'lucide-react';
 import { useBackendApi } from '@/hooks/fetch';
 import { HistoryTableActionType, HistoryTableSearchResp, HistoryTableSearchType, HistoryTableSortingType } from '@shared/historyApiTypes';
 import { useOpenActionModal } from '@/hooks/actionModal';
@@ -50,7 +50,7 @@ function HistoryRow({ action, modalOpener }: HistoryRowProps) {
         rowId = <span className='tracking-wider text-success'>{action.id}</span>
     } else if (action.type === 'summon') {
         rowPrefix = <div className='flex items-center px-1 bg-info-hint text-info'>
-            <ShieldCheckIcon className='size-5' />
+            <Send className='size-5' />
         </div>
         rowId = <span className='tracking-wider text-info'>{action.id}</span>
     } else {

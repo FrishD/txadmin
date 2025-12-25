@@ -178,7 +178,9 @@ async function handleSummon(ctx: AuthedCtx, player: PlayerClass): Promise<Generi
             if (discordId) {
                 const uid = discordId.substring(8);
                 const member = await txCore.discordBot.guild?.members.fetch(uid);
-                if(member) sendPcCheckLog(txConfig.discordBot.pcCheckLogChannel, ctx.admin.name, member);
+                if (member) {
+                    sendPcCheckLog(txConfig.discordBot.pcCheckLogChannel, ctx.admin.name, member);
+                }
             }
         } catch (error) {
             //Don't fail the whole command if the role removal fails
