@@ -13,8 +13,6 @@ export type DatabasePlayerType = {
         lastAdmin: string | null;
         tsLastEdit: number | null;
     };
-    isTargeted?: boolean;
-    targetedBy?: string;
 };
 
 export type DatabaseActionBaseType = {
@@ -74,7 +72,12 @@ export type DatabaseActionSummonType = Omit<DatabaseActionBaseType, 'reason'> & 
     expiration: false;
 };
 
-export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType | DatabaseActionMuteType | DatabaseActionPcCheckType | DatabaseActionSummonType;
+export type DatabaseActionTargetType = {
+    type: 'target';
+    expiration: false;
+} & DatabaseActionBaseType;
+
+export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType | DatabaseActionMuteType | DatabaseActionPcCheckType | DatabaseActionSummonType | DatabaseActionTargetType;
 
 export type DatabaseWhitelistApprovalsType = {
     identifier: string;

@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash-es';
 import { DbInstance, SavePriority } from "../instance";
-import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType, DatabaseActionPcCheckType, DatabaseActionSummonType } from "../databaseTypes";
+import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionType, DatabaseActionWarnType, DatabaseActionWagerBlacklistType, DatabaseActionPcCheckType, DatabaseActionSummonType, DatabaseActionTargetType } from "../databaseTypes";
 import { genActionID } from "../dbUtils";
 import { now } from '@lib/misc';
 import { sendRevocationLog } from '@modules/DiscordBot/discordHelpers';
