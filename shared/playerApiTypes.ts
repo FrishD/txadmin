@@ -4,7 +4,7 @@ import { BanTemplatesDataType } from "./otherTypes";
 //Already compliant with new db specs
 export type PlayerHistoryItem = {
     id: string;
-    type: "ban" | "warn" | "wagerblacklist" | "mute" | "pc_check" | "summon";
+    type: "ban" | "warn" | "wagerblacklist" | "mute" | "pc_check" | "summon" | "target";
     author: string;
     reason: string;
     ts: number;

@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useActionModalStateValue } from "@/hooks/actionModal";
-import { GavelIcon, InfoIcon, ListIcon, Undo2Icon } from "lucide-react";
+import { CrosshairIcon, GavelIcon, InfoIcon, ListIcon, Undo2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import GenericSpinner from "@/components/GenericSpinner";
@@ -172,6 +172,11 @@ export default function ActionModal() {
             pageTitle = <>
                 <span className="text-info-inline font-mono mr-2">[{modalData.action.id}]</span>
                 Summoned {displayName}
+            </>;
+        } else if (modalData.action.type === 'target') {
+            pageTitle = <>
+                <span className="text-destructive-inline font-mono mr-2">[{modalData.action.id}]</span>
+                Targeted {displayName}
             </>;
         } else {
             throw new Error(`Unknown action type: ${modalData.action.type}`);

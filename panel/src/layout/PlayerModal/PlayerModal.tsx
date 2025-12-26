@@ -16,6 +16,7 @@ import PlayerBanTab from "./PlayerBanTab";
 import PlayerMuteTab from "./PlayerMuteTab";
 import PlayerWagerTab from "./PlayerWagerTab";
 import PlayerPcCheckTab from "./PlayerPcCheckTab";
+import PlayerTargetTab from "./PlayerTargetTab";
 import GenericSpinner from "@/components/GenericSpinner";
 import { cn } from "@/lib/utils";
 import { useBackendApi } from "@/hooks/fetch";
@@ -54,6 +55,11 @@ const modalTabs = [
     },
     {
         title: 'PC Report',
+        icon: <ShieldCheckIcon className="mr-2 h-5 w-5 hidden xs:block" />,
+        className: 'hover:bg-destructive hover:text-destructive-foreground',
+    },
+    {
+        title: 'Target',
         icon: <ShieldCheckIcon className="mr-2 h-5 w-5 hidden xs:block" />,
         className: 'hover:bg-destructive hover:text-destructive-foreground',
     }
@@ -185,6 +191,7 @@ export default function PlayerModal() {
                     <div className="flex flex-row md:flex-col gap-1 bg-muted md:bg-transparent p-1 md:p-0 mx-2 md:mx-0 rounded-md">
                         {modalTabs.map((tab) => {
                             if (tab.title === 'PC Report' && !isPcChecker) return null;
+                            if (tab.title === 'Target' && !isAdmin) return null;
                             if (tab.title === 'IDs' && !isAdmin) return null;
                             return <Button
                                 id={`player-modal-tab-${tab.title}`}
@@ -246,6 +253,7 @@ export default function PlayerModal() {
                                     refreshModalData={refreshModalData}
                                 />}
                                 {selectedTab === 'PC Report' && <PlayerPcCheckTab />}
+                                {selectedTab === 'Target' && <PlayerTargetTab />}
                             </>
                         )}
                     </ScrollArea>

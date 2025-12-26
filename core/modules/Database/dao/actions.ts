@@ -86,6 +86,55 @@ export default class ActionsDao {
 
 
     /**
+     * Registers a target action and returns its id
+     */
+    registerTarget(
+        ids: string[],
+        author: string,
+        reason: string,
+        playerName: string | false = false,
+    ): string {
+        //Sanity check
+        if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
+        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
+        if (typeof reason !== 'string' || !reason.length) throw new Error('Invalid reason.');
+        if (playerName !== false && (typeof playerName !== 'string' || !playerName.length)) throw new Error('Invalid playerName.');
+
+        //Saves it to the database
+        const timestamp = now();
+        try {
+            const actionID = genActionID(this.dbo, 'target');
+            const toDB: DatabaseActionTargetType = {
+                id: actionID,
+                type: 'target',
+                ids,
+                playerName,
+                author,
+                reason,
+                timestamp,
+                expiration: false,
+                revocation: {
+                    timestamp: null,
+                    approver: null,
+                    requestor: null,
+                    status: null,
+                },
+            };
+            this.chain.get('actions')
+                .push(toDB)
+                .value();
+            this.db.writeFlag(SavePriority.HIGH);
+            return actionID;
+        } catch (error) {
+            let msg = `Failed to register target to database with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
      * Registers a summon action and returns its id
      */
     registerSummon(
