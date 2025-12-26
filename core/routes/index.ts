@@ -60,9 +60,10 @@ export { default as player_stats } from './player/stats';
 export { default as player_search } from './player/search';
 export { default as player_modal } from './player/modal';
 export { default as player_actions } from './player/actions';
-export { default as player_target } from './player/target';
 export { default as player_checkJoin } from './player/checkJoin';
 export { default as player_pcCheck } from './player/pcCheck';
+export { default as player_target } from './player/target';
+export { default as player_untarget } from './player/untarget';
 
 export { default as whitelist_page } from './whitelist/page';
 export { default as whitelist_list } from './whitelist/list';

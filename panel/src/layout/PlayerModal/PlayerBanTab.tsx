@@ -34,9 +34,9 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
 
     useEffect(() => {
         getApproversApi({}).then((data) => {
-            if (Array.isArray(data)) {
-                const transformedData = data.map(name => ({ value: name, label: name }));
-                setApproversData(transformedData);
+            if (data) {
+                console.log('Approvers data received:', data);
+                setApproversData(data);
             }
         }).catch((error) => {
             console.error('Failed to fetch approvers:', error);

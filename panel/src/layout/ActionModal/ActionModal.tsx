@@ -173,6 +173,11 @@ export default function ActionModal() {
                 <span className="text-info-inline font-mono mr-2">[{modalData.action.id}]</span>
                 Summoned {displayName}
             </>;
+        } else if (modalData.action.type === 'target') {
+            pageTitle = <>
+                <span className="text-info-inline font-mono mr-2">[{modalData.action.id}]</span>
+                Targeted {displayName}
+            </>;
         } else {
             throw new Error(`Unknown action type: ${modalData.action.type}`);
         }

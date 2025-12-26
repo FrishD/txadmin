@@ -157,7 +157,7 @@ const pcReportLogChannel = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
-const pcTargetChannelId = typeNullableConfig({
+const pcTargetChannel = typeNullableConfig({
     name: 'PC Target Channel ID',
     default: null,
     validator: discordSnowflakeSchema.nullable(),
@@ -184,7 +184,7 @@ export default {
     historySearchLogChannel,
     pcCheckLogChannel,
     pcReportLogChannel,
-    pcTargetChannelId,
+    pcTargetChannel,
     embedJson,
     embedConfigJson,
 } as const;

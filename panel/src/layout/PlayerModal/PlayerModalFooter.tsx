@@ -1,7 +1,7 @@
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PlayerModalRefType, useClosePlayerModal } from "@/hooks/playerModal";
-import { AlertTriangleIcon, MailIcon, ShieldCheckIcon, SearchCheckIcon, CrosshairIcon } from "lucide-react";
+import { AlertTriangleIcon, MailIcon, ShieldCheckIcon, SearchCheckIcon } from "lucide-react";
 import { KickOneIcon } from '@/components/KickIcons';
 import { useBackendApi } from "@/hooks/fetch";
 import { useAdminPerms } from "@/hooks/auth";
@@ -41,10 +41,6 @@ export default function PlayerModalFooter({ playerRef, player }: PlayerModalFoot
     const playerSummonApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
         path: `/player/summon`,
-    });
-    const playerTargetApi = useBackendApi<GenericApiOkResp>({
-        method: 'POST',
-        path: `/player/target`,
     });
 
     const closeOnSuccess = (data: GenericApiOkResp) => {
@@ -92,16 +88,6 @@ export default function PlayerModalFooter({ playerRef, player }: PlayerModalFoot
                     success: closeOnSuccess,
                 });
             }
-        });
-    }
-
-    const handleTarget = () => {
-        if (!player) return;
-        playerTargetApi({
-            queryParams: playerRef,
-            genericHandler: { successMsg: 'Player target status updated.' },
-            toastLoadingMessage: 'Updating player target status...',
-            success: closeOnSuccess,
         });
     }
 
@@ -218,15 +204,6 @@ export default function PlayerModalFooter({ playerRef, player }: PlayerModalFoot
                 className="pl-2"
             >
                 <SearchCheckIcon className="h-5 mr-1" /> Summon
-            </Button>
-            <Button
-                variant='outline'
-                size='sm'
-                disabled={!hasPerm('players.manage') || !player}
-                onClick={handleTarget}
-                className="pl-2"
-            >
-                <CrosshairIcon className="h-5 mr-1" /> {player?.isTargeted ? 'Untarget' : 'Target'}
             </Button>
         </DialogFooter>
     )

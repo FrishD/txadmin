@@ -100,29 +100,6 @@ export default class PlayersDao {
 
 
     /**
-     * Toggles a player's target status.
-     */
-    togglePlayerTarget(license: string, adminName: string): DatabasePlayerType {
-        const playerDbObj = this.chain.get('players').find({ license });
-        if (!playerDbObj.value()) throw new Error('Player not found in database');
-
-        const currentStatus = playerDbObj.value().isTargeted ?? false;
-        const newStatus = !currentStatus;
-        const targetedBy = newStatus ? adminName : undefined;
-
-        this.db.writeFlag(SavePriority.LOW);
-        const newData = playerDbObj
-            .assign({ isTargeted: newStatus, targetedBy: targetedBy })
-            .cloneDeep()
-            .value();
-
-        const srcSymbol = Symbol('togglePlayerTarget');
-        txCore.fxPlayerlist.handleDbDataSync(newData, srcSymbol);
-        return newData;
-    }
-
-
-    /**
      * Revokes whitelist status of all players that match a filter function
      * @returns the number of revoked whitelists
      */

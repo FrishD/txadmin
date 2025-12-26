@@ -86,6 +86,66 @@ export default class ActionsDao {
 
 
     /**
+     * Registers a target action and returns its id
+     */
+    registerTarget(
+        ids: string[],
+        author: string,
+        reason: string,
+        playerName: string | false = false,
+    ): string {
+        //Sanity check
+        if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
+        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
+        if (typeof reason !== 'string' || !reason.length) throw new Error('Invalid reason.');
+        if (playerName !== false && (typeof playerName !== 'string' || !playerName.length)) throw new Error('Invalid playerName.');
+
+        //Saves it to the database
+        const timestamp = now();
+        try {
+            const actionID = genActionID(this.dbo, 'target');
+            const toDB: DatabaseActionTargetType = {
+                id: actionID,
+                type: 'target',
+                ids,
+                playerName,
+                reason,
+                author,
+                timestamp,
+                expiration: false,
+                revocation: {
+                    timestamp: null,
+                    approver: null,
+                    requestor: null,
+                    status: null,
+                },
+            };
+            this.chain.get('actions')
+                .push(toDB)
+                .value();
+            this.db.writeFlag(SavePriority.HIGH);
+
+            //Update player model
+            const license = ids.find(id => id.startsWith('license:'));
+            if(license){
+                const player = this.db.players.findOne(license);
+                if(player){
+                    const srcSymbol = Symbol('registerTarget');
+                    this.db.players.update(license, { isTargeted: true, targetedBy: author }, srcSymbol);
+                }
+            }
+
+            return actionID;
+        } catch (error) {
+            let msg = `Failed to register target to database with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
      * Registers a summon action and returns its id
      */
     registerSummon(
@@ -519,6 +579,18 @@ export default class ActionsDao {
         reason?: string,
     ): Promise<{ blacklistRoleRemoved: boolean }> {
         let blacklistRoleRemoved = false;
+
+        // Target specific logic
+        if (revokedAction.type === 'target') {
+            const license = revokedAction.ids.find(id => id.startsWith('license:'));
+            if (license) {
+                const player = this.db.players.findOne(license);
+                if (player) {
+                    const srcSymbol = Symbol('revokeTarget');
+                    this.db.players.update(license, { isTargeted: false, targetedBy: undefined }, srcSymbol);
+                }
+            }
+        }
 
         // Mute specific logic
         if (revokedAction.type === 'mute') {

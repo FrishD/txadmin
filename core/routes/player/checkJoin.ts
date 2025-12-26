@@ -130,8 +130,30 @@ export default async function PlayerCheckJoin(ctx: InitializedCtx) {
             if (!result.allow) return sendTypedResp(result);
         }
 
-        //If not blocked by ban/wl, allow join
-        // return sendTypedResp({ allow: false, reason: 'APPROVED, BUT TEMP BLOCKED (DEBUG)' });
+        //If not blocked by ban/wl, allow join & send target notification
+        try {
+            if (validIdsObject.license) {
+                const player = playerResolver(null, null, validIdsObject.license);
+                const dbData = player.getDbData();
+                if (dbData?.isTargeted && dbData?.targetedBy) {
+                    const admin = txCore.adminStore.getAdminByName(dbData.targetedBy);
+                    const mention = admin?.providers?.discord?.id ? `<@${admin.providers.discord.id}>` : dbData.targetedBy;
+                    const embed = {
+                        color: 0xFF8800,
+                        title: `🎯 Player Targeted`,
+                        description: `Player **${dbData.displayName}** has connected to the server.`,
+                        fields: [
+                            { name: 'Player', value: `[${dbData.displayName}](${ctx.protocol}://${ctx.host ?? 'localhost:40122'}/players?q=${dbData.license})`, inline: true },
+                            { name: 'Targeted By', value: mention, inline: true },
+                        ],
+                        timestamp: new Date().toISOString(),
+                    };
+                    txCore.discordBot.sendEmbed(txConfig.discordBot.pcTargetChannel, embed);
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to send target notification: ${(error as Error).message}`);
+        }
         return sendTypedResp({ allow: true });
     } catch (error) {
         const msg = `Failed to check ban/whitelist status: ${(error as Error).message}`;
