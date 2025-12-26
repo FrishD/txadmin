@@ -87,12 +87,16 @@ export default function ServerMenu() {
                 <MenuNavLink href="/server/console" disabled={!hasPerm('console.view')}>
                     <ChevronRightSquareIcon className="mr-2 h-4 w-4" />Live Console
                 </MenuNavLink>
-                <MenuNavLink href="/server/resources">
-                    <BoxIcon className="mr-2 h-4 w-4" />Resources
-                </MenuNavLink>
-                <MenuNavLink href="/server/wager-blacklist">
-                    <GavelIcon className="mr-2 h-4 w-4" />Wager Blacklist
-                </MenuNavLink>
+                {hasPerm('web.admin') && (
+                    <>
+                        <MenuNavLink href="/server/resources">
+                            <BoxIcon className="mr-2 h-4 w-4" />Resources
+                        </MenuNavLink>
+                        <MenuNavLink href="/server/wager-blacklist">
+                            <GavelIcon className="mr-2 h-4 w-4" />Wager Blacklist
+                        </MenuNavLink>
+                    </>
+                )}
                 <MenuNavLink href="/server/server-log" disabled={!hasPerm('server.log.view')}>
                     <EyeIcon className="mr-2 h-4 w-4" />Server Log
                 </MenuNavLink>

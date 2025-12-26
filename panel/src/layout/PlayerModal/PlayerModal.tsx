@@ -162,6 +162,13 @@ export default function PlayerModal() {
         </>;
     }
 
+    if (modalData?.player.isTargeted) {
+        pageTitle = <>
+            {pageTitle}
+            <span className="text-destructive-inline font-mono ml-2">[TARGETED BY: {modalData.player.targetedBy}]</span>
+        </>;
+    }
+
     return (
         <Dialog open={isModalOpen} onOpenChange={handleOpenClose}>
             <DialogContent
