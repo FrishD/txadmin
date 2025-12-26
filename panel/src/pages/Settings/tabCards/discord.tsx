@@ -35,6 +35,7 @@ export const pageConfigs = {
     rateLimitLogChannel: getPageConfig('discordBot', 'rateLimitLogChannel'),
     pcCheckLogChannel: getPageConfig('discordBot', 'pcCheckLogChannel'),
     pcReportLogChannel: getPageConfig('discordBot', 'pcReportLogChannel'),
+    pcTargetChannelId: getPageConfig('discordBot', 'pcTargetChannelId'),
     embedJson: getPageConfig('discordBot', 'embedJson'),
     embedConfigJson: getPageConfig('discordBot', 'embedConfigJson'),
 } as const;
@@ -66,6 +67,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
     const rateLimitLogChannelRef = useRef<HTMLInputElement | null>(null);
     const pcCheckLogChannelRef = useRef<HTMLInputElement | null>(null);
     const pcReportLogChannelRef = useRef<HTMLInputElement | null>(null);
+    const pcTargetChannelIdRef = useRef<HTMLInputElement | null>(null);
 
     //Marshalling Utils
     const emptyToNull = (str?: string) => {
@@ -88,6 +90,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
             rateLimitLogChannel: emptyToNull(rateLimitLogChannelRef.current?.value),
             pcCheckLogChannel: emptyToNull(pcCheckLogChannelRef.current?.value),
             pcReportLogChannel: emptyToNull(pcReportLogChannelRef.current?.value),
+            pcTargetChannelId: emptyToNull(pcTargetChannelIdRef.current?.value),
         };
 
         const res = getConfigDiff(cfg, states, overwrites, false);
@@ -292,6 +295,19 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                 />
                 <SettingItemDesc>
                     The ID of the channel to send PC report logs to.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem label="PC Target Channel ID" htmlFor={cfg.pcTargetChannelId.eid} showOptional>
+                <Input
+                    id={cfg.pcTargetChannelId.eid}
+                    ref={pcTargetChannelIdRef}
+                    defaultValue={cfg.pcTargetChannelId.initialValue}
+                    onInput={updatePageState}
+                    disabled={pageCtx.isReadOnly}
+                    placeholder='000000000000000000'
+                />
+                <SettingItemDesc>
+                    The ID of the channel to send player target notifications to.
                 </SettingItemDesc>
             </SettingItem>
             <SettingItem label="Status Embed JSON" htmlFor={cfg.embedJson.eid} required={states.botEnabled}>

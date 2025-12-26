@@ -72,7 +72,12 @@ export type DatabaseActionSummonType = Omit<DatabaseActionBaseType, 'reason'> & 
     expiration: false;
 };
 
-export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType | DatabaseActionMuteType | DatabaseActionPcCheckType | DatabaseActionSummonType;
+export type DatabaseActionTargetType = {
+    type: 'target';
+    expiration: false;
+} & DatabaseActionBaseType;
+
+export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType | DatabaseActionMuteType | DatabaseActionPcCheckType | DatabaseActionSummonType | DatabaseActionTargetType;
 
 export type DatabaseWhitelistApprovalsType = {
     identifier: string;
