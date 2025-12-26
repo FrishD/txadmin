@@ -13,6 +13,8 @@ export type DatabasePlayerType = {
         lastAdmin: string | null;
         tsLastEdit: number | null;
     };
+    isTargeted?: boolean;
+    targetedBy?: string;
 };
 
 export type DatabaseActionBaseType = {

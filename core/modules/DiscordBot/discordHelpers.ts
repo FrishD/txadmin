@@ -637,6 +637,43 @@ export const sendPlayerSearchLog = async (
 /**
  * Send a log of a history search to a discord channel
  */
+export const sendPlayerTargetNotification = async (
+    playerName: string,
+    adminName: string,
+) => {
+    const channelId = txConfig.discordBot.pcTargetChannelId;
+    if (!channelId) return;
+
+    const client = getDiscordBot();
+    const channel = client.channels.cache.get(channelId);
+    if (!channel || !channel.isTextBased()) {
+        console.warn(`The configured pcTargetChannelId '${channelId}' is not a valid text channel.`);
+        return;
+    }
+
+    const admin = txCore.adminStore.getAdminByName(adminName);
+    const adminMention = admin?.providers.discord
+        ? `<@${admin.providers.discord.id}>`
+        : adminName;
+
+    const embed = new EmbedBuilder({
+        title: '🎯 Player Targeted',
+        description: `Player **${playerName}** has connected to the server.`,
+        color: 0xFFD700, // Gold
+        timestamp: new Date(),
+        fields: [
+            { name: 'Targeted By', value: adminMention, inline: true },
+        ]
+    });
+
+    try {
+        await channel.send({ embeds: [embed] });
+    } catch (error) {
+        console.error(`Failed to send player target notification to discord channel with error: ${(error as Error).message}`);
+    }
+}
+
+
 export const sendHistorySearchLog = async (
     adminName: string,
     searchValue: string,

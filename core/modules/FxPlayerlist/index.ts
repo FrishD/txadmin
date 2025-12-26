@@ -5,6 +5,7 @@ import { DatabaseActionWarnType, DatabasePlayerType } from '@modules/Database/da
 import consoleFactory from '@lib/console';
 import { PlayerDroppedEventType, PlayerJoiningEventType } from '@shared/socketioTypes';
 import { SYM_SYSTEM_AUTHOR } from '@lib/symbols';
+import { sendPlayerTargetNotification } from '@modules/DiscordBot/discordHelpers';
 const console = consoleFactory(modulename);
 
 
@@ -184,6 +185,11 @@ export default class FxPlayerlist {
                 const svPlayer = new ServerPlayer(payload.id, payload.player, this);
                 this.#playerlist[payload.id] = svPlayer;
                 this.joinLeaveLog.push([currTs, true]);
+
+                //Check if player is targeted
+                if (svPlayer.dbData?.isTargeted && svPlayer.dbData.targetedBy) {
+                    sendPlayerTargetNotification(svPlayer.displayName, svPlayer.dbData.targetedBy);
+                }
                 txCore.logger.server.write([{
                     type: 'playerJoining',
                     src: payload.id,
