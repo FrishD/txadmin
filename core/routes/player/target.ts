@@ -1,34 +1,23 @@
-import { AuthedCtx } from "@lib/utils/httpTypes";
-import { Path, POST } from "fets";
-import { z } from "zod";
-import { guardAdmin, guardPermission } from "@lib/utils/httpAuth";
-import { DatabasePlayerType } from "@modules/Database/databaseTypes";
+import { AuthedCtx } from '@modules/WebServer/ctxTypes';
 
-const bodySchema = z.object({
-    license: z.string().regex(/^[0-9a-f]{40}$/),
-});
+//Handler for POST /player/target
+export default async function PlayerTarget(ctx: AuthedCtx) {
+    //Sanity check
+    if (typeof ctx.request.body?.license !== 'string') {
+        return ctx.send({ error: 'Invalid request body.' });
+    }
+    const { license } = ctx.request.body;
 
-export default (ctx: AuthedCtx) => {
-    return async (req: any, res: any) => {
-        const {
-            admin,
-            authedPlayer,
-        } = guardAdmin(ctx, req, res);
+    //Check permissions
+    if (!ctx.admin.testPermission('players.manage')) {
+        return ctx.send({ error: 'You don\'t have permission to execute this action.' });
+    }
 
-        // Check for permissions
-        const requiredPermission = "players.manage";
-        if (!authedPlayer.permissions.includes(requiredPermission)) {
-            return res.status(403).send({ error: "You don't have permission to do this." });
-        }
-
-        const { license } = await bodySchema.parseAsync(req.body);
-
-        try {
-            const updatedPlayer = txCore.db.players.togglePlayerTarget(license, admin.name);
-            return res.send(updatedPlayer);
-        } catch (error) {
-            console.error(`Failed to toggle player target: ${(error as Error).message}`);
-            return res.status(500).send({ error: "Failed to toggle player target." });
-        }
-    };
+    try {
+        const updatedPlayer = txCore.db.players.togglePlayerTarget(license, ctx.admin.name);
+        ctx.admin.logAction(`Toggled target status for license ${license}.`);
+        return ctx.send(updatedPlayer);
+    } catch (error) {
+        return ctx.send({ error: `Failed to toggle player target: ${(error as Error).message}` });
+    }
 };
