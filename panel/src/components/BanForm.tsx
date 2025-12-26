@@ -1,0 +1,346 @@
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useClosePlayerModal } from "@/hooks/playerModal";
+import { ClipboardPasteIcon, ExternalLinkIcon, Loader2Icon } from "lucide-react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { DropDownSelect, DropDownSelectContent, DropDownSelectItem, DropDownSelectTrigger } from "@/components/dropDownSelect";
+import { banDurationToShortString, banDurationToString, cn } from "@/lib/utils";
+import { Link, useLocation } from "wouter";
+import type { BanTemplatesDataType, GetApproversSuccessResp } from "@shared/otherTypes";
+import { useAdminPerms } from "@/hooks/auth";
+
+// Consts
+const reasonTruncateLength = 150;
+const ADD_NEW_SELECT_OPTION = '!add-new';
+const defaultDurations = ['permanent', '2 hours', '8 hours', '1 day', '2 days', '1 week', '2 weeks'];
+
+// Types
+type BanFormRespType = {
+    reason: string;
+    duration: string;
+    approver?: string;
+    blacklist?: boolean;
+}
+export type BanFormType = HTMLDivElement & {
+    focusReason: () => void;
+    clearData: () => void;
+    getData: () => BanFormRespType;
+    isLongBan: boolean;
+}
+type BanFormProps = {
+    banTemplates?: BanTemplatesDataType[]; //undefined = loading
+    approvers?: GetApproversSuccessResp; //undefined = loading
+    disabled?: boolean;
+    onNavigateAway?: () => void;
+};
+
+/**
+ * A form to set ban reason and duration.
+ */
+export default forwardRef(function BanForm({ banTemplates, approvers, disabled, onNavigateAway }: BanFormProps, ref) {
+    const reasonRef = useRef<HTMLInputElement>(null);
+    const customMultiplierRef = useRef<HTMLInputElement>(null);
+    const setLocation = useLocation()[1];
+    const [currentDuration, setCurrentDuration] = useState('2 days');
+    const [customUnits, setCustomUnits] = useState('days');
+    const [customDuration, setCustomDuration] = useState('');
+    const [selectedApprover, setSelectedApprover] = useState('');
+    const [blacklistStatus, setBlacklistStatus] = useState<'no' | 'yes'>('no');
+    const closeModal = useClosePlayerModal();
+
+    const { hasPerm } = useAdminPerms();
+    const isLongBan = useMemo(() => {
+        if (currentDuration === 'permanent' || currentDuration === '2 weeks') {
+            return true;
+        }
+        if (currentDuration === 'custom') {
+            const val = customDuration ? parseInt(customDuration, 10) : 0;
+            if (!val) return false;
+            if (customUnits === 'months') return true;
+            if (customUnits === 'weeks') return val >= 2;
+            if (customUnits === 'days') return val >= 14;
+            if (customUnits === 'hours') return val >= 336; // 14 * 24
+            return false;
+        }
+        // For other presets like '1 week', etc.
+        return false;
+    }, [currentDuration, customUnits, customDuration]);
+    const showApproverDropdown = isLongBan && !hasPerm('players.approve_bans');
+
+    // אם יש רק approver אחד, בחר אותו אוטומטית
+    useEffect(() => {
+        if (approvers && approvers.length === 1 && !selectedApprover) {
+            setSelectedApprover(approvers[0].name);
+        }
+    }, [approvers, selectedApprover]);
+
+    //Exposing methods to the parent
+    useImperativeHandle(ref, () => {
+        return {
+            getData: () => {
+                return {
+                    reason: reasonRef.current?.value.trim() || '',
+                    duration: currentDuration === 'custom'
+                        ? `${customDuration} ${customUnits}`
+                        : currentDuration,
+                    approver: selectedApprover,
+                    blacklist: blacklistStatus === 'yes',
+                };
+            },
+            clearData: () => {
+                if (!reasonRef.current || !customMultiplierRef.current) return;
+                reasonRef.current.value = '';
+                customMultiplierRef.current.value = '';
+                setCurrentDuration('2 days');
+                setCustomUnits('days');
+                setCustomDuration('');
+                setSelectedApprover('');
+                setBlacklistStatus('no');
+            },
+            focusReason: () => {
+                reasonRef.current?.focus();
+            },
+            isLongBan,
+        };
+    }, [reasonRef, customMultiplierRef, currentDuration, customUnits, customDuration, selectedApprover, isLongBan, blacklistStatus]);
+
+    const handleTemplateSelectChange = (value: string) => {
+        if (value === ADD_NEW_SELECT_OPTION) {
+            setLocation('/settings/ban-templates');
+            onNavigateAway?.();
+        } else {
+            if (!banTemplates) return;
+            const template = banTemplates.find(template => template.id === value);
+            if (!template) return;
+
+            const processedDuration = banDurationToString(template.duration);
+            if (defaultDurations.includes(processedDuration)) {
+                setCurrentDuration(processedDuration);
+            } else if (typeof template.duration === 'object') {
+                setCurrentDuration('custom');
+                setCustomDuration(template.duration.value.toString());
+                setCustomUnits(template.duration.unit);
+            }
+
+            reasonRef.current!.value = template.reason;
+            setTimeout(() => {
+                reasonRef.current!.focus();
+            }, 50);
+        }
+    }
+
+    //Ban templates render optimization
+    const processedTemplates = useMemo(() => {
+        if (!banTemplates) return;
+        return banTemplates.map((template, index) => {
+            const duration = banDurationToShortString(template.duration);
+            const reason = template.reason.length > reasonTruncateLength
+                ? template.reason.slice(0, reasonTruncateLength - 3) + '...'
+                : template.reason;
+            return (
+                <DropDownSelectItem
+                    key={index}
+                    value={template.id}
+                    className="focus:bg-secondary focus:text-secondary-foreground"
+                >
+                    <span
+                        className="inline-block pr-1 font-mono opacity-75 min-w-[4ch]"
+                    >{duration}</span> {reason}
+                </DropDownSelectItem>
+            );
+        });
+    }, [banTemplates]);
+
+    // Simplifying the jsx below
+    let banTemplatesContentNode: React.ReactNode;
+    if (!Array.isArray(banTemplates)) {
+        banTemplatesContentNode = (
+            <div className="text-secondary-foreground text-center p-4">
+                <Loader2Icon className="inline animate-spin size-6" />
+            </div>
+        );
+    } else {
+        if (!banTemplates.length) {
+            banTemplatesContentNode = (
+                <div className="text-warning-inline text-center p-4">
+                    You do not have any template configured. <br />
+                    <Link
+                        href="/settings/ban-templates"
+                        className="cursor-pointer underline hover:text-accent"
+                        onClick={() => { closeModal(); }}
+                    >
+                        Add Ban Template
+                        <ExternalLinkIcon className="inline mr-1 h-4" />
+                    </Link>
+                </div>
+            );
+        } else {
+            banTemplatesContentNode = <>
+                {processedTemplates}
+                <DropDownSelectItem
+                    value={ADD_NEW_SELECT_OPTION}
+                    className="font-bold text-warning-inline"
+                >
+                    Add Ban Template
+                    <ExternalLinkIcon className="inline mr-1 h-4" />
+                </DropDownSelectItem>
+            </>;
+        }
+    }
+
+    return (
+        <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
+                <Label htmlFor="banReason">
+                    Reason
+                </Label>
+                <div className="flex gap-1">
+                    <Input
+                        id="banReason"
+                        ref={reasonRef}
+                        placeholder="The reason for the ban, rule violated, etc."
+                        className="w-full"
+                        disabled={disabled}
+                        autoFocus
+                    />
+                    <DropDownSelect onValueChange={handleTemplateSelectChange} disabled={disabled}>
+                        <DropDownSelectTrigger className="tracking-wide">
+                            <button
+                                className={cn(
+                                    'size-10 inline-flex justify-center items-center rounded-md shrink-0',
+                                    'ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                                    'border bg-black/20 shadow-sm',
+                                    'hover:bg-primary hover:text-primary-foreground hover:border-primary',
+                                    'disabled:opacity-50 disabled:cursor-not-allowed',
+                                )}
+                            >
+                                <ClipboardPasteIcon className="size-5" />
+                            </button>
+                        </DropDownSelectTrigger>
+                        <DropDownSelectContent className="tracking-wide w-[calc(100vw-1rem)] sm:max-w-screen-sm" align="end">
+                            {banTemplatesContentNode}
+                        </DropDownSelectContent>
+                    </DropDownSelect>
+                </div>
+            </div>
+            <div className="flex flex-col gap-3">
+                <Label htmlFor="durationSelect">
+                    Duration
+                </Label>
+                <div className="space-y-1">
+                    <Select
+                        onValueChange={setCurrentDuration}
+                        value={currentDuration}
+                        disabled={disabled}
+                    >
+                        <SelectTrigger id="durationSelect" className="tracking-wide">
+                            <SelectValue placeholder="Select Duration" />
+                        </SelectTrigger>
+                        <SelectContent className="tracking-wide">
+                            <SelectItem value="custom" className="font-bold">Custom (set below)</SelectItem>
+                            <SelectItem value="2 hours">2 HOURS</SelectItem>
+                            <SelectItem value="8 hours">8 HOURS</SelectItem>
+                            <SelectItem value="1 day">1 DAY</SelectItem>
+                            <SelectItem value="2 days">2 DAYS</SelectItem>
+                            <SelectItem value="1 week">1 WEEK</SelectItem>
+                            <SelectItem value="2 weeks">2 WEEKS</SelectItem>
+                            <SelectItem value="permanent" className="font-bold">Permanent</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {currentDuration === 'permanent' && (
+                        <div className="flex flex-col gap-3 mt-4">
+                            <Label htmlFor="blacklist-select">
+                                Blacklist Status
+                            </Label>
+                            <Select
+                                onValueChange={(value) => setBlacklistStatus(value as 'no' | 'yes')}
+                                value={blacklistStatus}
+                                disabled={disabled}
+                            >
+                                <SelectTrigger id="blacklist-select" className="tracking-wide">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="tracking-wide">
+                                    <SelectItem value="no">
+                                        <span className="font-medium">Don't Add to Blacklist</span>
+                                        <span className="text-xs text-muted-foreground ml-2">(Ban only)</span>
+                                    </SelectItem>
+                                    <SelectItem value="yes" className="text-destructive font-medium">
+                                        <span>Add to Blacklist</span>
+                                        <span className="text-xs ml-2">(Permanent block)</span>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    <div className="flex flex-row gap-2">
+                        <Input
+                            id="durationMultiplier"
+                            type="number"
+                            placeholder="123"
+                            required
+                            disabled={currentDuration !== 'custom' || disabled}
+                            ref={customMultiplierRef}
+                            value={customDuration}
+                            onChange={(e) => setCustomDuration(e.target.value)}
+                        />
+                        <Select
+                            onValueChange={setCustomUnits}
+                            value={customUnits}
+                        >
+                            <SelectTrigger
+                                className="tracking-wide"
+                                id="durationUnits"
+                                disabled={currentDuration !== 'custom' || disabled}
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="tracking-wide">
+                                <SelectItem value="hours">HOURS</SelectItem>
+                                <SelectItem value="days">DAYS</SelectItem>
+                                <SelectItem value="weeks">WEEKS</SelectItem>
+                                <SelectItem value="months">MONTHS</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            </div>
+
+            {showApproverDropdown && (
+                <div className="flex flex-col gap-3">
+                    <Label htmlFor="approverSelect">
+                        Approver (Admin with Manage Admins permission)
+                        {approvers && approvers.length === 1 && (
+                            <span className="text-xs text-muted-foreground ml-2">(Auto-selected)</span>
+                        )}
+                    </Label>
+                    <Select
+                        onValueChange={setSelectedApprover}
+                        value={selectedApprover}
+                        disabled={disabled || (approvers?.length === 1)}
+                    >
+                        <SelectTrigger id="approverSelect" className="tracking-wide">
+                            <SelectValue placeholder="Select an admin with manage admins permission" />
+                        </SelectTrigger>
+                        <SelectContent className="tracking-wide">
+                            {!approvers ? (
+                                <SelectItem value="loading" disabled>Loading...</SelectItem>
+                            ) : approvers.length ? (
+                                approvers.map((approver) => (
+                                    <SelectItem key={approver.name} value={approver.name}>
+                                        {approver.name}
+                                    </SelectItem>
+                                ))
+                            ) : (
+                                <SelectItem value="none" disabled>
+                                    No admins with manage admins permission found.
+                                </SelectItem>
+                            )}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+        </div>
+    );
+});
