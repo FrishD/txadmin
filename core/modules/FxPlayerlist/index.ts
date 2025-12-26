@@ -187,9 +187,12 @@ export default class FxPlayerlist {
                 this.joinLeaveLog.push([currTs, true]);
 
                 //Check if player is targeted
-                if (svPlayer.dbData?.isTargeted && svPlayer.dbData.targetedBy) {
-                    sendPlayerTargetNotification(svPlayer.displayName, svPlayer.dbData.targetedBy);
+                const activeTargets = svPlayer.getHistory().filter(a => a.type === 'target' && a.revocation.timestamp === null);
+                if (activeTargets.length) {
+                    const authors = activeTargets.map(a => a.author);
+                    sendPlayerTargetNotification(svPlayer.displayName, authors);
                 }
+
                 txCore.logger.server.write([{
                     type: 'playerJoining',
                     src: payload.id,

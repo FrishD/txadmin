@@ -4,25 +4,66 @@ import { Textarea } from '@/components/ui/textarea';
 import { useBackendApi } from '@/hooks/fetch';
 import { usePlayerModalStateValue } from '@/hooks/playerModal';
 import { GenericApiOkResp } from '@shared/genericApiTypes';
+import { PlayerModalPlayerData } from '@shared/playerApiTypes';
 import { FormEvent, useState } from 'react';
+import { useAdminPerms } from '@/hooks/auth';
 
-export default function PlayerTargetTab() {
+type PlayerTargetTabProps = {
+    player: PlayerModalPlayerData;
+}
+
+export default function PlayerTargetTab({ player }: PlayerTargetTabProps) {
     const [reason, setReason] = useState('');
     const { playerRef } = usePlayerModalStateValue();
+    const { admin } = useAdminPerms();
 
     const targetApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
-        path: '/player/target',
+        path: '/player/actions',
     });
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         targetApi({
-            queryParams: playerRef,
+            queryParams: { ...playerRef, action: 'target' },
             data: { reason },
             genericHandler: { successMsg: 'Player targeted.' },
             toastLoadingMessage: 'Targeting player...',
         });
+    }
+
+    const handleAddMeToo = () => {
+        targetApi({
+            queryParams: { ...playerRef, action: 'target' },
+            data: { reason: 'Added to existing target.' },
+            genericHandler: { successMsg: 'Player targeted.' },
+            toastLoadingMessage: 'Targeting player...',
+        });
+    }
+
+    if (player.isTargeted) {
+        const isAdminTargeting = player.targetedBy?.includes(admin?.name ?? '');
+        return (
+            <div className="space-y-6">
+                <div className="space-y-2">
+                    <Label>Targeted by:</Label>
+                    <ul className="list-disc list-inside">
+                        {player.targetedBy?.map((adminName) => (
+                            <li key={adminName}>{adminName}</li>
+                        ))}
+                    </ul>
+                </div>
+                {isAdminTargeting ? (
+                    <p className="text-sm text-muted-foreground">You are already targeting this player.</p>
+                ) : (
+                    <div className="flex justify-end pt-4 border-t">
+                        <Button onClick={handleAddMeToo} className="px-8">
+                            Add me too
+                        </Button>
+                    </div>
+                )}
+            </div>
+        );
     }
 
     return (

@@ -171,7 +171,7 @@ export default function PlayerModal() {
     if (modalData?.player.isTargeted) {
         pageTitle = <>
             {pageTitle}
-            <span className="text-destructive-inline font-mono ml-2">[TARGETED BY: {modalData.player.targetedBy}]</span>
+            <span className="text-destructive-inline font-mono ml-2">[TARGETED BY: {modalData.player.targetedBy?.join(', ')}]</span>
         </>;
     }
 
@@ -253,7 +253,7 @@ export default function PlayerModal() {
                                     refreshModalData={refreshModalData}
                                 />}
                                 {selectedTab === 'PC Report' && <PlayerPcCheckTab />}
-                                {selectedTab === 'Target' && <PlayerTargetTab />}
+                                {selectedTab === 'Target' && <PlayerTargetTab player={modalData.player} />}
                             </>
                         )}
                     </ScrollArea>

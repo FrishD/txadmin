@@ -39,7 +39,7 @@ export type PlayerModalPlayerData = {
     tsLastConnection?: number; //only show if offline
     isWagerBlacklisted?: boolean;
     isTargeted?: boolean;
-    targetedBy?: string;
+    targetedBy?: string[];
 }
 
 export type PlayerModalSuccess = {
@@ -96,6 +96,7 @@ export type PlayersTablePlayerType = {
     isAdmin: boolean;
     isOnline: boolean;
     isWhitelisted: boolean;
+    isTargeted: boolean;
     // isBanned: boolean;
     // warnCount: number;
     // banCount: number;
