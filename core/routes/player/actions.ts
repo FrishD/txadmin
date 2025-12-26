@@ -61,6 +61,8 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleEditBanReason(ctx, player));
     } else if (action === 'target') {
         return sendTypedResp(await handleTarget(ctx, player));
+    } else if (action === 'untarget') {
+        return sendTypedResp(await handleUntarget(ctx, player));
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -563,6 +565,37 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
             console.error(`Failed to add role or send log: ${(error as Error).message}`);
         }
     }
+
+    return { success: true };
+}
+
+
+/**
+ * Handle Untarget
+ */
+async function handleUntarget(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Check permissions
+    if (!ctx.admin.testPermission('players.manage', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    //Validating server & player
+    const allIds = player.getAllIdentifiers();
+    if (!allIds.length) {
+        return { error: 'Cannot untarget a player with no identifiers.' };
+    }
+
+    //Revoke all active target actions
+    try {
+        await txCore.database.actions.revokeAllTargets(
+            allIds,
+            ctx.admin.name,
+            'Untargeted by admin.'
+        );
+    } catch (error) {
+        return { error: `Failed to untarget player: ${(error as Error).message}` };
+    }
+    ctx.admin.logAction(`Untargeted player "${player.displayName}".`);
 
     return { success: true };
 }

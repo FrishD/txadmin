@@ -86,6 +86,35 @@ export default class ActionsDao {
 
 
     /**
+     * Revokes all active target actions for a given set of identifiers
+     */
+    async revokeAllTargets(
+        ids: string[],
+        author: string,
+        reason?: string,
+    ): Promise<void> {
+        if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
+        if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
+
+        try {
+            const activeTargets = this.findMany(ids, undefined, {
+                type: 'target',
+                'revocation.timestamp': null,
+            });
+
+            for (const target of activeTargets) {
+                await this.approveRevoke(target.id, author, true, reason);
+            }
+        } catch (error) {
+            const msg = `Failed to revoke all targets with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+
+    /**
      * Registers a target action and returns its id
      */
     registerTarget(

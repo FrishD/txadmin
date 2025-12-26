@@ -32,6 +32,14 @@ export default function PlayerTargetTab({ player }: PlayerTargetTabProps) {
         });
     }
 
+    const handleUntarget = () => {
+        targetApi({
+            queryParams: { ...playerRef, action: 'untarget' },
+            genericHandler: { successMsg: 'Player untargeted.' },
+            toastLoadingMessage: 'Untargeting player...',
+        });
+    }
+
     const handleAddMeToo = () => {
         targetApi({
             queryParams: { ...playerRef, action: 'target' },
@@ -53,15 +61,16 @@ export default function PlayerTargetTab({ player }: PlayerTargetTabProps) {
                         ))}
                     </ul>
                 </div>
-                {isAdminTargeting ? (
-                    <p className="text-sm text-muted-foreground">You are already targeting this player.</p>
-                ) : (
-                    <div className="flex justify-end pt-4 border-t">
+                <div className="flex justify-end pt-4 border-t space-x-2">
+                    <Button onClick={handleUntarget} className="px-8" variant="destructive">
+                        Untarget
+                    </Button>
+                    {!isAdminTargeting && (
                         <Button onClick={handleAddMeToo} className="px-8">
                             Add me too
                         </Button>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         );
     }
