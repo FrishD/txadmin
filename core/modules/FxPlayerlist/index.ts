@@ -1,11 +1,11 @@
 const modulename = 'FxPlayerlist';
 import { cloneDeep } from 'lodash-es';
-import { ServerPlayer } from '../../lib/player/playerClasses.js';
-import { DatabaseActionWarnType, DatabasePlayerType } from '../Database/databaseTypes';
-import consoleFactory from '../../lib/console';
-import { PlayerDroppedEventType, PlayerJoiningEventType } from '../../../shared/socketioTypes';
-import { SYM_SYSTEM_AUTHOR } from '../../lib/symbols';
-import { sendPlayerTargetNotification } from '../DiscordBot/discordHelpers';
+import { ServerPlayer } from '../../../lib/player/playerClasses.js';
+import { DatabaseActionWarnType, DatabasePlayerType } from '../../Database/databaseTypes';
+import consoleFactory from '../../../lib/console';
+import { PlayerDroppedEventType, PlayerJoiningEventType } from '../../../../shared/socketioTypes';
+import { SYM_SYSTEM_AUTHOR } from '../../../lib/symbols';
+import { sendPlayerTargetNotification } from '../../DiscordBot/discordHelpers';
 const console = consoleFactory(modulename);
 
 

@@ -1,8 +1,8 @@
-import { AuthedCtx } from "../../lib/utils/httpTypes";
+import { AuthedCtx } from "../../../lib/utils/httpTypes";
 import { Path, POST } from "fets";
 import { z } from "zod";
-import { guardAdmin, guardPermission } from "../../lib/utils/httpAuth";
-import { DatabasePlayerType } from "../../modules/Database/databaseTypes";
+import { guardAdmin, guardPermission } from "../../../lib/utils/httpAuth";
+import { DatabasePlayerType } from "../../../modules/Database/databaseTypes";
 
 const bodySchema = z.object({
     license: z.string().regex(/^[0-9a-f]{40}$/),
