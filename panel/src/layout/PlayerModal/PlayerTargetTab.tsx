@@ -17,15 +17,15 @@ export default function PlayerTargetTab({ player }: PlayerTargetTabProps) {
     const { playerRef } = usePlayerModalStateValue();
     const { admin } = useAdminPerms();
 
-    const targetApi = useBackendApi<GenericApiOkResp>({
+    const actionApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
-        path: '/player/actions',
     });
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        targetApi({
-            queryParams: { ...playerRef, action: 'target' },
+        actionApi({
+            path: '/player/actions/target',
+            queryParams: playerRef,
             data: { reason },
             genericHandler: { successMsg: 'Player targeted.' },
             toastLoadingMessage: 'Targeting player...',
@@ -33,16 +33,18 @@ export default function PlayerTargetTab({ player }: PlayerTargetTabProps) {
     }
 
     const handleUntarget = () => {
-        targetApi({
-            queryParams: { ...playerRef, action: 'untarget' },
+        actionApi({
+            path: '/player/actions/untarget',
+            queryParams: playerRef,
             genericHandler: { successMsg: 'Player untargeted.' },
             toastLoadingMessage: 'Untargeting player...',
         });
     }
 
     const handleAddMeToo = () => {
-        targetApi({
-            queryParams: { ...playerRef, action: 'target' },
+        actionApi({
+            path: '/player/actions/target',
+            queryParams: playerRef,
             data: { reason: 'Added to existing target.' },
             genericHandler: { successMsg: 'Player targeted.' },
             toastLoadingMessage: 'Targeting player...',
