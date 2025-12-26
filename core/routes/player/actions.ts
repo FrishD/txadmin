@@ -22,6 +22,7 @@ export default async function PlayerActions(ctx: AuthedCtx) {
     if (anyUndefined(ctx.params.action)) {
         return ctx.utils.error(400, 'Invalid Request');
     }
+    console.log('PLAYER ACTIONS:', ctx.params.action, ctx.request.body);
     const action = ctx.params.action;
     const { mutex, netid, license } = ctx.query;
     const sendTypedResp = (data: GenericApiResp) => ctx.send(data);
@@ -58,6 +59,8 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleUnmute(ctx, player));
     } else if (action === 'edit_ban_reason') {
         return sendTypedResp(await handleEditBanReason(ctx, player));
+    } else if (action === 'target') {
+        return sendTypedResp(await handleTarget(ctx, player));
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -595,4 +598,45 @@ async function handleEditBanReason(ctx: AuthedCtx, player: PlayerClass): Promise
     } catch (error) {
         return { error: `Failed to edit ban reason: ${(error as Error).message}` };
     }
+}
+
+
+/**
+ * Handle Target
+ */
+async function handleTarget(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Checking request
+    if (anyUndefined(
+        ctx.request.body,
+        ctx.request.body.reason,
+    )) {
+        return { error: 'Invalid request.' };
+    }
+    const reason = ctx.request.body.reason.trim() || 'no reason provided';
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.manage', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    //Validating server & player
+    const allIds = player.getAllIdentifiers();
+    if (!allIds.length) {
+        return { error: 'Cannot target a player with no identifiers.' };
+    }
+
+    //Register action
+    try {
+        txCore.database.actions.registerTarget(
+            allIds,
+            ctx.admin.name,
+            reason,
+            player.displayName,
+        );
+    } catch (error) {
+        return { error: `Failed to target player: ${(error as Error).message}` };
+    }
+    ctx.admin.logAction(`Targeted player "${player.displayName}": ${reason}`);
+
+    return { success: true };
 }
