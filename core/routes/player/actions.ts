@@ -22,6 +22,7 @@ export default async function PlayerActions(ctx: AuthedCtx) {
     if (anyUndefined(ctx.params.action)) {
         return ctx.utils.error(400, 'Invalid Request');
     }
+    console.log('PLAYER ACTIONS:', ctx.params.action, ctx.request.body);
     const action = ctx.params.action;
     const { mutex, netid, license } = ctx.query;
     const sendTypedResp = (data: GenericApiResp) => ctx.send(data);
@@ -42,6 +43,10 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleWarning(ctx, player));
     } else if (action === 'summon') {
         return sendTypedResp(await handleSummon(ctx, player));
+    } else if (action === 'target') {
+        return sendTypedResp(await handleTarget(ctx, player));
+    } else if (action === 'untarget') {
+        return sendTypedResp(await handleUntarget(ctx, player));
     } else if (action === 'ban') {
         return sendTypedResp(await handleBan(ctx, player));
     } else if (action === 'whitelist') {
@@ -183,7 +188,6 @@ async function handleSummon(ctx: AuthedCtx, player: PlayerClass): Promise<Generi
                 }
             }
         } catch (error) {
-            //Don't fail the whole command if the role removal fails
             console.error(`Failed to send summon log: ${(error as Error).message}`);
         }
     }
@@ -206,8 +210,77 @@ async function handleSummon(ctx: AuthedCtx, player: PlayerClass): Promise<Generi
 
 
 /**
- * Handle Banning command
+ * Handle Target Player
  */
+async function handleTarget(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Checking request
+    if (anyUndefined(
+        ctx.request.body,
+        ctx.request.body.reason,
+    )) {
+        return { error: 'Invalid request.' };
+    }
+    const reason = ctx.request.body.reason.trim() || 'no reason provided';
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.manage', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    //Validating player
+    const allIds = player.getAllIdentifiers();
+    if (!allIds.length) {
+        return { error: 'Cannot target a player with no identifiers.' };
+    }
+
+    //Register action
+    try {
+        txCore.database.actions.registerTarget(
+            allIds,
+            ctx.admin.name,
+            reason,
+            player.displayName,
+        );
+    } catch (error) {
+        return { error: `Failed to target player: ${(error as Error).message}` };
+    }
+    ctx.admin.logAction(`Targeted player "${player.displayName}": ${reason}`);
+
+    return { success: true };
+}
+
+
+/**
+ * Handle Untarget Player
+ */
+async function handleUntarget(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Check permissions
+    if (!ctx.admin.testPermission('players.manage', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    //Validating player
+    const allIds = player.getAllIdentifiers();
+    if (!allIds.length) {
+        return { error: 'Cannot untarget a player with no identifiers.' };
+    }
+
+    //Revoke all active target actions
+    try {
+        await txCore.database.actions.revokeAllTargets(
+            allIds,
+            ctx.admin.name,
+            'Untargeted by admin.'
+        );
+    } catch (error) {
+        return { error: `Failed to untarget player: ${(error as Error).message}` };
+    }
+    ctx.admin.logAction(`Untargeted player "${player.displayName}".`);
+
+    return { success: true };
+}
+
+
 /**
  * Handle Banning command
  */
@@ -305,17 +378,13 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
                 const discordId = allIds.find(id => typeof id === 'string' && id.startsWith('discord:'));
                 if (discordId) {
                     const uid = discordId.substring(8);
-
-                    // Use the updateBlacklistRoles function for proper role management
                     await txCore.discordBot.updateBlacklistRoles(uid, true);
-
                     ctx.admin.logAction(`Added blacklist role to "${player.displayName}".`);
                 } else {
                     console.warn(`Could not find Discord ID for ${player.displayName}, skipping blacklist role assignment.`);
                 }
             }
         } catch (error) {
-            //Don't fail the whole command if the role addition fails
             console.error(`Failed to add blacklist role: ${(error as Error).message}`);
         }
     }
@@ -556,7 +625,6 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
                 }
             }
         } catch (error) {
-            //Don't fail the whole command if the role removal fails
             console.error(`Failed to add role or send log: ${(error as Error).message}`);
         }
     }

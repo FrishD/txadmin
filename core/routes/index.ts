@@ -31,7 +31,6 @@ export { default as deployer_stepper } from './deployer/stepper';
 export { default as deployer_status } from './deployer/status';
 export { default as deployer_actions } from './deployer/actions';
 
-//FIXME join bantemplates with settings
 export { default as settings_getConfigs } from './settings/getConfigs';
 export { default as settings_saveConfigs } from './settings/saveConfigs';
 export { default as settings_getBanTemplates } from './banTemplates/getBanTemplates';
@@ -60,9 +59,9 @@ export { default as player_stats } from './player/stats';
 export { default as player_search } from './player/search';
 export { default as player_modal } from './player/modal';
 export { default as player_actions } from './player/actions';
-export { default as player_target } from './player/target';
 export { default as player_checkJoin } from './player/checkJoin';
 export { default as player_pcCheck } from './player/pcCheck';
+// REMOVED: player_target and player_untarget (now handled by player_actions)
 
 export { default as whitelist_page } from './whitelist/page';
 export { default as whitelist_list } from './whitelist/list';
@@ -78,7 +77,6 @@ export { default as advanced_actions } from './advanced/actions';
 export { default as admins_list } from './admins/list';
 export { default as discord_roles } from './discord';
 
-//FIXME: reorganizar TODAS rotas de logs, incluindo listagem e download
 export { default as serverLog } from './serverLog.js';
 export { default as serverLogPartial } from './serverLogPartial.js';
 

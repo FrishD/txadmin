@@ -5,7 +5,7 @@ import TxAnchor from '@/components/TxAnchor';
 import { cn } from '@/lib/utils';
 import { convertRowDateTime } from '@/lib/dateTime';
 import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2Icon, GavelIcon, AlertTriangleIcon, Undo2Icon, TimerOffIcon, TimerIcon, HourglassIcon, MicOffIcon, ShieldCheckIcon, Send } from 'lucide-react';
+import { Loader2Icon, GavelIcon, AlertTriangleIcon, Undo2Icon, TimerOffIcon, TimerIcon, HourglassIcon, MicOffIcon, ShieldCheckIcon, Send, CrosshairIcon } from 'lucide-react';
 import { useBackendApi } from '@/hooks/fetch';
 import { HistoryTableActionType, HistoryTableSearchResp, HistoryTableSearchType, HistoryTableSortingType } from '@shared/historyApiTypes';
 import { useOpenActionModal } from '@/hooks/actionModal';
@@ -53,6 +53,11 @@ function HistoryRow({ action, modalOpener }: HistoryRowProps) {
             <Send className='size-5' />
         </div>
         rowId = <span className='tracking-wider text-info'>{action.id}</span>
+    } else if (action.type === 'target') {
+        rowPrefix = <div className='flex items-center px-1 bg-destructive-hint text-destructive'>
+            <CrosshairIcon className='size-5' />
+        </div>
+        rowId = <span className='tracking-wider text-destructive'>{action.id}</span>
     } else {
         throw new Error(`Invalid action type: ${(action as any).type}`);
     }

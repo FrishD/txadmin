@@ -39,6 +39,12 @@ export default async function PlayerSearch(ctx: AuthedCtx) {
     const searchTime = new TimeCounter();
     const adminsIdentifiers = txCore.adminStore.getAdminsIdentifiers();
     const onlinePlayersLicenses = txCore.fxPlayerlist.getOnlinePlayersLicenses();
+    const targetedPlayers = new Set(
+        txCore.database.actions.getRaw()
+            .filter(a => a.type === 'target' && a.revocation.timestamp === null)
+            .flatMap(a => a.ids)
+            .filter(id => id.startsWith('license:'))
+    );
     const dbo = txCore.database.getDboRef();
     let chain = dbo.chain.get('players').clone(); //shallow clone to avoid sorting the original
     /*
@@ -171,6 +177,7 @@ export default async function PlayerSearch(ctx: AuthedCtx) {
             isAdmin: p.ids.some((id) => adminsIdentifiers.includes(id)),
             isOnline: onlinePlayersLicenses.has(p.license),
             isWhitelisted: p.tsWhitelisted ? true : false,
+            isTargeted: targetedPlayers.has(p.license),
             // isBanned: boolean,
             // warnCount: number,
             // banCount: number,

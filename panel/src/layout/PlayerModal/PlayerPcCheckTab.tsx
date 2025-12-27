@@ -12,7 +12,6 @@ import { FormEvent, useEffect, useState } from 'react';
 import { usePlayerModalStateValue } from '@/hooks/playerModal';
 import { GenericApiOkResp } from '@shared/genericApiTypes';
 import { Textarea } from '@/components/ui/textarea';
-import { GetApproversSuccessResp } from '@shared/otherTypes';
 import { Upload, X } from 'lucide-react';
 
 export default function PlayerPcCheckTab() {
@@ -21,8 +20,8 @@ export default function PlayerPcCheckTab() {
     const [approver, setApprover] = useState<string | undefined>(undefined);
     const [reason, setReason] = useState('');
     const [proofs, setProofs] = useState<FileList | null>(null);
-    const [approvers, setApprovers] = useState<GetApproversSuccessResp>();
-    const [supervisors, setSupervisors] = useState<GetApproversSuccessResp>();
+    const [approvers, setApprovers] = useState<string[]>();
+    const [supervisors, setSupervisors] = useState<string[]>();
     const { playerRef } = usePlayerModalStateValue();
 
     const pcCheckApi = useBackendApi<GenericApiOkResp>({
@@ -30,7 +29,7 @@ export default function PlayerPcCheckTab() {
         path: '/player/pc_check',
     });
 
-    const getApproversApi = useBackendApi<GetApproversSuccessResp>({
+    const getApproversApi = useBackendApi<string[]>({
         method: 'GET',
         path: '/adminManager/getApprovers',
     });
@@ -43,7 +42,7 @@ export default function PlayerPcCheckTab() {
                 
                 // אם יש רק approver אחד, בחר אותו אוטומטית
                 if (data.length === 1) {
-                    setApprover(data[0].name);
+                    setApprover(data[0]);
                 }
             }
         });
@@ -121,8 +120,8 @@ export default function PlayerPcCheckTab() {
                                 <SelectItem value="loading" disabled>Loading...</SelectItem>
                             ) : supervisors.length ? (
                                 supervisors.map((admin) => (
-                                    <SelectItem key={admin.name} value={admin.name}>
-                                        {admin.name}
+                                    <SelectItem key={admin} value={admin}>
+                                        {admin}
                                     </SelectItem>
                                 ))
                             ) : (
@@ -155,8 +154,8 @@ export default function PlayerPcCheckTab() {
                                 <SelectItem value="loading" disabled>Loading...</SelectItem>
                             ) : approvers.length ? (
                                 approvers.map((admin) => (
-                                    <SelectItem key={admin.name} value={admin.name}>
-                                        {admin.name}
+                                    <SelectItem key={admin} value={admin}>
+                                        {admin}
                                     </SelectItem>
                                 ))
                             ) : (

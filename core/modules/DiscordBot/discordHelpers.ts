@@ -639,30 +639,30 @@ export const sendPlayerSearchLog = async (
  */
 export const sendPlayerTargetNotification = async (
     playerName: string,
-    adminName: string,
+    adminNames: string[],
 ) => {
-    const channelId = txConfig.discordBot.pcTargetChannelId;
+    const channelId = txConfig.discordBot.targetLogChannel;
     if (!channelId) return;
 
     const client = getDiscordBot();
     const channel = client.channels.cache.get(channelId);
     if (!channel || !channel.isTextBased()) {
-        console.warn(`The configured pcTargetChannelId '${channelId}' is not a valid text channel.`);
+        console.warn(`The configured targetLogChannel '${channelId}' is not a valid text channel.`);
         return;
     }
 
-    const admin = txCore.adminStore.getAdminByName(adminName);
-    const adminMention = admin?.providers.discord
-        ? `<@${admin.providers.discord.id}>`
-        : adminName;
+    const adminMentions = adminNames.map(adminName => {
+        const admin = txCore.adminStore.getAdminByName(adminName);
+        return admin?.providers.discord ? `<@${admin.providers.discord.id}>` : adminName;
+    });
 
     const embed = new EmbedBuilder({
-        title: '🎯 Player Targeted',
+        title: 'Player Targeted',
         description: `Player **${playerName}** has connected to the server.`,
         color: 0xFFD700, // Gold
         timestamp: new Date(),
         fields: [
-            { name: 'Targeted By', value: adminMention, inline: true },
+            { name: 'Targeted By', value: adminMentions.join(', '), inline: true },
         ]
     });
 

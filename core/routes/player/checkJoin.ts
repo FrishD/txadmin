@@ -11,6 +11,7 @@ import humanizeDuration, { Unit } from 'humanize-duration';
 import consoleFactory from '@lib/console';
 import { TimeCounter } from '@modules/Metrics/statsUtils';
 import { InitializedCtx } from '@modules/WebServer/ctxTypes';
+import { sendPlayerTargetNotification } from '@modules/DiscordBot/discordHelpers';
 const console = consoleFactory(modulename);
 const xss = xssInstancer();
 
@@ -130,8 +131,28 @@ export default async function PlayerCheckJoin(ctx: InitializedCtx) {
             if (!result.allow) return sendTypedResp(result);
         }
 
+        // Check if player is targeted and send Discord notification
+        if (txConfig.discordBot.targetLogChannel) {
+            try {
+                const activeTargets = txCore.database.actions.findMany(
+                    validIdsArray,
+                    undefined,
+                    (action: DatabaseActionType) => {
+                        return action.type === 'target' && !action.revocation.timestamp;
+                    }
+                );
+                
+                if (activeTargets.length > 0) {
+                    const adminNames = activeTargets.map(t => t.author);
+                    const uniqueAdminNames = [...new Set(adminNames)];
+                    sendPlayerTargetNotification(playerName, uniqueAdminNames);
+                }
+            } catch (error) {
+                console.error(`Failed to send target notification: ${(error as Error).message}`);
+            }
+        }
+
         //If not blocked by ban/wl, allow join
-        // return sendTypedResp({ allow: false, reason: 'APPROVED, BUT TEMP BLOCKED (DEBUG)' });
         return sendTypedResp({ allow: true });
     } catch (error) {
         const msg = `Failed to check ban/whitelist status: ${(error as Error).message}`;
@@ -140,7 +161,6 @@ export default async function PlayerCheckJoin(ctx: InitializedCtx) {
         return sendTypedResp({ error: msg });
     }
 };
-
 
 /**
  * Checks if the player is banned

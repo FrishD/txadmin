@@ -1,4 +1,4 @@
-const modulename = 'WebServer:PlayerTarget';
+const modulename = 'WebServer:PlayerUntarget';
 import playerResolver from '@lib/player/playerResolver';
 import { GenericApiResp } from '@shared/genericApiTypes';
 import { PlayerClass } from '@lib/player/playerClasses';
@@ -9,14 +9,13 @@ import { SYM_CURRENT_MUTEX } from '@lib/symbols';
 const console = consoleFactory(modulename);
 
 
-//Handler for POST /player/target
-export default async function PlayerTarget(ctx: AuthedCtx) {
+//Handler for POST /player/untarget
+export default async function PlayerUntarget(ctx: AuthedCtx) {
     //Sanity check
-    if (anyUndefined(ctx.query.license, ctx.request.body, ctx.request.body.reason)) {
+    if (anyUndefined(ctx.query.license)) {
         return ctx.utils.error(400, 'Invalid Request');
     }
     const { mutex, netid, license } = ctx.query;
-    const reason = ctx.request.body.reason.trim() || 'no reason provided';
     const sendTypedResp = (data: GenericApiResp) => ctx.send(data);
 
     //Finding the player
@@ -36,21 +35,20 @@ export default async function PlayerTarget(ctx: AuthedCtx) {
     //Validating player
     const allIds = player.getAllIdentifiers();
     if (!allIds.length) {
-        return sendTypedResp({ error: 'Cannot target a player with no identifiers.' });
+        return sendTypedResp({ error: 'Cannot untarget a player with no identifiers.' });
     }
 
-    //Register action
+    //Revoke all active target actions
     try {
-        txCore.database.actions.registerTarget(
+        await txCore.database.actions.revokeAllTargets(
             allIds,
             ctx.admin.name,
-            reason,
-            player.displayName,
+            'Untargeted by admin.'
         );
     } catch (error) {
-        return sendTypedResp({ error: `Failed to target player: ${(error as Error).message}` });
+        return sendTypedResp({ error: `Failed to untarget player: ${(error as Error).message}` });
     }
-    ctx.admin.logAction(`Targeted player "${player.displayName}": ${reason}`);
+    ctx.admin.logAction(`Untargeted player "${player.displayName}".`);
 
     return sendTypedResp({ success: true });
 };
