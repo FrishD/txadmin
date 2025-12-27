@@ -644,6 +644,9 @@ export const sendPlayerTargetNotification = async (
     const channelId = txConfig.discordBot.targetLogChannel;
     if (!channelId) return;
 
+    console.log(`Sending target notification for player: ${playerName}`);
+    console.log(`Admins to notify: ${adminNames.join(', ')}`);
+
     const client = getDiscordBot();
     const channel = client.channels.cache.get(channelId);
     if (!channel || !channel.isTextBased()) {
@@ -653,21 +656,23 @@ export const sendPlayerTargetNotification = async (
 
     const adminMentions = adminNames.map(adminName => {
         const admin = txCore.adminStore.getAdminByName(adminName);
-        return admin?.providers.discord ? `<@${admin.providers.discord.id}>` : adminName;
-    });
+        if (!admin) {
+            console.log(`Could not find admin with name: ${adminName}`);
+            return '';
+        }
+        if (!admin.providers.discord || !admin.providers.discord.id) {
+            console.log(`Admin ${adminName} does not have a Discord ID configured.`);
+            return '';
+        }
+        return `<@${admin.providers.discord.id}>`;
+    }).filter(mention => mention).join(' ');
+    console.log(`Admin mentions: ${adminMentions}`);
 
-    const embed = new EmbedBuilder({
-        title: 'Player Targeted',
-        description: `Player **${playerName}** has connected to the server.`,
-        color: 0xFFD700, // Gold
-        timestamp: new Date(),
-        fields: [
-            { name: 'Targeted By', value: adminMentions.join(', '), inline: true },
-        ]
-    });
+    const message = `Player **${playerName}** is joining the server. ${adminMentions}`;
 
     try {
-        await channel.send({ embeds: [embed] });
+        await channel.send(message);
+        console.log(`Target notification sent successfully.`);
     } catch (error) {
         console.error(`Failed to send player target notification to discord channel with error: ${(error as Error).message}`);
     }

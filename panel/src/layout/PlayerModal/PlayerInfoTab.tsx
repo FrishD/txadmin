@@ -213,8 +213,9 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
                 },
                 success: async (data) => {
                     if ('success' in data) {
-                        await new Promise(resolve => setTimeout(resolve, 300));
-                        refreshModalData();
+                        setTimeout(() => {
+                            refreshModalData();
+                        }, 500);
                     }
                 },
             });

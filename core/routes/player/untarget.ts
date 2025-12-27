@@ -40,7 +40,7 @@ export default async function PlayerUntarget(ctx: AuthedCtx) {
 
     //Revoke all active target actions
     try {
-        await txCore.database.actions.revokeAllTargets(
+        await txCore.database.actions.revokeTarget(
             allIds,
             ctx.admin.name,
             'Untargeted by admin.'
