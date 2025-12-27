@@ -19,12 +19,12 @@ export default function PlayerTargetTab({ player }: PlayerTargetTabProps) {
 
     const targetApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
-        path: '/player/actions/target',
+        path: '/player/target',
     });
 
     const untargetApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
-        path: '/player/actions/untarget',
+        path: '/player/untarget',
     });
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
