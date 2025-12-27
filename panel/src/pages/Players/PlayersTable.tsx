@@ -25,7 +25,10 @@ function PlayerRow({ rowData, modalOpener }: PlayerRowProps) {
     }
 
     return (
-        <TableRow onClick={openModal} className='cursor-pointer'>
+        <TableRow onClick={openModal} className={cn(
+            'cursor-pointer',
+            rowData.isTargeted && 'bg-blue-200 dark:bg-blue-900',
+        )}>
             <TableCell className={'px-4 py-2 flex justify-between border-r'}>
                 <span className='text-ellipsis overflow-hidden line-clamp-1 break-all'>
                     {rowData.displayName}

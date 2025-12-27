@@ -7,7 +7,7 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState }
 import { DropDownSelect, DropDownSelectContent, DropDownSelectItem, DropDownSelectTrigger } from "@/components/dropDownSelect";
 import { banDurationToShortString, banDurationToString, cn } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
-import type { BanTemplatesDataType, GetApproversSuccessResp } from "@shared/otherTypes";
+import type { BanTemplatesDataType } from "@shared/otherTypes";
 import { useAdminPerms } from "@/hooks/auth";
 
 // Consts
@@ -30,7 +30,7 @@ export type BanFormType = HTMLDivElement & {
 }
 type BanFormProps = {
     banTemplates?: BanTemplatesDataType[]; //undefined = loading
-    approvers?: GetApproversSuccessResp; //undefined = loading
+    approvers?: string[]; //undefined = loading
     disabled?: boolean;
     onNavigateAway?: () => void;
 };
@@ -71,7 +71,7 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
     // אם יש רק approver אחד, בחר אותו אוטומטית
     useEffect(() => {
         if (approvers && approvers.length === 1 && !selectedApprover) {
-            setSelectedApprover(approvers[0].name);
+            setSelectedApprover(approvers[0]);
         }
     }, [approvers, selectedApprover]);
 
@@ -328,8 +328,8 @@ export default forwardRef(function BanForm({ banTemplates, approvers, disabled, 
                                 <SelectItem value="loading" disabled>Loading...</SelectItem>
                             ) : approvers.length ? (
                                 approvers.map((approver) => (
-                                    <SelectItem key={approver.name} value={approver.name}>
-                                        {approver.name}
+                                    <SelectItem key={approver} value={approver}>
+                                        {approver}
                                     </SelectItem>
                                 ))
                             ) : (

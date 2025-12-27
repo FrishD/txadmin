@@ -68,6 +68,10 @@ export default async function PlayerModal(ctx: AuthedCtx) {
     const activeWagerBlacklist = player.getHistory().find(a => a.type === 'wagerblacklist' && a.revocation.timestamp === null);
     playerData.isWagerBlacklisted = !!activeWagerBlacklist;
 
+    const activeTargets = player.getHistory().filter(a => a.type === 'target' && a.revocation.timestamp === null);
+    playerData.isTargeted = activeTargets.length > 0;
+    playerData.targetedBy = activeTargets.map(a => a.author);
+
     if (player instanceof ServerPlayer) {
         playerData.netid = player.netid;
         playerData.sessionTime = Math.ceil((now() - player.tsConnected) / 60);

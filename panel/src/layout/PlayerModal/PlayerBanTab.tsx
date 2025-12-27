@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useBackendApi } from "@/hooks/fetch";
 import { GenericApiOkResp } from "@shared/genericApiTypes";
 import ModalCentralMessage from "@/components/ModalCentralMessage";
-import type { BanTemplatesDataType, GetApproversSuccessResp } from "@shared/otherTypes";
+import type { BanTemplatesDataType } from "@shared/otherTypes";
 import BanForm, { BanFormType } from "@/components/BanForm";
 import { txToast } from "@/components/TxToaster";
 
@@ -26,8 +26,8 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
         path: `/player/ban`,
         throwGenericErrors: true,
     });
-    const [approversData, setApproversData] = useState<GetApproversSuccessResp | undefined>(undefined);
-    const getApproversApi = useBackendApi<GetApproversSuccessResp>({
+    const [approversData, setApproversData] = useState<string[] | undefined>(undefined);
+    const getApproversApi = useBackendApi<string[]>({
         method: 'GET',
         path: '/adminManager/getApprovers',
     });
@@ -35,8 +35,7 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
     useEffect(() => {
         getApproversApi({}).then((data) => {
             if (Array.isArray(data)) {
-                const transformedData = data.map(name => ({ value: name, label: name }));
-                setApproversData(transformedData);
+                setApproversData(data);
             }
         }).catch((error) => {
             console.error('Failed to fetch approvers:', error);
@@ -64,7 +63,7 @@ export default function PlayerBanTab({ playerRef, banTemplates }: PlayerBanTabPr
         // אם יש בדיוק approver אחד ואין בחירה, השתמש בו אוטומטית
         let finalApprover = approver;
         if (isLongBan && !hasPerm('players.approve_bans') && !finalApprover && approversData?.length === 1) {
-            finalApprover = approversData[0].name;
+            finalApprover = approversData[0];
         }
 
         if (isLongBan && !hasPerm('players.approve_bans') && !finalApprover) {

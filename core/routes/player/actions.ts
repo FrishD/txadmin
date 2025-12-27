@@ -22,6 +22,7 @@ export default async function PlayerActions(ctx: AuthedCtx) {
     if (anyUndefined(ctx.params.action)) {
         return ctx.utils.error(400, 'Invalid Request');
     }
+    console.log('PLAYER ACTIONS:', ctx.params.action, ctx.request.body);
     const action = ctx.params.action;
     const { mutex, netid, license } = ctx.query;
     const sendTypedResp = (data: GenericApiResp) => ctx.send(data);
