@@ -252,9 +252,6 @@ export class DbInstance {
     private async writeDatabase() {
         try {
             await this.obj?.write();
-            if (this.obj) {
-                await this.obj.read();
-            }
         } catch (error) {
             console.error(`Failed to save players database with error: ${(error as Error).message}`);
             console.verbose.dir(error);

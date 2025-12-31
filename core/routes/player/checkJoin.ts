@@ -11,7 +11,6 @@ import humanizeDuration, { Unit } from 'humanize-duration';
 import consoleFactory from '@lib/console';
 import { TimeCounter } from '@modules/Metrics/statsUtils';
 import { InitializedCtx } from '@modules/WebServer/ctxTypes';
-import { sendPlayerTargetNotification } from '@modules/DiscordBot/discordHelpers';
 const console = consoleFactory(modulename);
 const xss = xssInstancer();
 
@@ -129,30 +128,6 @@ export default async function PlayerCheckJoin(ctx: InitializedCtx) {
             const result = await checkDiscordRoles(validIdsArray, validIdsObject, playerName);
             txCore.metrics.txRuntime.whitelistCheckTime.count(checkTime.stop().milliseconds);
             if (!result.allow) return sendTypedResp(result);
-        }
-
-        // Check if player is targeted and send Discord notification
-        console.log(`[TARGET DEBUG] Checking if player is targeted. Channel configured: ${!!txConfig.discordBot.targetLogChannel}`);
-        // Check if player is targeted and send Discord notification
-        try {
-            const activeTargets = txCore.database.actions.findMany(
-                validIdsArray,
-                undefined,
-                { 
-                    type: 'target', 
-                    'revocation.timestamp': null 
-                }
-            );
-            
-            if (activeTargets.length > 0) {
-                const adminNames = activeTargets.map((t: DatabaseActionType) => t.author);
-                const uniqueAdminNames = [...new Set(adminNames)];
-                
-                await sendPlayerTargetNotification(playerName, uniqueAdminNames);
-            }
-        } catch (error) {
-            console.error(`[TARGET ERROR] Failed to send target notification: ${(error as Error).message}`);
-            console.verbose.dir(error);
         }
 
         //If not blocked by ban/wl, allow join

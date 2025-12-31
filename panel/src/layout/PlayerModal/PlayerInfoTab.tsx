@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { msToDuration, tsToLocaleDateTimeString } from "@/lib/dateTime";
 import { GenericApiOkResp } from "@shared/genericApiTypes";
 import { PlayerModalPlayerData } from "@shared/playerApiTypes";
-import { ShieldAlertIcon, Target } from "lucide-react";
+import { ShieldAlertIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import {
     Dialog,
@@ -128,24 +128,11 @@ type PlayerInfoTabProps = {
 }
 
 export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, setSelectedTab, refreshModalData }: PlayerInfoTabProps) {
-    const { hasPerm, admin } = useAdminPerms();
-    const [targetDialogOpen, setTargetDialogOpen] = useState(false);
-    const [targetReason, setTargetReason] = useState('');
-    const targetReasonRef = useRef<HTMLTextAreaElement>(null);
+    const { hasPerm } = useAdminPerms();
 
     const playerWhitelistApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
         path: `/player/whitelist`,
-    });
-
-    const targetApi = useBackendApi<GenericApiOkResp>({
-        method: 'POST',
-        path: `/player/target`,
-    });
-
-    const untargetApi = useBackendApi<GenericApiOkResp>({
-        method: 'POST',
-        path: `/player/untarget`,
     });
 
     const sessionTimeText = !player.sessionTime ? '--' : msToDuration(
@@ -199,88 +186,6 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
         });
     }
 
-    // Check if current admin is targeting this player
-    const isAdminTargeting = useMemo(() => {
-        if (!admin?.name || !player.targetedBy || player.targetedBy.length === 0) {
-            return false;
-        }
-        // Check if admin name appears in the targetedBy array
-        return player.targetedBy.includes(admin.name);
-    }, [admin?.name, player.targetedBy]);
-
-    console.log('[TARGET DEBUG Frontend] Player:', player.displayName);
-    console.log('[TARGET DEBUG Frontend] isTargeted:', player.isTargeted);
-    console.log('[TARGET DEBUG Frontend] targetedBy:', player.targetedBy);
-    console.log('[TARGET DEBUG Frontend] current admin:', admin?.name);
-    console.log('[TARGET DEBUG Frontend] isAdminTargeting:', isAdminTargeting);
-
-    const handleTargetClick = () => {
-        if (player.isTargeted && isAdminTargeting) {
-            // Untarget - admin is currently targeting
-            console.log('[TARGET DEBUG Frontend] Untargeting player');
-            untargetApi({
-                queryParams: playerRef,
-                data: {},
-                toastLoadingMessage: 'Removing target...',
-                genericHandler: {
-                    successMsg: 'Player untargeted.',
-                },
-                success: async (data) => {
-                    if ('success' in data) {
-                        console.log('[TARGET DEBUG Frontend] Untarget successful, refreshing...');
-                        setTimeout(() => {
-                            refreshModalData();
-                        }, 500);
-                    }
-                },
-            });
-        } else if (player.isTargeted && !isAdminTargeting) {
-            // Add me to existing target
-            console.log('[TARGET DEBUG Frontend] Adding to existing target');
-            targetApi({
-                queryParams: playerRef,
-                data: { reason: 'Added to existing target' },
-                toastLoadingMessage: 'Adding to target...',
-                genericHandler: {
-                    successMsg: 'Added to target list.',
-                },
-                success: async (data) => {
-                    if ('success' in data) {
-                        console.log('[TARGET DEBUG Frontend] Add to target successful, refreshing...');
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        refreshModalData();
-                    }
-                },
-            });
-        } else {
-            // New target - open dialog
-            console.log('[TARGET DEBUG Frontend] Opening target dialog for new target');
-            setTargetDialogOpen(true);
-            setTargetReason('');
-        }
-    }
-
-    const handleTargetSubmit = () => {
-        const reason = targetReasonRef.current?.value.trim() || 'no reason provided';
-        console.log('[TARGET DEBUG Frontend] Submitting new target with reason:', reason);
-        targetApi({
-            queryParams: playerRef,
-            data: { reason },
-            toastLoadingMessage: 'Targeting player...',
-            genericHandler: {
-                successMsg: 'Player targeted.',
-            },
-            success: async (data) => {
-                if ('success' in data) {
-                    console.log('[TARGET DEBUG Frontend] Target successful, refreshing...');
-                    setTargetDialogOpen(false);
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    refreshModalData();
-                }
-            },
-        });
-    }
-
     const playerBannedText: string | undefined = useMemo(() => {
         if (!player || !serverTime) return;
         let banExpiration;
@@ -301,27 +206,6 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
         }
     }, [player, serverTime]);
 
-    // Determine button text and variant based on current state
-    const { targetButtonText, targetButtonVariant } = useMemo(() => {
-        let text: string;
-        let variant: "outline" | "destructive";
-        
-        if (!player.isTargeted) {
-            text = 'Target';
-            variant = 'outline';
-        } else if (isAdminTargeting) {
-            text = 'Untarget';
-            variant = 'destructive';
-        } else {
-            text = 'Add Me';
-            variant = 'outline';
-        }
-
-        console.log('[TARGET DEBUG Frontend] Button state:', { text, variant, isTargeted: player.isTargeted, isAdminTargeting });
-        
-        return { targetButtonText: text, targetButtonVariant: variant };
-    }, [player.isTargeted, isAdminTargeting]);
-
     return <div className="p-1">
         {playerBannedText ? (
             <div className="w-full p-2 pr-3 mb-1 flex items-center justify-between space-x-4 rounded-lg border shadow-lg transition-all text-black/75 dark:text-white/90 border-warning/70 bg-warning-hint">
@@ -333,21 +217,6 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
                 </div>
             </div>
         ) : null}
-
-        {/* Target Warning Banner */}
-        {player.isTargeted && (
-            <div className="w-full p-2 pr-3 mb-1 flex items-center justify-between space-x-4 rounded-lg border shadow-lg transition-all text-black/75 dark:text-white/90 border-amber-500/70 bg-amber-50 dark:bg-amber-950/20">
-                <div className="flex-shrink-0 flex flex-col gap-2 items-center">
-                    <Target className="size-5 text-amber-600 dark:text-amber-400" />
-                </div>
-                <div className="flex-grow">
-                    <div className="text-sm font-semibold mb-0.5">Player Targeted</div>
-                    <div className="text-xs text-muted-foreground">
-                        By: {player.targetedBy?.join(', ') || 'Unknown'}
-                    </div>
-                </div>
-            </div>
-        )}
 
         <dl className="pb-2">
             {player.isConnected && <div className="py-0.5 grid grid-cols-3 gap-4 px-0">
@@ -399,11 +268,8 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
                 </dd>
             </div>
             
-            {/* Target Row */}
         </dl>
 
         <PlayerNotesBox player={player} playerRef={playerRef} refreshModalData={refreshModalData} />
-
-        {/* Target Dialog */}
     </div>;
 }
