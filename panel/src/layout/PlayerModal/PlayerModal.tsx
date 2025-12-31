@@ -16,7 +16,6 @@ import PlayerBanTab from "./PlayerBanTab";
 import PlayerMuteTab from "./PlayerMuteTab";
 import PlayerWagerTab from "./PlayerWagerTab";
 import PlayerPcCheckTab from "./PlayerPcCheckTab";
-import PlayerTargetTab from "./PlayerTargetTab";
 import GenericSpinner from "@/components/GenericSpinner";
 import { cn } from "@/lib/utils";
 import { useBackendApi } from "@/hooks/fetch";
@@ -58,11 +57,6 @@ const modalTabs = [
         icon: <ShieldCheckIcon className="mr-2 h-5 w-5 hidden xs:block" />,
         className: 'hover:bg-destructive hover:text-destructive-foreground',
     },
-    {
-        title: 'Target',
-        icon: <ShieldCheckIcon className="mr-2 h-5 w-5 hidden xs:block" />,
-        className: 'hover:bg-destructive hover:text-destructive-foreground',
-    }
 ]
 
 
@@ -168,12 +162,6 @@ export default function PlayerModal() {
         </>;
     }
 
-    if (modalData?.player.isTargeted) {
-        pageTitle = <>
-            {pageTitle}
-            <span className="text-destructive-inline font-mono ml-2">[TARGETED BY: {modalData.player.targetedBy?.join(', ')}]</span>
-        </>;
-    }
 
     return (
         <Dialog open={isModalOpen} onOpenChange={handleOpenClose}>
@@ -253,7 +241,6 @@ export default function PlayerModal() {
                                     refreshModalData={refreshModalData}
                                 />}
                                 {selectedTab === 'PC Report' && <PlayerPcCheckTab />}
-                                {selectedTab === 'Target' && <PlayerTargetTab player={modalData.player} />}
                             </>
                         )}
                     </ScrollArea>
