@@ -637,11 +637,14 @@ export const sendPlayerSearchLog = async (
 /**
  * Send a log of a history search to a discord channel
  */
+/**
+ * Send a notification when a targeted player joins the server
+ */
 export const sendPlayerTargetNotification = async (
     playerName: string,
     adminNames: string[],
 ) => {
-    const channelId = txConfig.discordBot.targetLogChannel;
+    const channelId = "1454107907099594864";
     if (!channelId) return;
 
     const client = getDiscordBot();
@@ -651,28 +654,35 @@ export const sendPlayerTargetNotification = async (
         return;
     }
 
-    const adminMentions = adminNames.map(adminName => {
-        const admin = txCore.adminStore.getAdminByName(adminName);
-        return admin?.providers.discord ? `<@${admin.providers.discord.id}>` : adminName;
-    });
+    // Build admin mentions efficiently
+    const adminMentions = adminNames
+        .map(adminName => {
+            const admin = txCore.adminStore.getAdminByName(adminName);
+            return admin?.providers?.discord?.id ? `<@${admin.providers.discord.id}>` : null;
+        })
+        .filter(Boolean)
+        .join(' ');
+
+    if (!adminMentions) {
+        console.warn(`No admins with Discord IDs found for player target: ${playerName}`);
+        return;
+    }
 
     const embed = new EmbedBuilder({
-        title: 'Player Targeted',
-        description: `Player **${playerName}** has connected to the server.`,
-        color: 0xFFD700, // Gold
-        timestamp: new Date(),
+        title: '🎯 Target Player Detected',
+        description: `Player **${playerName}** is joining the server.`,
+        color: embedColors.warning,
         fields: [
-            { name: 'Targeted By', value: adminMentions.join(', '), inline: true },
+            { name: 'Notifying Admins', value: adminMentions, inline: false },
         ]
     });
 
     try {
         await channel.send({ embeds: [embed] });
     } catch (error) {
-        console.error(`Failed to send player target notification to discord channel with error: ${(error as Error).message}`);
+        console.error(`Failed to send player target notification: ${(error as Error).message}`);
     }
 }
-
 
 export const sendHistorySearchLog = async (
     adminName: string,

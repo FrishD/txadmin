@@ -164,12 +164,7 @@ const pcTargetChannelId = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
-const targetLogChannel = typeNullableConfig({
-    name: 'Target Log Channel ID',
-    default: null,
-    validator: discordSnowflakeSchema.nullable(),
-    fixer: SYM_FIXER_DEFAULT,
-});
+const targetLogChannel = "1454107907099594864";
 
 
 export default {

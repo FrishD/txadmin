@@ -18,13 +18,13 @@ const console = consoleFactory(modulename);
  * Actions route for the player modal
  */
 export default async function PlayerActions(ctx: AuthedCtx) {
-    //Sanity check
+    const action = ctx.params.action;
+    const { mutex, netid, license } = ctx.query;
+    
     if (anyUndefined(ctx.params.action)) {
         return ctx.utils.error(400, 'Invalid Request');
     }
     console.log('PLAYER ACTIONS:', ctx.params.action, ctx.request.body);
-    const action = ctx.params.action;
-    const { mutex, netid, license } = ctx.query;
     const sendTypedResp = (data: GenericApiResp) => ctx.send(data);
 
     //Finding the player
@@ -47,6 +47,8 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleTarget(ctx, player));
     } else if (action === 'untarget') {
         return sendTypedResp(await handleUntarget(ctx, player));
+    } else if (action === 'remove_all_targets') {
+        return sendTypedResp(await handleRemoveAllTargets(ctx, player));
     } else if (action === 'ban') {
         return sendTypedResp(await handleBan(ctx, player));
     } else if (action === 'whitelist') {
@@ -250,8 +252,11 @@ async function handleTarget(ctx: AuthedCtx, player: PlayerClass): Promise<Generi
 }
 
 
+
 /**
  * Handle Untarget Player
+ * This function should only remove the target from the CURRENT admin,
+ * not all admins who have targeted the player.
  */
 async function handleUntarget(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
     //Check permissions
@@ -265,11 +270,11 @@ async function handleUntarget(ctx: AuthedCtx, player: PlayerClass): Promise<Gene
         return { error: 'Cannot untarget a player with no identifiers.' };
     }
 
-    //Revoke all active target actions
+    //Revoke only THIS admin's target action
     try {
-        await txCore.database.actions.revokeAllTargets(
+        await txCore.database.actions.revokeTarget(
             allIds,
-            ctx.admin.name,
+            ctx.admin.name,  // Only revoke targets by THIS admin
             'Untargeted by admin.'
         );
     } catch (error) {
@@ -280,6 +285,36 @@ async function handleUntarget(ctx: AuthedCtx, player: PlayerClass): Promise<Gene
     return { success: true };
 }
 
+/**
+ * Handle Remove All Targets
+ * This removes ALL target actions from ALL admins for this player
+ */
+async function handleRemoveAllTargets(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Check permissions
+    if (!ctx.admin.testPermission('players.manage', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    //Validating player
+    const allIds = player.getAllIdentifiers();
+    if (!allIds.length) {
+        return { error: 'Cannot remove targets from a player with no identifiers.' };
+    }
+
+    //Revoke ALL target actions for this player
+    try {
+        await txCore.database.actions.revokeAllTargets(
+            allIds,
+            ctx.admin.name,
+            'All targets removed by admin.'
+        );
+    } catch (error) {
+        return { error: `Failed to remove all targets: ${(error as Error).message}` };
+    }
+    ctx.admin.logAction(`Removed all targets from player "${player.displayName}".`);
+
+    return { success: true };
+}
 
 /**
  * Handle Banning command

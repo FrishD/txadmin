@@ -199,11 +199,25 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
         });
     }
 
-    const isAdminTargeting = player.targetedBy?.includes(admin?.name ?? '');
+    // Check if current admin is targeting this player
+    const isAdminTargeting = useMemo(() => {
+        if (!admin?.name || !player.targetedBy || player.targetedBy.length === 0) {
+            return false;
+        }
+        // Check if admin name appears in the targetedBy array
+        return player.targetedBy.includes(admin.name);
+    }, [admin?.name, player.targetedBy]);
+
+    console.log('[TARGET DEBUG Frontend] Player:', player.displayName);
+    console.log('[TARGET DEBUG Frontend] isTargeted:', player.isTargeted);
+    console.log('[TARGET DEBUG Frontend] targetedBy:', player.targetedBy);
+    console.log('[TARGET DEBUG Frontend] current admin:', admin?.name);
+    console.log('[TARGET DEBUG Frontend] isAdminTargeting:', isAdminTargeting);
 
     const handleTargetClick = () => {
         if (player.isTargeted && isAdminTargeting) {
-            // Untarget - admin is targeting
+            // Untarget - admin is currently targeting
+            console.log('[TARGET DEBUG Frontend] Untargeting player');
             untargetApi({
                 queryParams: playerRef,
                 data: {},
@@ -213,13 +227,16 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
                 },
                 success: async (data) => {
                     if ('success' in data) {
-                        await new Promise(resolve => setTimeout(resolve, 300));
-                        refreshModalData();
+                        console.log('[TARGET DEBUG Frontend] Untarget successful, refreshing...');
+                        setTimeout(() => {
+                            refreshModalData();
+                        }, 500);
                     }
                 },
             });
         } else if (player.isTargeted && !isAdminTargeting) {
             // Add me to existing target
+            console.log('[TARGET DEBUG Frontend] Adding to existing target');
             targetApi({
                 queryParams: playerRef,
                 data: { reason: 'Added to existing target' },
@@ -229,13 +246,15 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
                 },
                 success: async (data) => {
                     if ('success' in data) {
-                        await new Promise(resolve => setTimeout(resolve, 300));
+                        console.log('[TARGET DEBUG Frontend] Add to target successful, refreshing...');
+                        await new Promise(resolve => setTimeout(resolve, 500));
                         refreshModalData();
                     }
                 },
             });
         } else {
             // New target - open dialog
+            console.log('[TARGET DEBUG Frontend] Opening target dialog for new target');
             setTargetDialogOpen(true);
             setTargetReason('');
         }
@@ -243,6 +262,7 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
 
     const handleTargetSubmit = () => {
         const reason = targetReasonRef.current?.value.trim() || 'no reason provided';
+        console.log('[TARGET DEBUG Frontend] Submitting new target with reason:', reason);
         targetApi({
             queryParams: playerRef,
             data: { reason },
@@ -252,8 +272,9 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
             },
             success: async (data) => {
                 if ('success' in data) {
+                    console.log('[TARGET DEBUG Frontend] Target successful, refreshing...');
                     setTargetDialogOpen(false);
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     refreshModalData();
                 }
             },
@@ -280,20 +301,26 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
         }
     }, [player, serverTime]);
 
-    // Determine button text and variant
-    let targetButtonText: string;
-    let targetButtonVariant: "outline" | "destructive";
-    
-    if (!player.isTargeted) {
-        targetButtonText = 'Target';
-        targetButtonVariant = 'outline';
-    } else if (isAdminTargeting) {
-        targetButtonText = 'Untarget';
-        targetButtonVariant = 'destructive';
-    } else {
-        targetButtonText = 'Add Me';
-        targetButtonVariant = 'outline';
-    }
+    // Determine button text and variant based on current state
+    const { targetButtonText, targetButtonVariant } = useMemo(() => {
+        let text: string;
+        let variant: "outline" | "destructive";
+        
+        if (!player.isTargeted) {
+            text = 'Target';
+            variant = 'outline';
+        } else if (isAdminTargeting) {
+            text = 'Untarget';
+            variant = 'destructive';
+        } else {
+            text = 'Add Me';
+            variant = 'outline';
+        }
+
+        console.log('[TARGET DEBUG Frontend] Button state:', { text, variant, isTargeted: player.isTargeted, isAdminTargeting });
+        
+        return { targetButtonText: text, targetButtonVariant: variant };
+    }, [player.isTargeted, isAdminTargeting]);
 
     return <div className="p-1">
         {playerBannedText ? (
@@ -316,7 +343,7 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
                 <div className="flex-grow">
                     <div className="text-sm font-semibold mb-0.5">Player Targeted</div>
                     <div className="text-xs text-muted-foreground">
-                        By: {player.targetedBy?.join(', ')}
+                        By: {player.targetedBy?.join(', ') || 'Unknown'}
                     </div>
                 </div>
             </div>
@@ -373,61 +400,10 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
             </div>
             
             {/* Target Row */}
-            <div className="py-0.5 grid grid-cols-3 gap-4 px-0">
-                <dt className="text-sm font-medium leading-6 text-muted-foreground">Target Status</dt>
-                <dd className="text-sm leading-6 mt-0">
-                    {player.isTargeted ? (
-                        <span className="text-amber-600 dark:text-amber-400 font-medium">
-                            Targeted
-                        </span>
-                    ) : (
-                        <span className="text-muted-foreground">Not Targeted</span>
-                    )}
-                </dd>
-                <dd className="text-right">
-                    <Button
-                        variant={targetButtonVariant}
-                        size='inline'
-                        style={{ minWidth: '8.25ch' }}
-                        onClick={handleTargetClick}
-                        disabled={!hasPerm('players.manage')}
-                    >
-                        {targetButtonText}
-                    </Button>
-                </dd>
-            </div>
         </dl>
 
         <PlayerNotesBox player={player} playerRef={playerRef} refreshModalData={refreshModalData} />
 
         {/* Target Dialog */}
-        <Dialog open={targetDialogOpen} onOpenChange={setTargetDialogOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Target Player</DialogTitle>
-                    <DialogDescription>
-                        You will be notified when this player joins the server.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-2">
-                    <Label htmlFor="targetReason">Reason</Label>
-                    <Textarea
-                        ref={targetReasonRef}
-                        id="targetReason"
-                        placeholder="Provide a reason for targeting this player..."
-                        className="min-h-[100px]"
-                        defaultValue={targetReason}
-                    />
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => setTargetDialogOpen(false)}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleTargetSubmit}>
-                        Target Player
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
     </div>;
 }

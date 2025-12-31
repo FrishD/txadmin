@@ -84,11 +84,45 @@ export default class ActionsDao {
         }
     }
 
-
     /**
-     * Revokes all active target actions for a given set of identifiers
+     * Revokes all active target actions for a given set of identifiers.
      */
     async revokeAllTargets(
+        ids: string[],
+        approver: string,
+        reason?: string,
+    ): Promise<void> {
+        if (!Array.isArray(ids) || !ids.length) throw new Error('Invalid ids array.');
+        if (typeof approver !== 'string' || !approver.length) throw new Error('Invalid approver.');
+
+        try {
+            // Find all active targets for this player
+            const activeTargets = this.findMany(ids, undefined, {
+                type: 'target',
+                'revocation.timestamp': null,
+            });
+
+            console.log(`[REVOKE ALL TARGETS] Found ${activeTargets.length} active targets to revoke`);
+
+            // Revoke each one
+            for (const target of activeTargets) {
+                console.log(`[REVOKE ALL TARGETS] Revoking target ${target.id} by ${target.author}`);
+                await this.approveRevoke(target.id, approver, true, reason);
+            }
+
+            console.log(`[REVOKE ALL TARGETS] Successfully revoked all targets`);
+        } catch (error) {
+            const msg = `Failed to revoke all targets with message: ${(error as Error).message}`;
+            console.error(msg);
+            console.verbose.dir(error);
+            throw error;
+        }
+    }
+
+    /**
+     * Revokes an active target action for a given set of identifiers and a specific author.
+     */
+    async revokeTarget(
         ids: string[],
         author: string,
         reason?: string,
@@ -97,16 +131,21 @@ export default class ActionsDao {
         if (typeof author !== 'string' || !author.length) throw new Error('Invalid author.');
 
         try {
-            const activeTargets = this.findMany(ids, undefined, {
+            // Find the specific target by this author
+            const targetAction = this.findMany(ids, undefined, {
                 type: 'target',
+                author: author,
                 'revocation.timestamp': null,
-            });
+            })[0]; // Assuming one admin can only target a player once at a time
 
-            for (const target of activeTargets) {
-                await this.approveRevoke(target.id, author, true, reason);
+            if (targetAction) {
+                await this.approveRevoke(targetAction.id, author, true, reason);
+            } else {
+                //This is not an error, it's possible for an admin to click untarget twice
+                console.warn(`Could not find active target action for author "${author}" to revoke.`);
             }
         } catch (error) {
-            const msg = `Failed to revoke all targets with message: ${(error as Error).message}`;
+            const msg = `Failed to revoke target with message: ${(error as Error).message}`;
             console.error(msg);
             console.verbose.dir(error);
             throw error;

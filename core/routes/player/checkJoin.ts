@@ -132,24 +132,27 @@ export default async function PlayerCheckJoin(ctx: InitializedCtx) {
         }
 
         // Check if player is targeted and send Discord notification
-        if (txConfig.discordBot.targetLogChannel) {
-            try {
-                const activeTargets = txCore.database.actions.findMany(
-                    validIdsArray,
-                    undefined,
-                    (action: DatabaseActionType) => {
-                        return action.type === 'target' && !action.revocation.timestamp;
-                    }
-                );
-                
-                if (activeTargets.length > 0) {
-                    const adminNames = activeTargets.map(t => t.author);
-                    const uniqueAdminNames = [...new Set(adminNames)];
-                    sendPlayerTargetNotification(playerName, uniqueAdminNames);
+        console.log(`[TARGET DEBUG] Checking if player is targeted. Channel configured: ${!!txConfig.discordBot.targetLogChannel}`);
+        // Check if player is targeted and send Discord notification
+        try {
+            const activeTargets = txCore.database.actions.findMany(
+                validIdsArray,
+                undefined,
+                { 
+                    type: 'target', 
+                    'revocation.timestamp': null 
                 }
-            } catch (error) {
-                console.error(`Failed to send target notification: ${(error as Error).message}`);
+            );
+            
+            if (activeTargets.length > 0) {
+                const adminNames = activeTargets.map((t: DatabaseActionType) => t.author);
+                const uniqueAdminNames = [...new Set(adminNames)];
+                
+                await sendPlayerTargetNotification(playerName, uniqueAdminNames);
             }
+        } catch (error) {
+            console.error(`[TARGET ERROR] Failed to send target notification: ${(error as Error).message}`);
+            console.verbose.dir(error);
         }
 
         //If not blocked by ban/wl, allow join
