@@ -248,9 +248,9 @@ export default function ThreadPerfCard() {
             const timeStr = dateToLocaleTimeString(perfCursorData.snap.end, '2-digit', '2-digit');
             const dateStr = dateToLocaleDateString(perfCursorData.snap.end, 'short');
             const fullStr = isDateToday(perfCursorData.snap.end) ? timeStr : `${timeStr} - ${dateStr}`;
-            return (<>
-                (<span className="text-xs text-warning-inline font-mono">{fullStr}</span>)
-            </>);
+            return (
+                <span className="text-xs text-warning-inline font-mono">({fullStr})</span>
+            );
         } else {
             return dataAge.isStale ? '(minutes ago)' : '(last minute)';
         }
